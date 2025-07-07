@@ -48,3 +48,26 @@ jobs:
       - name: Test ts-crossplatform
         working-directory: packages/ts-crossplatform
         run: npm run test:coverage
+
+      - name: Bump patch version
+        working-directory: packages/ts-crossplatform
+        run: npm version patch --no-git-tag-version
+
+      - name: Get new version
+        working-directory: packages/ts-crossplatform
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Commit version bump
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add packages/ts-crossplatform/package.json
+          git commit -m "Bump @jsfsi-core/ts-crossplatform to version ${{ steps.version.outputs.version }} [skip ci]"
+          git push
+
+      - name: Publish to npm
+        working-directory: packages/ts-crossplatform
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
