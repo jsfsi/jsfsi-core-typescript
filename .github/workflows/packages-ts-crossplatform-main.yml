@@ -71,5 +71,5 @@ jobs:
       - name: Publish to npm
         working-directory: packages/ts-crossplatform
         run: |
-          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+          npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
           npm publish --access public
