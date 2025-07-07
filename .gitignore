@@ -16,10 +16,7 @@ yarn-error.log*
 .env
 .env.local
 .env.*.local
-!packages/typescript-nodejs/src/env/.env
-!packages/console/.env
-
-!packages/infrastructure/src/**/.env
+!packages/ts-nodejs/src/env/.env
 
 # IDE - VSCode
 .vscode/*
@@ -40,7 +37,5 @@ yarn-error.log*
 # System files
 .DS_Store
 Thumbs.db 
-
-ai-models/
 
 coverage/
