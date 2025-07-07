@@ -1,0 +1,38 @@
+{
+  "name": "@jsfsi-core/ts-crossplatform",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/src/index.d.ts",
+  "scripts": {
+    "build": "npm run lint && tsc && vite build",
+    "clean": "rm -rf dist && rm -rf node_modules && rm -rf coverage",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "lint": "npm run lint:fix && npm run format",
+    "lint:fix": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0 --fix",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "uuid": "11.1.0",
+    "zod": "3.25.67"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "3.2.4",
+    "vite": "7.0.0",
+    "vite-plugin-dts": "4.5.4",
+    "vitest": "3.2.4"
+  }
+}

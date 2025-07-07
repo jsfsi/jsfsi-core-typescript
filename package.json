@@ -1,0 +1,44 @@
+{
+  "name": "jsfsi-core-typescript",
+  "version": "1.0.0",
+  "description": "Typescript packages to be published to public npm",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsfsi/jsfsi-core-typescript.git"
+  },
+  "author": "jsfsi",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "clean": "npm run clean --workspaces",
+    "lint": "npm run lint --workspaces",
+    "setup": "rm -rf node_modules && npm run clean && npm ci",
+    "setup:clean": "rm -rf node_modules && npm run clean && rm -rf package-lock.json && npm install",
+    "test": "npm run test --workspaces",
+    "test:coverage": "npm run test:coverage --workspaces",
+    "update:deps": "ncu -u --workspaces"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.29.0",
+    "@types/node": "24.0.10",
+    "@typescript-eslint/eslint-plugin": "8.34.0",
+    "@typescript-eslint/parser": "8.34.0",
+    "concurrently": "9.1.2",
+    "eslint": "9.29.0",
+    "eslint-config-prettier": "10.1.5",
+    "eslint-plugin-import": "2.31.0",
+    "eslint-plugin-prettier": "5.4.1",
+    "eslint-plugin-unused-imports": "4.1.4",
+    "npm-check-updates": "18.0.1",
+    "prettier": "3.5.3",
+    "tsx": "4.20.3",
+    "typescript": "5.8.3",
+    "typescript-eslint": "8.34.0"
+  },
+  "engines": {
+    "node": "24.3.0",
+    "npm": "11.4.2"
+  }
+}
