@@ -1,0 +1,43 @@
+name: Typescript Cross Platform Pull Request
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'packages/ts-crossplatform/**'
+      - '.github/workflows/pr-packages-ts-crossplatform.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        id: npm_cache
+        with:
+          path: |
+            node_modules
+          key: ${{ runner.os }}-npm-pr-${{ hashFiles('package-lock.json') }}
+
+      - if: ${{ steps.npm_cache.outputs.cache-hit != 'true' }}
+        name: Install dependencies
+        run: npm run setup
+
+      - name: Build ts-crossplatform
+        working-directory: packages/ts-crossplatform
+        run: npm run build
+
+      - name: Test ts-crossplatform
+        working-directory: packages/ts-crossplatform
+        run: npm run test:coverage
