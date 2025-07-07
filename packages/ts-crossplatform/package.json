@@ -15,6 +15,9 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/src/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "npm run lint && tsc && vite build",
     "clean": "rm -rf dist && rm -rf node_modules && rm -rf coverage",
