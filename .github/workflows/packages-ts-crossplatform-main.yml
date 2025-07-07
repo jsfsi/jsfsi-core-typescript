@@ -72,4 +72,4 @@ jobs:
         working-directory: packages/ts-crossplatform
         run: |
           npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
-          npm publish --access public
+          npm publish --access public --workspace=false
