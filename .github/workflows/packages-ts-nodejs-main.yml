@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-publish:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -52,3 +52,26 @@ jobs:
       - name: Test ts-nodejs
         working-directory: packages/ts-nodejs
         run: npm run test:coverage
+
+      - name: Bump patch version
+        working-directory: packages/ts-nodejs
+        run: npm version patch --no-git-tag-version
+
+      - name: Get new version
+        working-directory: packages/ts-nodejs
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Commit version bump
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add packages/ts-nodejs/package.json
+          git commit -m "Bump @jsfsi-core/ts-nodejs to version ${{ steps.version.outputs.version }} [skip ci]"
+          git push
+
+      - name: Publish to npm
+        run: |
+          npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
+          cd packages/ts-nodejs
+          npm publish --access public

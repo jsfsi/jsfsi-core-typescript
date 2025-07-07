@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-publish:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -46,16 +46,6 @@ jobs:
       - name: Build ts-crossplatform
         working-directory: packages/ts-crossplatform
         run: npm run build
-
-      - name: Verify build output
-        working-directory: packages/ts-crossplatform
-        run: |
-          echo "=== Build Output ==="
-          ls -la dist/
-          echo "=== TypeScript declarations ==="
-          ls -la dist/src/
-          echo "=== Package contents ==="
-          npm pack --dry-run
 
       - name: Test ts-crossplatform
         working-directory: packages/ts-crossplatform
