@@ -6,6 +6,7 @@ on:
     paths:
       - 'package.json'
       - 'package-lock.json'
+      - 'tsconfig.json'
       - 'packages/ts-crossplatform/**'
       - '.github/workflows/packages-ts-crossplatform-main.yml'
 
