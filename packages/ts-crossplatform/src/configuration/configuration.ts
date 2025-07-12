@@ -1,6 +1,6 @@
-import { z, ZodSchema } from 'zod';
+import { z, ZodType } from 'zod';
 
-export const parseConfig = <T extends ZodSchema>(
+export const parseConfig = <T extends ZodType>(
   configSchema: T,
   env: unknown = process.env,
 ): z.infer<T> => {
