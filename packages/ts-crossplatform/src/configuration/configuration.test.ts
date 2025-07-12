@@ -33,7 +33,7 @@ describe('configuration', () => {
         }),
       ).toThrow(
         new Error(
-          'Invalid environment variables: [{"code":"invalid_type","expected":"number","received":"string","path":["foo"],"message":"Expected number, received string"}]',
+          'Invalid environment variables: [{"expected":"number","code":"invalid_type","path":["foo"],"message":"Invalid input: expected number, received string"}]',
         ),
       );
     });
