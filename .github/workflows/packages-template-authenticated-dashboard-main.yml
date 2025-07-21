@@ -1,0 +1,53 @@
+name: Build Template Authenticated Dashboard Main
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'tsconfig.json'
+      - 'packages/template-authenticated-dashboard/**'
+      - '.github/workflows/packages-template-authenticated-dashboard-main.yml'
+
+concurrency:
+  group: template-authenticated-dashboard-build
+  cancel-in-progress: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v4
+        id: npm_cache
+        with:
+          path: |
+            node_modules
+          key: ${{ runner.os }}-npm-main-${{ hashFiles('package-lock.json') }}
+
+      - if: ${{ steps.npm_cache.outputs.cache-hit != 'true' }}
+        name: Install dependencies
+        run: npm run setup
+
+      - name: Build template-authenticated-dashboard
+        working-directory: packages/template-authenticated-dashboard
+        run: npm run build
+
+      - name: Test template-authenticated-dashboard
+        working-directory: packages/template-authenticated-dashboard
+        run: npm run test:coverage
