@@ -1,0 +1,70 @@
+{
+  "app": {
+    "name": "Template Authenticated Dashboard"
+  },
+  "login": {
+    "title": "Login to your account",
+    "description": "Enter your email below to login to your account",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot your password?",
+    "orContinueWith": "Or continue with",
+    "submitWithUsernameAndPassword": "Login",
+    "submitWithGoogle": "Login with Google",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up",
+    "emailPlaceholder": "your@email.com",
+    "success": "Login successful",
+    "errors": {
+      "emailInvalid": "Invalid email address",
+      "passwordRequired": "Password is required",
+      "usernamePasswordFailed": "Failed to sign in with email and password",
+      "googleFailed": "Failed to sign in with Google"
+    }
+  },
+  "signup": {
+    "title": "Create an account",
+    "description": "Enter your email below to create an account",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "orContinueWith": "Or continue with",
+    "submitWithUsernameAndPassword": "Sign up",
+    "submitWithGoogle": "Sign up with Google",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "emailPlaceholder": "your@email.com",
+    "success": "Sign up successful",
+    "errors": {
+      "emailInvalid": "Invalid email address",
+      "passwordRequired": "Password is required",
+      "confirmPasswordRequired": "Please confirm your password",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "usernamePasswordFailed": "Failed to sign up with email and password",
+      "googleFailed": "Failed to sign up with Google"
+    }
+  },
+  "passwordReset": {
+    "title": "Reset your password",
+    "description": "Enter your email address and we will send you a link to reset your password",
+    "email": "Email",
+    "emailPlaceholder": "your@email.com",
+    "submit": "Send reset link",
+    "backToLogin": "Back to login",
+    "success": "Password reset email sent successfully",
+    "errors": {
+      "emailInvalid": "Invalid email address",
+      "emailRequired": "Email is required",
+      "failed": "Failed to send password reset email"
+    }
+  },
+  "appUser": {
+    "logOut": "Log out"
+  },
+  "languageToggle": {
+    "title": "Change language"
+  },
+  "themeToggle": {
+    "title": "Change theme"
+  }
+}

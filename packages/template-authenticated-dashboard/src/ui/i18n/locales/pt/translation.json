@@ -1,0 +1,70 @@
+{
+  "app": {
+    "name": "Template Authenticated Dashboard"
+  },
+  "login": {
+    "title": "Iniciar sessão",
+    "description": "Introduza o seu email para iniciar sessão",
+    "email": "Email",
+    "password": "Senha",
+    "forgotPassword": "Esqueceu a sua senha?",
+    "orContinueWith": "Ou continue com",
+    "submitWithUsernameAndPassword": "Entrar",
+    "submitWithGoogle": "Entrar com Google",
+    "noAccount": "Não tem uma conta?",
+    "signUp": "Registar",
+    "emailPlaceholder": "seu@email.com",
+    "success": "Início de sessão bem sucedido",
+    "errors": {
+      "emailInvalid": "Endereço de email inválido",
+      "passwordRequired": "A senha é obrigatória",
+      "usernamePasswordFailed": "Falha ao iniciar sessão com email e senha",
+      "googleFailed": "Falha ao iniciar sessão com Google"
+    }
+  },
+  "signup": {
+    "title": "Criar uma conta",
+    "description": "Introduza o seu email para criar uma conta",
+    "email": "Email",
+    "password": "Senha",
+    "confirmPassword": "Confirmar Senha",
+    "orContinueWith": "Ou continue com",
+    "submitWithUsernameAndPassword": "Registar",
+    "submitWithGoogle": "Registar com Google",
+    "alreadyHaveAccount": "Já tem uma conta?",
+    "signIn": "Iniciar sessão",
+    "emailPlaceholder": "seu@email.com",
+    "success": "Registo bem sucedido",
+    "errors": {
+      "emailInvalid": "Endereço de email inválido",
+      "passwordRequired": "A senha é obrigatória",
+      "confirmPasswordRequired": "Por favor confirme a sua senha",
+      "passwordsDoNotMatch": "As senhas não coincidem",
+      "usernamePasswordFailed": "Falha ao registar com email e senha",
+      "googleFailed": "Falha ao registar com Google"
+    }
+  },
+  "passwordReset": {
+    "title": "Redefinir a sua senha",
+    "description": "Introduza o seu endereço de email e enviaremos um link para redefinir a sua senha",
+    "email": "Email",
+    "emailPlaceholder": "seu@email.com",
+    "submit": "Enviar link de redefinição",
+    "backToLogin": "Voltar ao login",
+    "success": "Email de redefinição de senha enviado com sucesso",
+    "errors": {
+      "emailInvalid": "Endereço de email inválido",
+      "emailRequired": "O email é obrigatório",
+      "failed": "Falha ao enviar email de redefinição de senha"
+    }
+  },
+  "appUser": {
+    "logOut": "Terminar sessão"
+  },
+  "languageToggle": {
+    "title": "Alterar idioma"
+  },
+  "themeToggle": {
+    "title": "Alterar tema"
+  }
+}
