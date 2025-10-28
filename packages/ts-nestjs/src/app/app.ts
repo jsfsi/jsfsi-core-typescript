@@ -32,7 +32,8 @@ export const createApp = async ({ existentApp, existentLogger, appModule }: AppO
     throw new Error(`Configuration with token ${APP_CONFIG_TOKEN} not found`);
   }
 
-  const logger: LoggerService = existentLogger || new Logger();
+  const logger: LoggerService =
+    config.LOGGER_PROVIDER === 'NESTJS' || !existentLogger ? new Logger() : existentLogger;
 
   app.useLogger(logger);
 

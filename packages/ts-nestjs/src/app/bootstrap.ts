@@ -2,20 +2,27 @@ import * as path from 'path';
 import 'reflect-metadata';
 
 import { loadEnvConfig } from '@jsfsi-core-core/ts-nodejs';
-import { Logger, Type } from '@nestjs/common';
+import { Logger, LoggerService, Type } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { APP_CONFIG_TOKEN, AppConfig } from '../configuration/AppConfigurationService';
 
 import { createApp } from './app';
 
-export async function bootstrap(
-  appModule: Type,
-  configPath: string = path.resolve(__dirname, '../configuration'),
-) {
+type BootstrapOptions = {
+  appModule: Type;
+  configPath: string;
+  logger?: LoggerService;
+};
+
+export async function bootstrap({
+  appModule,
+  configPath = path.resolve(__dirname, '../configuration'),
+  logger: existentLogger,
+}: BootstrapOptions) {
   loadEnvConfig({ env: '', configPath });
 
-  const app = await createApp({ appModule });
+  const app = await createApp({ appModule, existentLogger });
 
   // Get the configuration using ConfigService with the proper token
   const configService = app.get(ConfigService);
@@ -27,6 +34,6 @@ export async function bootstrap(
 
   await app.listen(config.APP_PORT);
 
-  const logger = new Logger('NestJS App');
+  const logger = existentLogger || new Logger('NestJS App');
   logger.log(`NestJS App is running at http://localhost:${config.APP_PORT}`);
 }
