@@ -1,0 +1,67 @@
+{
+  "name": "@jsfsi-core/ts-nestjs",
+  "version": "0.0.1",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/src/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "npm run lint && tsc && vite build",
+    "clean": "rm -rf dist && rm -rf node_modules && rm -rf coverage",
+    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "lint": "npm run lint:fix && npm run format",
+    "lint:fix": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0 --fix",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@nestjs/cli": "11.0.10",
+    "@nestjs/common": "11.1.8",
+    "@nestjs/config": "4.0.2",
+    "@nestjs/core": "11.1.8",
+    "@nestjs/platform-express": "11.1.8",
+    "@jsfsi-core-core/ts-crossplatform": "file:../ts-crossplatform",
+    "@jsfsi-core-core/ts-nodejs": "file:../ts-nodejs",
+    "body-parser": "2.2.0",
+    "express": "5.1.0",
+    "reflect-metadata": "0.2.2",
+    "zod": "4.1.12"
+  },
+  "devDependencies": {
+    "@nestjs/testing": "11.1.8",
+    "@swc/core": "1.13.5",
+    "@types/supertest": "6.0.3",
+    "@vitest/coverage-v8": "4.0.4",
+    "supertest": "7.1.4",
+    "ts-node": "10.9.2",
+    "unplugin-swc": "1.5.8",
+    "vite": "7.1.12",
+    "vite-plugin-dts": "4.5.4",
+    "vitest": "4.0.4"
+  },
+  "peerDependenciesMeta": {
+    "body-parser": {
+      "optional": false
+    },
+    "express": {
+      "optional": false
+    }
+  },
+  "engines": {
+    "node": "24.10.0",
+    "npm": "11.6.1"
+  }
+}
