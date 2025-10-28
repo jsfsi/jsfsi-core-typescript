@@ -44,16 +44,7 @@ jobs:
         name: Install dependencies
         run: npm run setup
 
-      - name: Build ts-crossplatform
-        working-directory: packages/ts-crossplatform
-        run: npm run build
-
-      - name: Build ts-nodejs
-        working-directory: packages/ts-nodejs
-        run: npm run build
-
-      - name: Build ts-nestjs
-        working-directory: packages/ts-nestjs
+      - name: Build all packages
         run: npm run build
 
       - name: Test ts-nestjs
