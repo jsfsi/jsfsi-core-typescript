@@ -26,15 +26,14 @@ function registerBinding<T>({
   dynamicValue?: (context: ResolutionContext) => T;
   container: Container;
 }) {
+  /* v8 ignore else -- @preserve */
   if (instance) {
     container.bind<T>(type).toConstantValue(instance);
   } else if (dynamicValue) {
     container.bind<T>(type).toDynamicValue(dynamicValue);
-    /* c8 ignore start */
   } else {
     container.bind<T>(type).toSelf();
   }
-  /* c8 ignore end */
 }
 
 export const IoCContextProvider = ({ children, bindings }: IoCContextProviderProps) => {

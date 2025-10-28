@@ -55,9 +55,10 @@ export function AppUser() {
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            /* c8 ignore start */
-            side={isMobile ? 'bottom' : 'right'}
-            /* c8 ignore end */
+            side={
+              /* v8 ignore next -- @preserve */
+              isMobile ? 'bottom' : 'right'
+            }
             align="end"
             sideOffset={4}
           >

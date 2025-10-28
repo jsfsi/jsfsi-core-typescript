@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '../dropdown-menu';
 
-/* c8 ignore start */
+/* v8 ignore next -- @preserve */
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   const { t } = useTranslation();
@@ -49,4 +49,3 @@ export function ThemeToggle() {
     </DropdownMenu>
   );
 }
-/* c8 ignore end */
