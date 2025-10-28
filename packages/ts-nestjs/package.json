@@ -28,13 +28,14 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@jsfsi-core-core/ts-crossplatform": "file:../ts-crossplatform",
+    "@jsfsi-core-core/ts-nodejs": "file:../ts-nodejs",
     "@nestjs/cli": "11.0.10",
     "@nestjs/common": "11.1.8",
     "@nestjs/config": "4.0.2",
     "@nestjs/core": "11.1.8",
     "@nestjs/platform-express": "11.1.8",
-    "@jsfsi-core-core/ts-crossplatform": "file:../ts-crossplatform",
-    "@jsfsi-core-core/ts-nodejs": "file:../ts-nodejs",
+    "@nestjs/typeorm": "11.0.0",
     "body-parser": "2.2.0",
     "express": "5.1.0",
     "reflect-metadata": "0.2.2",
