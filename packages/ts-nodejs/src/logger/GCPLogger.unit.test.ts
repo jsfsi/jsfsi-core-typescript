@@ -343,4 +343,22 @@ describe('GCPLogger', () => {
       }),
     );
   });
+
+  it('uses default log levels when no logLevels option is provided', () => {
+    const consoleLogSpy = vi.spyOn(console, 'log').mockReturnValue();
+
+    const gcpLogger = new GCPLogger('test-module');
+
+    gcpLogger.log('test message');
+
+    expect(consoleLogSpy).toHaveBeenCalledTimes(1);
+    expect(consoleLogSpy).toHaveBeenCalledWith(
+      JSON.stringify({
+        severity: 'INFO',
+        module: 'test-module',
+        textPayload: 'test message',
+        message: { textPayload: 'test message' },
+      }),
+    );
+  });
 });

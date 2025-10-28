@@ -28,17 +28,16 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   public componentWillUnmount(): void {
-    window.removeEventListener('unhandledrejection', this.unhandledRejectionHandler);
+    window.removeEventListener('unhandledrejection', this.unhandledRejectionHandler.bind(this));
   }
 
-  /* c8 ignore start */
-  private readonly unhandledRejectionHandler = (event: PromiseRejectionEvent) => {
+  /* v8 ignore next -- @preserve */
+  private unhandledRejectionHandler(event: PromiseRejectionEvent): void {
     // eslint-disable-next-line no-console
     console.error(event.reason);
 
     this.setState({ hasError: true, error: event.reason });
-  };
-  /* c8 ignore end */
+  }
 
   public render() {
     if (this.state.hasError) {

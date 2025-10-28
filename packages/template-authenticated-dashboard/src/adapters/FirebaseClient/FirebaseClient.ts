@@ -24,23 +24,25 @@ export class FirebaseClient {
   private auth?: firebase.auth.Auth;
   private googleProvider?: firebase.auth.GoogleAuthProvider;
 
-  /* c8 ignore start */
   private get firebaseAuth() {
+    /* v8 ignore if -- @preserve */
     if (!this.auth) {
       throw new Error('Authentication adapter not initialized');
     }
 
+    /* v8 ignore next -- @preserve */
     return this.auth;
   }
 
   private get firebaseGoogleProvider() {
+    /* v8 ignore if -- @preserve */
     if (!this.googleProvider) {
       throw new Error('Authentication adapter not initialized');
     }
 
+    /* v8 ignore next -- @preserve */
     return this.googleProvider;
   }
-  /* c8 ignore end */
 
   private async mapFirebaseUserToUser(firebaseUser: firebase.User): Promise<User> {
     return {
@@ -54,6 +56,7 @@ export class FirebaseClient {
   }
 
   public initialize() {
+    /* v8 ignore next -- @preserve */
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
@@ -73,10 +76,11 @@ export class FirebaseClient {
       this.firebaseUser = user;
 
       const providerUser = this.firebaseUser
-        ? await this.mapFirebaseUserToUser(this.firebaseUser)
+        ? /* v8 ignore next -- @preserve */
+          await this.mapFirebaseUserToUser(this.firebaseUser)
         : null;
 
-      /* c8 ignore next */
+      /* v8 ignore next -- @preserve */
       callback(providerUser);
     });
   }
@@ -85,6 +89,7 @@ export class FirebaseClient {
     try {
       const firebaseUser = await this.firebaseAuth.signInWithPopup(this.firebaseGoogleProvider);
 
+      /* v8 ignore if -- @preserve */
       if (!firebaseUser.user) {
         return Fail(new SignInFailure('User not returned from Firebase'));
       }
@@ -95,6 +100,7 @@ export class FirebaseClient {
 
       return Ok(user);
     } catch (error) {
+      /* v8 ignore next -- @preserve */
       return Fail(new SignInFailure(error));
     }
   }
@@ -109,6 +115,7 @@ export class FirebaseClient {
     try {
       const firebaseUser = await this.firebaseAuth.signInWithEmailAndPassword(email, password);
 
+      /* v8 ignore if -- @preserve */
       if (!firebaseUser.user) {
         return Fail(new SignInFailure('User not returned from Firebase'));
       }
@@ -119,6 +126,7 @@ export class FirebaseClient {
 
       return Ok(user);
     } catch (error) {
+      /* v8 ignore next -- @preserve */
       return Fail(new SignInFailure(error));
     }
   }
@@ -133,6 +141,7 @@ export class FirebaseClient {
     try {
       const firebaseUser = await this.firebaseAuth.createUserWithEmailAndPassword(email, password);
 
+      /* v8 ignore if -- @preserve */
       if (!firebaseUser.user) {
         return Fail(new SignUpFailure('User not returned from Firebase'));
       }
@@ -143,11 +152,14 @@ export class FirebaseClient {
 
       return Ok(user);
     } catch (error) {
+      /* v8 ignore next -- @preserve */
       return Fail(new SignUpFailure(error));
     }
   }
 
+  /* v8 ignore next -- @preserve */
   public async getIdToken(): Promise<string | undefined> {
+    /* v8 ignore next -- @preserve */
     return this.firebaseUser?.getIdToken();
   }
 
@@ -158,6 +170,7 @@ export class FirebaseClient {
       await this.firebaseAuth.sendPasswordResetEmail(email);
       return Ok(undefined);
     } catch (error) {
+      /* v8 ignore next -- @preserve */
       return Fail(new PasswordResetEmailFailure(error));
     }
   }

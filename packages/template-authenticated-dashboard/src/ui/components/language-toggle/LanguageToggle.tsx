@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '../dropdown-menu';
 
-/* c8 ignore start */
+/* v8 ignore next -- @preserve */
 export function LanguageToggle() {
   const { i18n, t } = useTranslation();
 
@@ -56,4 +56,3 @@ export function LanguageToggle() {
     </DropdownMenu>
   );
 }
-/* c8 ignore end */
