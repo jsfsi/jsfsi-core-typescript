@@ -4,11 +4,11 @@ on:
     branches:
       - main
     paths:
-      - 'package.json'
-      - 'package-lock.json'
-      - 'tsconfig.json'
-      - 'packages/template-authenticated-dashboard/**'
-      - '.github/workflows/packages-template-authenticated-dashboard-main.yml'
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - "packages/template-authenticated-dashboard/**"
+      - ".github/workflows/packages-template-authenticated-dashboard-main.yml"
 
 concurrency:
   group: template-authenticated-dashboard-build
@@ -30,7 +30,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: ".nvmrc"
 
       - name: Cache npm dependencies
         uses: actions/cache@v4
@@ -44,8 +44,7 @@ jobs:
         name: Install dependencies
         run: npm run setup
 
-      - name: Build template-authenticated-dashboard
-        working-directory: packages/template-authenticated-dashboard
+      - name: Build
         run: npm run build
 
       - name: Test template-authenticated-dashboard
