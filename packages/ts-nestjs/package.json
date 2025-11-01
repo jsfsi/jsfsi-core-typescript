@@ -43,15 +43,15 @@
   },
   "devDependencies": {
     "@nestjs/testing": "11.1.8",
-    "@swc/core": "1.13.5",
+    "@swc/core": "1.14.0",
     "@types/supertest": "6.0.3",
-    "@vitest/coverage-v8": "4.0.4",
+    "@vitest/coverage-v8": "4.0.6",
     "supertest": "7.1.4",
     "ts-node": "10.9.2",
     "unplugin-swc": "1.5.8",
     "vite": "7.1.12",
     "vite-plugin-dts": "4.5.4",
-    "vitest": "4.0.4"
+    "vitest": "4.0.6"
   },
   "peerDependenciesMeta": {
     "body-parser": {
@@ -62,7 +62,7 @@
     }
   },
   "engines": {
-    "node": "24.10.0",
-    "npm": "11.6.1"
+    "node": "25.1.0",
+    "npm": "11.6.2"
   }
 }

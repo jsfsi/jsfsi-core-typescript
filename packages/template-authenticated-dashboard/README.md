@@ -202,7 +202,7 @@ export class FirebaseClient {
   }): Promise<Result<User, SignInFailure>> {
     try {
       const firebaseUser = await this.firebaseAuth.signInWithEmailAndPassword(email, password);
-      
+
       if (!firebaseUser.user) {
         return Fail(new SignInFailure('User not returned from Firebase'));
       }
@@ -382,7 +382,7 @@ export function LoginForm() {
 ```typescript
 async function authenticateAndGetProfile(
   email: string,
-  password: string
+  password: string,
 ): Promise<Result<Profile, SignInFailure | ProfileLoadFailure>> {
   const [user, signInFailure] = await authenticationService.signInWithEmailAndPassword({
     email,
@@ -422,7 +422,10 @@ async function authenticate(email: string, password: string): Promise<AuthResult
   }
 
   // Sign in
-  const [user, signInFailure] = await authenticationService.signIn(validated.email, validated.password);
+  const [user, signInFailure] = await authenticationService.signIn(
+    validated.email,
+    validated.password,
+  );
   if (isFailure(SignInFailure)(signInFailure)) {
     return Fail(signInFailure);
   }
@@ -459,7 +462,7 @@ Keep components focused and small:
 // ✅ Good - Focused component
 export function LoginForm() {
   const { signIn } = useAuth();
-  
+
   return (
     <form onSubmit={handleSubmit}>
       {/* Form fields */}
@@ -486,7 +489,7 @@ Extract logic into custom hooks:
 // ✅ Good - Custom hook
 export function useAuth() {
   const authenticationService = useInjection(AuthenticationService);
-  
+
   const signIn = async (email: string, password: string) => {
     return authenticationService.signInWithEmailAndPassword({ email, password });
   };
@@ -539,8 +542,8 @@ async function signIn(email, password) {
 
 ### Prerequisites
 
-- Node.js 24.10.0
-- npm 11.6.1
+- Node.js 25.1.0
+- npm 11.6.2
 - Firebase project (for authentication)
 
 ### Installation
@@ -558,7 +561,6 @@ cp .env.test .env
 ```
 
 3. Configure Firebase:
-
    - Create a Firebase project
    - Add your Firebase configuration to `.env`
 
