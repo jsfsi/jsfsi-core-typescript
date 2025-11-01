@@ -1101,6 +1101,12 @@ npm run lint
 npm run lint --workspace=@jsfsi-core/ts-crossplatform
 ```
 
+## 🙏 Contributors
+
+Special thanks to our key contributors:
+
+- **[Federico Gandellini](https://github.com/fgandellini)** - For invaluable contributions to improving the codebase.
+
 ## 📄 License
 
 ISC
