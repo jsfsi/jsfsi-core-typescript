@@ -1,0 +1,280 @@
+# JSFSI Core TypeScript - AI Coding Rules
+
+This file provides AI assistants with essential patterns, principles, and conventions for this codebase.
+
+## Architecture
+
+### Hexagonal Architecture (Ports and Adapters)
+
+- **Domain Layer**: Pure business logic with NO external dependencies
+- **Adapter Layer**: External integrations (database, APIs, file system) - only place for try-catch
+- **Application Layer**: Orchestrates domain services (UI, controllers, CLI)
+
+**Directory Structure:**
+
+```
+src/
+├── domain/          # Business logic (no external dependencies)
+│   ├── models/     # Domain entities and failures
+│   └── services/    # Domain services
+├── adapters/        # External integrations (edge of architecture)
+└── ui/             # Application layer (controllers, components)
+```
+
+## Error Handling
+
+### Result Pattern (MANDATORY)
+
+**ALWAYS use Result types for operations that can fail. NEVER throw exceptions in domain layer.**
+
+```typescript
+// ✅ CORRECT
+function getUser(id: string): Result<User, UserNotFoundFailure> {
+  if (!exists(id)) {
+    return Fail(new UserNotFoundFailure(id));
+  }
+  return Ok(findUser(id));
+}
+
+// ❌ WRONG - Don't throw in domain layer
+function getUser(id: string): User {
+  if (!exists(id)) {
+    throw new Error('Not found'); // NEVER DO THIS
+  }
+  return findUser(id);
+}
+```
+
+### Failure Checking (MANDATORY)
+
+**ALWAYS use `isFailure` and `notFailure` matchers. NEVER use `instanceof` directly.**
+
+```typescript
+// ✅ CORRECT
+const [user, failure] = await getUser(id);
+if (isFailure(UserNotFoundFailure)(failure)) {
+  // Handle error
+}
+
+// ❌ WRONG - Don't use instanceof
+if (failure instanceof UserNotFoundFailure) {
+  // NEVER DO THIS
+}
+```
+
+### Try-Catch (ONLY at edges)
+
+**Try-catch should ONLY exist in adapters (edges of hexagonal architecture).**
+
+```typescript
+// ✅ CORRECT - In adapter (edge)
+export class FirebaseClient {
+  async signIn(): Promise<Result<User, SignInFailure>> {
+    try {
+      const firebaseUser = await this.firebaseAuth.signInWithPopup(provider);
+      return Ok(mapToUser(firebaseUser));
+    } catch (error) {
+      // Convert exception to Result at edge
+      return Fail(new SignInFailure(error));
+    }
+  }
+}
+
+// ✅ CORRECT - Domain service (NO try-catch)
+export class AuthenticationService {
+  async signIn(): Promise<Result<User, SignInFailure>> {
+    // No try-catch - errors handled as Result types
+    return this.authAdapter.signIn();
+  }
+}
+```
+
+## Code Style
+
+### Curly Brackets (MANDATORY)
+
+**ALWAYS use curly brackets for control flow statements.**
+
+```typescript
+// ✅ CORRECT
+if (condition) {
+  return value;
+}
+
+// ❌ WRONG - No single-line if statements
+if (condition) return value;
+```
+
+### Naming Conventions
+
+- **Classes**: PascalCase (e.g., `UserService`, `SignInFailure`)
+- **Functions/Methods**: camelCase (e.g., `signIn()`, `getUser()`)
+- **Constants**: UPPER_SNAKE_CASE (e.g., `APP_CONFIG_TOKEN`)
+- **Failures**: Suffix with `Failure` (e.g., `SignInFailure`, `ValidationFailure`)
+
+### Functions
+
+- Use descriptive names
+- Prefer pure functions
+- Keep functions small and focused
+- Limit parameters (prefer objects for multiple params)
+
+## Domain-Driven Design
+
+### Domain Models
+
+- Failures are **part of the domain model**, not exceptions to it
+- Create specific failure classes for different error scenarios
+- Domain services contain business logic, not infrastructure concerns
+
+### Example:
+
+```typescript
+// Domain failure
+export class SignInFailure extends Failure {
+  constructor(public readonly error: unknown) {
+    super();
+  }
+}
+
+// Domain service
+export class AuthenticationService {
+  constructor(private readonly authAdapter: AuthenticationAdapter) {}
+
+  async signIn(email: string, password: string): Promise<Result<User, SignInFailure>> {
+    // Business logic here
+    return this.authAdapter.signIn(email, password);
+  }
+}
+```
+
+## Testing
+
+### Test-Driven Development (TDD)
+
+1. Write failing test first
+2. Write minimal code to pass
+3. Refactor while keeping tests green
+
+### Mock Usage
+
+**Use `mock` utility for type-safe test data:**
+
+```typescript
+import { mock } from '@jsfsi-core/ts-crossplatform';
+
+// Create mock with only needed properties
+const userData = mock<User>({
+  email: 'test@example.com',
+  name: 'Test User',
+  // profile can be omitted - RecursivePartial makes it optional
+});
+```
+
+### Testing Result Types
+
+```typescript
+import { isFailure } from '@jsfsi-core/ts-crossplatform';
+
+describe('UserService', () => {
+  it('returns NotFoundFailure on invalid id', async () => {
+    const [user, failure] = await userService.getUser('invalid');
+
+    expect(user).toBeUndefined();
+    expect(isFailure(UserNotFoundFailure)(failure)).toBe(true);
+  });
+});
+```
+
+## Transactions (ts-nodejs)
+
+### Domain Concept
+
+**Transactions are domain concepts, not persistence concepts.**
+
+Transactions represent business operations that must be atomic. They can include:
+
+- Database operations
+- External API calls
+- Any operations that should succeed or fail together
+
+```typescript
+// ✅ CORRECT - Transaction includes external API
+return this.orderRepository.withTransaction(async (orderRepo) => {
+  // Step 1: Create order in database
+  const [order, orderFailure] = await orderRepo.save(orderData);
+  if (isFailure(SaveOrderFailure)(orderFailure)) {
+    return Fail(orderFailure);
+  }
+
+  // Step 2: Charge payment via external API
+  const [payment, paymentFailure] = await this.paymentService.chargePayment({
+    orderId: order.id,
+    amount: order.total,
+  });
+
+  if (isFailure(PaymentFailure)(paymentFailure)) {
+    // Transaction rolls back order creation
+    return Fail(paymentFailure);
+  }
+
+  return Ok(order);
+});
+```
+
+## Key Principles Summary
+
+1. **Result types** for all operations that can fail
+2. **isFailure/notFailure matchers** - never instanceof
+3. **Try-catch ONLY in adapters** (edges)
+4. **Curly brackets** for all control flow
+5. **Domain-driven design** - failures are domain concepts
+6. **Hexagonal architecture** - clear layer separation
+7. **TDD** - write tests first
+8. **Type safety** - explicit types, no `any`
+
+## Import Patterns
+
+### From ts-crossplatform
+
+```typescript
+import {
+  Result,
+  Ok,
+  Fail,
+  isFailure,
+  notFailure,
+  Failure,
+  mock,
+} from '@jsfsi-core/ts-crossplatform';
+```
+
+### From ts-nestjs
+
+```typescript
+import {
+  bootstrap,
+  appConfigModuleSetup,
+  RequestMiddleware,
+  SafeBody,
+  SafeQuery,
+  SafeParams,
+} from '@jsfsi-core/ts-nestjs';
+```
+
+### From ts-nodejs
+
+```typescript
+import { TransactionalRepository, Logger, GCPLogger } from '@jsfsi-core/ts-nodejs';
+```
+
+## When Generating Code
+
+1. **Always use Result types** for error handling
+2. **Always use isFailure/notFailure** for failure checking
+3. **Only use try-catch in adapters** when converting exceptions to Results
+4. **Always use curly brackets** for if/for/while statements
+5. **Follow hexagonal architecture** - domain has no external dependencies
+6. **Create domain failures** for error scenarios
+7. **Use mock utility** for test data
+8. **Write tests** using TDD principles
