@@ -1,4 +1,4 @@
-import { MockLogger } from '@jsfsi-core-core/ts-nodejs';
+import { MockLogger } from '@jsfsi-core/ts-nodejs';
 import { Controller, Get, Module } from '@nestjs/common';
 import request from 'supertest';
 import { describe, expect, it } from 'vitest';

@@ -1,4 +1,4 @@
-import { MockLogger } from '@jsfsi-core-core/ts-nodejs';
+import { MockLogger } from '@jsfsi-core/ts-nodejs';
 import {
   Controller,
   Get,

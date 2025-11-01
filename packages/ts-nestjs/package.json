@@ -28,8 +28,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@jsfsi-core-core/ts-crossplatform": "file:../ts-crossplatform",
-    "@jsfsi-core-core/ts-nodejs": "file:../ts-nodejs",
+    "@jsfsi-core/ts-crossplatform": "file:../ts-crossplatform",
+    "@jsfsi-core/ts-nodejs": "file:../ts-nodejs",
     "@nestjs/cli": "11.0.10",
     "@nestjs/common": "11.1.8",
     "@nestjs/config": "4.0.2",

@@ -1,7 +1,7 @@
 import * as path from 'path';
 import 'reflect-metadata';
 
-import { loadEnvConfig } from '@jsfsi-core-core/ts-nodejs';
+import { loadEnvConfig } from '@jsfsi-core/ts-nodejs';
 import { Logger, LoggerService, Type } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 

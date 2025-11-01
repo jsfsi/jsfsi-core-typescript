@@ -1,4 +1,4 @@
-import { parseConfig } from '@jsfsi-core-core/ts-crossplatform';
+import { parseConfig } from '@jsfsi-core/ts-crossplatform';
 import { registerAs } from '@nestjs/config';
 import { ConfigModule } from '@nestjs/config';
 import { z } from 'zod';
