@@ -1,0 +1,80 @@
+name: 'Bump and Push Version'
+description: 'Bumps package version, commits, and pushes with retry logic'
+
+inputs:
+  package-directory:
+    description: 'Directory path to the package (e.g., packages/ts-crossplatform)'
+    required: true
+  package-name:
+    description: 'Package name for commit message (e.g., @jsfsi-core/ts-crossplatform)'
+    required: true
+  branch:
+    description: 'Branch to fetch and push to (default: main)'
+    required: false
+    default: 'main'
+  max-retries:
+    description: 'Maximum number of push retries (default: 5)'
+    required: false
+    default: '5'
+  retry-delay:
+    description: 'Initial retry delay in seconds (default: 2)'
+    required: false
+    default: '2'
+
+outputs:
+  version:
+    description: 'The new version number'
+    value: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Fetch latest changes
+      shell: bash
+      run: |
+        git fetch origin ${{ inputs.branch }}
+        git pull --rebase origin ${{ inputs.branch }} || true
+
+    - name: Bump patch version
+      shell: bash
+      working-directory: ${{ inputs.package-directory }}
+      run: npm version patch --no-git-tag-version
+
+    - name: Get new version
+      id: version-step
+      shell: bash
+      working-directory: ${{ inputs.package-directory }}
+      run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+    - name: Commit version bump
+      shell: bash
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add ${{ inputs.package-directory }}/package.json
+        git commit -m "Bump ${{ inputs.package-name }} to version ${{ steps.version-step.outputs.version }} [skip ci]"
+
+    - name: Push version bump with retry
+      shell: bash
+      run: |
+        MAX_RETRIES=${{ inputs.max-retries }}
+        RETRY_DELAY=${{ inputs.retry-delay }}
+        ATTEMPT=0
+
+        while [ $ATTEMPT -lt $MAX_RETRIES ]; do
+          if git push; then
+            echo "Push succeeded"
+            exit 0
+          fi
+
+          ATTEMPT=$((ATTEMPT + 1))
+          if [ $ATTEMPT -lt $MAX_RETRIES ]; then
+            echo "Push failed, fetching latest changes and retrying (attempt $ATTEMPT/$MAX_RETRIES)..."
+            sleep $RETRY_DELAY
+            git pull --rebase origin ${{ inputs.branch }} || true
+            RETRY_DELAY=$((RETRY_DELAY * 2))
+          else
+            echo "Push failed after $MAX_RETRIES attempts"
+            exit 1
+          fi
+        done

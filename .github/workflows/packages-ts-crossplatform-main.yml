@@ -4,11 +4,11 @@ on:
     branches:
       - main
     paths:
-      - 'package.json'
-      - 'package-lock.json'
-      - 'tsconfig.json'
-      - 'packages/ts-crossplatform/**'
-      - '.github/workflows/packages-ts-crossplatform-main.yml'
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - "packages/ts-crossplatform/**"
+      - ".github/workflows/packages-ts-crossplatform-main.yml"
 
 concurrency:
   group: ts-crossplatform-build
@@ -30,7 +30,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: ".nvmrc"
 
       - name: Cache npm dependencies
         uses: actions/cache@v4
@@ -52,22 +52,13 @@ jobs:
         working-directory: packages/ts-crossplatform
         run: npm run test:coverage
 
-      - name: Bump patch version
-        working-directory: packages/ts-crossplatform
-        run: npm version patch --no-git-tag-version
-
-      - name: Get new version
-        working-directory: packages/ts-crossplatform
-        id: version
-        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-
-      - name: Commit version bump
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add packages/ts-crossplatform/package.json
-          git commit -m "Bump @jsfsi-core/ts-crossplatform to version ${{ steps.version.outputs.version }} [skip ci]"
-          git push
+      - name: Bump and push version
+        id: bump-version
+        uses: ./.github/actions/bump-and-push-version
+        with:
+          package-directory: packages/ts-crossplatform
+          package-name: "@jsfsi-core/ts-crossplatform"
+          branch: main
 
       - name: Publish to npm
         run: |

@@ -4,11 +4,11 @@ on:
     branches:
       - main
     paths:
-      - 'package.json'
-      - 'package-lock.json'
-      - 'tsconfig.json'
-      - 'packages/ts-nodejs/**'
-      - '.github/workflows/packages-ts-nodejs-main.yml'
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - "packages/ts-nodejs/**"
+      - ".github/workflows/packages-ts-nodejs-main.yml"
 
 concurrency:
   group: ts-nodejs-build
@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-      contents: read
+      contents: write
 
     steps:
       - name: Checkout code
@@ -30,7 +30,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: ".nvmrc"
 
       - name: Cache npm dependencies
         uses: actions/cache@v4
@@ -56,22 +56,13 @@ jobs:
         working-directory: packages/ts-nodejs
         run: npm run test:coverage
 
-      - name: Bump patch version
-        working-directory: packages/ts-nodejs
-        run: npm version patch --no-git-tag-version
-
-      - name: Get new version
-        working-directory: packages/ts-nodejs
-        id: version
-        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-
-      - name: Commit version bump
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add packages/ts-nodejs/package.json
-          git commit -m "Bump @jsfsi-core/ts-nodejs to version ${{ steps.version.outputs.version }} [skip ci]"
-          git push
+      - name: Bump and push version
+        id: bump-version
+        uses: ./.github/actions/bump-and-push-version
+        with:
+          package-directory: packages/ts-nodejs
+          package-name: "@jsfsi-core/ts-nodejs"
+          branch: main
 
       - name: Publish to npm
         run: |

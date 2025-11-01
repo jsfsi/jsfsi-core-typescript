@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-      contents: read
+      contents: write
 
     steps:
       - name: Checkout code
@@ -51,22 +51,13 @@ jobs:
         working-directory: packages/ts-nestjs
         run: npm run test:coverage
 
-      - name: Bump patch version
-        working-directory: packages/ts-nestjs
-        run: npm version patch --no-git-tag-version
-
-      - name: Get new version
-        working-directory: packages/ts-nestjs
-        id: version
-        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-
-      - name: Commit version bump
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add packages/ts-nestjs/package.json
-          git commit -m "Bump @jsfsi-core/ts-nestjs to version ${{ steps.version.outputs.version }} [skip ci]"
-          git push
+      - name: Bump and push version
+        id: bump-version
+        uses: ./.github/actions/bump-and-push-version
+        with:
+          package-directory: packages/ts-nestjs
+          package-name: "@jsfsi-core/ts-nestjs"
+          branch: main
 
       - name: Publish to npm
         run: |
