@@ -1,4 +1,4 @@
-name: Build Template Authenticated Dashboard Main
+name: Build Template Rest API Main
 on:
   push:
     branches:

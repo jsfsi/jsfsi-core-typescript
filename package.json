@@ -11,7 +11,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build:ordered": "npm run build --workspace=@jsfsi-core/ts-crossplatform && npm run build --workspace=@jsfsi-core/ts-nodejs && npm run build --workspace=@jsfsi-core/ts-nestjs && npm run build --workspace=@jsfsi-core/template-authenticated-dashboard",
+    "build:ordered": "npm run build --workspace=@jsfsi-core/ts-crossplatform && npm run build --workspace=@jsfsi-core/ts-nodejs && npm run build --workspace=@jsfsi-core/ts-nestjs && npm run build --workspace=@jsfsi-core/template-authenticated-dashboard && npm run build --workspace=@jsfsi-core/template-rest-api",
     "build": "npm run build:ordered",
     "clean": "npm run clean --workspaces",
     "lint": "npm run lint --workspaces",
