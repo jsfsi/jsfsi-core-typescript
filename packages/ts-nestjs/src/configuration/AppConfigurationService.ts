@@ -5,6 +5,10 @@ import { z } from 'zod';
 
 export const APP_CONFIG_TOKEN = 'nestjs-app-config';
 
+const LogLevels = z
+  .array(z.enum(['verbose', 'debug', 'log', 'warn', 'error', 'fatal']))
+  .default(['log']);
+
 export const AppConfigSchema = z.object({
   APP_PORT: z
     .string()
@@ -12,6 +16,11 @@ export const AppConfigSchema = z.object({
     .refine((val) => !isNaN(val), { message: 'APP_PORT must be a valid number' })
     .refine((val) => val > 0, { message: 'APP_PORT must be a positive number' }),
   LOGGER_PROVIDER: z.string().optional(),
+  LOGGER_LEVELS: z
+    .string()
+    .optional()
+    .default('verbose,debug,log,warn,error,fatal')
+    .transform((val) => val.split(',').map((level) => level.trim())),
   CORS_ORIGIN: z.string().default('*'),
   CORS_METHODS: z
     .string()
@@ -31,6 +40,13 @@ export const AppConfigSchema = z.object({
     .transform((val) => parseInt(val, 10))
     .refine((val) => !isNaN(val), { message: 'CORS_MAX_AGE must be a valid number' }),
   CORE_API_VERSION: z.string().default('latest'),
+  LOG_LEVELS: z
+    .string()
+    .default('verbose,debug,log,warn,error,fatal')
+    .transform((value) => {
+      const levels = value.split(',');
+      return LogLevels.parse(levels);
+    }),
 });
 
 export type AppConfig = z.infer<typeof AppConfigSchema>;

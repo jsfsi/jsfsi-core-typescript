@@ -53,7 +53,7 @@ export async function createTestingApp(
   overrides: TestingAppOverrides = {},
 ): Promise<INestApplication> {
   const moduleFixture = await createTestingModule(overrides, appModule);
-  const app = await createApp({
+  const { app } = await createApp({
     existentApp: moduleFixture.createNestApplication(),
     existentLogger: overrides.logger,
   });

@@ -12,16 +12,25 @@ export type AppOptions = {
   appModule?: Type;
 };
 
-export const createApp = async ({ existentApp, existentLogger, appModule }: AppOptions) => {
+export const createApp = async ({
+  existentApp,
+  existentLogger,
+  appModule,
+}: AppOptions): Promise<{ app: INestApplication; logger: LoggerService }> => {
   if (!existentApp && !appModule) {
     throw new Error('Either existentApp or appModule must be provided');
   }
+
+  const logger: LoggerService =
+    process.env.LOGGER_PROVIDER === 'NESTJS' || !existentLogger ? new Logger() : existentLogger;
+
+  logger.setLogLevels?.(['verbose', 'debug', 'log', 'warn', 'error', 'fatal']);
 
   const app =
     existentApp ||
     (await NestFactory.create<NestExpressApplication>(appModule!, {
       bufferLogs: true,
-      logger: existentLogger,
+      logger,
     }));
 
   // Get the configuration using ConfigService
@@ -32,15 +41,12 @@ export const createApp = async ({ existentApp, existentLogger, appModule }: AppO
     throw new Error(`Configuration with token ${APP_CONFIG_TOKEN} not found`);
   }
 
-  const logger: LoggerService =
-    config.LOGGER_PROVIDER === 'NESTJS' || !existentLogger ? new Logger() : existentLogger;
+  logger.setLogLevels?.(config.LOG_LEVELS);
 
   app.useLogger(logger);
 
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
-
-  logger.setLogLevels?.(['verbose', 'debug', 'log', 'warn', 'error', 'fatal']);
 
   // Enable CORS with configuration
   app.enableCors({
@@ -51,5 +57,5 @@ export const createApp = async ({ existentApp, existentLogger, appModule }: AppO
     maxAge: config.CORS_MAX_AGE,
   });
 
-  return app;
+  return { app, logger };
 };

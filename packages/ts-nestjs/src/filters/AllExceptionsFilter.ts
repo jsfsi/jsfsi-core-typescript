@@ -1,11 +1,4 @@
-import {
-  ArgumentsHost,
-  Catch,
-  ExceptionFilter,
-  HttpException,
-  HttpStatus,
-  Logger,
-} from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus, Logger } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 
 @Catch()
@@ -14,15 +7,19 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
   constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
 
-  private mapStatusCode(error: unknown) {
-    return error instanceof HttpException ? error.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+  private mapStatusCode(error: object) {
+    return 'getStatus' in error && typeof error.getStatus === 'function'
+      ? error.getStatus()
+      : HttpStatus.INTERNAL_SERVER_ERROR;
   }
 
-  private mapError(error: unknown): unknown {
-    return error instanceof HttpException ? error.getResponse() : { error: 'internal-error' };
+  private mapError(error: object): unknown {
+    return 'getResponse' in error && typeof error.getResponse === 'function'
+      ? error.getResponse()
+      : { error: 'internal-error' };
   }
 
-  catch(error: unknown, host: ArgumentsHost) {
+  catch(error: object, host: ArgumentsHost) {
     const { httpAdapter } = this.httpAdapterHost;
     const ctx = host.switchToHttp();
 

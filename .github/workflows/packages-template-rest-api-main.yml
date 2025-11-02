@@ -1,22 +1,31 @@
-name: Template Authenticated Dashboard Pull Request
-
+name: Build Template Authenticated Dashboard Main
 on:
-  pull_request:
-    types: [opened, synchronize]
+  push:
+    branches:
+      - main
     paths:
       - "package.json"
       - "package-lock.json"
       - "tsconfig.json"
-      - "packages/template-authenticated-dashboard/**"
-      - ".github/workflows/pr-packages-template-authenticated-dashboard.yml"
+      - "packages/template-rest-api/**"
+      - ".github/workflows/packages-template-rest-api-main.yml"
+
+concurrency:
+  group: template-rest-api-build
+  cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-publish:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -29,7 +38,7 @@ jobs:
         with:
           path: |
             node_modules
-          key: ${{ runner.os }}-npm-pr-${{ hashFiles('package-lock.json') }}
+          key: ${{ runner.os }}-npm-main-${{ hashFiles('package-lock.json') }}
 
       - if: ${{ steps.npm_cache.outputs.cache-hit != 'true' }}
         name: Install dependencies
@@ -38,6 +47,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Test template-authenticated-dashboard
-        working-directory: packages/template-authenticated-dashboard
+      - name: Test template-rest-api
+        working-directory: packages/template-rest-api
         run: npm run test:coverage
