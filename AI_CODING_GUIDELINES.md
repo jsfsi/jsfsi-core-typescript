@@ -359,18 +359,20 @@ export class InsufficientFundsFailure extends Failure {
 import 'reflect-metadata';
 import * as path from 'path';
 import { bootstrap } from '@jsfsi-core/ts-nestjs';
+import { GCPLogger } from '@jsfsi-core/ts-nodejs';
 import { AppModule } from './app/AppModule';
 
 bootstrap({
   appModule: AppModule,
   configPath: path.resolve(__dirname, '../configuration'),
+  logger: new GCPLogger('my-app'),
 });
 ```
 
 #### App Module Setup
 
 ```typescript
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, Provider } from '@nestjs/common';
 import { appConfigModuleSetup, RequestMiddleware } from '@jsfsi-core/ts-nestjs';
 
 @Module({
@@ -384,6 +386,8 @@ export class AppModule implements NestModule {
   }
 }
 ```
+
+**Note**: The `appConfigModuleSetup()` function automatically registers the configuration using the `APP_CONFIG_TOKEN`. No additional configuration setup is needed.
 
 #### Request Validation
 
@@ -410,7 +414,10 @@ export class UserController {
 #### Transactional Repositories
 
 ```typescript
-import { TransactionalRepository } from '@jsfsi-core/ts-nodejs';
+import { TransactionalRepository, buildTransactionalRepositoryMock } from '@jsfsi-core/ts-nodejs';
+import { DataSource } from 'typeorm';
+import { Result, Ok, Fail, isFailure } from '@jsfsi-core/ts-crossplatform';
+import { UserNotFoundFailure } from '../../domain/models/UserNotFoundFailure';
 
 export class UserRepository extends TransactionalRepository {
   constructor(dataSource: DataSource) {
@@ -430,9 +437,29 @@ export class UserRepository extends TransactionalRepository {
 }
 ```
 
+#### Testing Transactional Repositories
+
+```typescript
+import { buildTransactionalRepositoryMock } from '@jsfsi-core/ts-nodejs';
+
+describe('UserRepository', () => {
+  it('finds user by id', async () => {
+    const mockRepository = buildTransactionalRepositoryMock(new UserRepository(mockDataSource));
+    const user = await mockRepository.findById('123');
+    // Test implementation
+  });
+});
+```
+
 #### Transactions as Domain Concepts
 
-Transactions can include database operations AND external API calls:
+**Transactions are domain concepts, not persistence concepts.**
+
+Transactions represent business operations that must be atomic. They can include:
+
+- Database operations
+- External API calls  
+- Any operations that should succeed or fail together
 
 ```typescript
 return this.orderRepository.withTransaction(async (orderRepo) => {
@@ -523,12 +550,12 @@ When generating code, ensure:
 
 ```typescript
 // Core utilities
-import { Result, Ok, Fail, isFailure, notFailure, Failure, mock } from '@jsfsi-core/ts-crossplatform';
+import { Result, Ok, Fail, isFailure, notFailure, Failure, mock, RecursivePartial } from '@jsfsi-core/ts-crossplatform';
 
 // NestJS utilities
-import { bootstrap, appConfigModuleSetup, RequestMiddleware, SafeBody, SafeQuery } from '@jsfsi-core/ts-nestjs';
+import { bootstrap, appConfigModuleSetup, RequestMiddleware, SafeBody, SafeQuery, SafeParams, createTestingApp } from '@jsfsi-core/ts-nestjs';
 
 // Node.js utilities
-import { TransactionalRepository, Logger, GCPLogger } from '@jsfsi-core/ts-nodejs';
+import { TransactionalRepository, buildTransactionalRepositoryMock, Logger, GCPLogger, MockLogger, loadEnvConfig } from '@jsfsi-core/ts-nodejs';
 ```
 

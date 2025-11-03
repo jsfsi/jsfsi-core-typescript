@@ -1,329 +1,88 @@
-# @dora-flow/core-api
+# Template REST API
 
-NestJS-based backend API for Dora Flow. This package provides the REST API endpoints, business logic, and data persistence layer.
-
-## 📚 Table of Contents
-
-- [Architecture](#architecture)
-- [Naming Conventions](#naming-conventions)
-- [Coding Guidelines](#coding-guidelines)
-- [Testing Principles](#testing-principles)
-- [Error Handling Principles](#error-handling-principles)
-- [Result Class](#result-class-for-typed-returns)
-- [Domain-Driven Design](#domain-driven-design)
-- [Best Practices](#best-practices)
-- [Database Migrations](#database-migrations)
-- [Getting Started](#getting-started)
+A NestJS-based REST API template demonstrating best practices with Hexagonal Architecture, Domain-Driven Design, and functional error handling.
 
 ## 🏗️ Architecture
 
-The core-api package follows **Hexagonal Architecture** principles with NestJS as the framework. The architecture is organized into communication, domain, adapters, and repositories layers.
-
-### Package Structure
+This template follows **Hexagonal Architecture** (Ports and Adapters) with clear separation of concerns:
 
 ```
 src/
-├── adapters/              # External service adapters (hexagonal architecture edges)
-│   ├── ai-adapter/        # AI provider adapters
+├── domain/                    # Domain Layer (Pure business logic)
+│   ├── models/               # Domain entities and failures
+│   │   ├── User.ts
+│   │   ├── HealthCheck.ts
+│   │   ├── UnableToValidateUserFailure.ts
+│   │   └── UserAuthorizationExpiredFailure.ts
+│   └── services/            # Domain services
+│       ├── HealthService.ts
+│       └── UserService.ts
+├── adapters/                 # Adapter Layer (External integrations)
 │   └── authorization-adapter/  # Firebase authorization adapter
-├── app/                   # NestJS application setup
-│   ├── app.module.ts      # Root module
-│   ├── app.ts             # Application factory
-│   ├── configuration.service.ts  # Configuration management
-│   └── filters/           # Exception filters
-├── communication/         # API layer (controllers, guards, pipes, decorators)
-│   ├── controllers/       # REST API controllers
-│   ├── decorators/        # Custom decorators
-│   ├── guards/            # Route guards (authentication, authorization)
-│   ├── middlewares/       # Request/response middlewares
-│   └── pipes/             # Validation pipes
-├── domain/                # Business logic (hexagonal architecture core)
-│   ├── models/            # Domain models and failures
-│   └── services/          # Domain services
-└── repositories/          # Data persistence layer
-    ├── ProductRepository/
-    ├── ProductShareRepository/
-    └── ProductVersionRepository/
+│       └── AuthorizationAdapter.ts
+├── communication/            # API Layer (Controllers, Guards, Decorators)
+│   ├── controllers/          # REST controllers
+│   │   └── health/
+│   ├── guards/               # Route guards
+│   │   ├── user.guard.ts     # User validation guard
+│   │   └── authorize.guard.ts # Role-based authorization guard
+│   └── decorators/           # Custom decorators
+│       ├── current-user.decorator.ts
+│       └── authorize.decorator.ts
+└── app/                      # Application setup
+    └── app.module.ts         # Root module
 ```
 
 ### Architecture Layers
 
-1. **Communication Layer** (`src/communication/`): NestJS controllers, guards, pipes, decorators
-2. **Domain Layer** (`src/domain/`): Business logic, models, and services
-3. **Adapter Layer** (`src/adapters/`): External service integrations (AI, Firebase)
-4. **Repository Layer** (`src/repositories/`): Data persistence layer (TypeORM)
+1. **Domain Layer**: Pure business logic with no external dependencies
+2. **Adapter Layer**: External service integrations (Firebase, etc.) and exception-to-Result conversion
+3. **Communication Layer**: NestJS controllers, guards, and decorators
+4. **Application Layer**: Application configuration and module setup
 
 ### Dependency Flow
 
 ```
-Controllers → Domain Services → Repositories/Adapters → External Services/Database
+Controllers → Domain Services → Adapters → External Services
 ```
 
-Controllers depend on domain services, which depend on repositories and adapters. Repositories and adapters are the only layers that interact with external systems.
+## 📋 Features
 
-For more information about hexagonal architecture, refer to the [root README](../README.md) and [jsfsi-core-typescript documentation](https://github.com/jsfsi/jsfsi-core-typescript/).
+- **Authentication**: Firebase-based user authentication
+- **Authorization**: Role-based access control with guards
+- **Type Safety**: Full TypeScript support with strict types
+- **Error Handling**: Result types for functional error handling
+- **Testing**: Comprehensive test coverage with unit and integration tests
+- **Configuration**: Type-safe configuration management
 
 ## 📝 Naming Conventions
 
 ### Files and Directories
 
-- **Controllers**: PascalCase with `Controller` suffix (e.g., `ProductsController.ts`)
-- **Domain Services**: PascalCase with `Service` suffix (e.g., `ProductsService.ts`)
-- **Adapters**: PascalCase with `Adapter` suffix (e.g., `AIAdapter.ts`, `AuthorizationAdapter.ts`)
-- **Repositories**: PascalCase with `Repository` suffix (e.g., `ProductRepository.ts`)
-- **Models**: PascalCase (e.g., `Product.model.ts`, `ProductNotFoundFailure.ts`)
-- **Tests**:
-  - **Unit Tests**: `.unit.test.ts` suffix (e.g., `ProductsService.unit.test.ts`)
-  - **Integration Tests**: `.integration.test.ts` suffix (e.g., `ProductRepository.getProduct.integration.test.ts`)
+- **Controllers**: PascalCase with `Controller` suffix (e.g., `HealthController.ts`)
+- **Services**: PascalCase with `Service` suffix (e.g., `HealthService.ts`)
+- **Adapters**: PascalCase with `Adapter` suffix (e.g., `AuthorizationAdapter.ts`)
+- **Models**: PascalCase (e.g., `User.ts`, `UnableToValidateUserFailure.ts`)
+- **Guards**: PascalCase with `Guard` suffix (e.g., `UserGuard.ts`)
+- **Decorators**: camelCase with suffix (e.g., `current-user.decorator.ts`)
+- **Tests**: `.unit.test.ts` or `.integration.test.ts` suffix
 
 ### Code
 
-- **Classes**: PascalCase (e.g., `ProductsService`, `ProductNotFoundFailure`)
-- **Interfaces/Types**: PascalCase (e.g., `Product`, `User`)
-- **Functions/Methods**: camelCase (e.g., `getProduct`, `createProduct`)
-- **Constants**: UPPER_SNAKE_CASE (e.g., `DATABASE_URL`, `CORS_ORIGIN`)
-- **Variables**: camelCase (e.g., `productId`, `productsService`)
+- **Classes**: PascalCase (e.g., `UserService`, `SignInFailure`)
+- **Functions/Methods**: camelCase (e.g., `signIn()`, `getUser()`)
+- **Constants**: UPPER_SNAKE_CASE (e.g., `APP_CONFIG_TOKEN`)
+- **Failures**: PascalCase suffix with `Failure` (e.g., `SignInFailure`)
 
-### Failures
+## 🧪 Testing
 
-- **Failure Classes**: PascalCase with `Failure` suffix (e.g., `ProductNotFoundFailure`, `NetworkFailure`)
-- Failure names should be descriptive and indicate the domain context
+### Test-Driven Development (TDD)
 
-## 💻 Coding Guidelines
+This template follows TDD principles:
 
-### NestJS
-
-- Use **NestJS** decorators for dependency injection (`@Injectable()`, `@Controller()`, etc.)
-- Use **NestJS** guards for authentication and authorization
-- Use **NestJS** pipes for validation and transformation
-- Use **NestJS** filters for exception handling
-
-### Controller Structure
-
-```typescript
-import { isFailure } from '@jsfsi-core/ts-crossplatform';
-import { Controller, Get, Param, NotFoundException } from '@nestjs/common';
-import { ProductsService } from '../../../domain/services/products-service/Products.service';
-import { ProductNotFoundFailure } from '../../../domain/models/ProductNotFoundFailure';
-
-@Controller('products')
-export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
-
-  @Get(':id')
-  async getProduct(@Param('id') id: string): Promise<ProductResponse> {
-    const [product, failure] = await this.productsService.getProduct({ id, user });
-
-    if (isFailure(ProductNotFoundFailure)(failure)) {
-      throw new NotFoundException(failure);
-    }
-
-    return product;
-  }
-}
-```
-
-### Domain Service Structure
-
-```typescript
-import { Result, Ok, Fail, isFailure } from '@jsfsi-core/ts-crossplatform';
-import { Injectable } from '@nestjs/common';
-import { ProductRepository } from '../../../repositories/ProductRepository/ProductRepository';
-import { Product } from '../../models/Product.model';
-import { ProductNotFoundFailure } from '../../models/ProductNotFoundFailure';
-
-@Injectable()
-export class ProductsService {
-  constructor(private readonly productRepository: ProductRepository) {}
-
-  public async getProduct({
-    id,
-    user,
-  }: {
-    id: string;
-    user: User;
-  }): Promise<Result<Product, ProductNotFoundFailure>> {
-    const [product, failure] = await this.productRepository.getUserProduct({ id, user });
-
-    if (isFailure(ProductNotFoundFailure)(failure)) {
-      return Fail(failure);
-    }
-
-    return Ok(product);
-  }
-}
-```
-
-### Repository Structure
-
-```typescript
-import { Result, Ok, Fail } from '@jsfsi-core/ts-crossplatform';
-import { Injectable } from '@nestjs/common';
-import { DataSource, Repository } from 'typeorm';
-import { Product } from '../../domain/models/Product.model';
-import { ProductNotFoundFailure } from '../../domain/models/ProductNotFoundFailure';
-
-@Injectable()
-export class ProductRepository {
-  constructor(private readonly dataSource: DataSource) {}
-
-  public async getUserProduct({
-    id,
-    user,
-  }: {
-    id: string;
-    user: User;
-  }): Promise<Result<Product, ProductNotFoundFailure>> {
-    const product = await this.dataSource
-      .getRepository(ProductEntity)
-      .findOne({ where: { id, ownerId: user.id } });
-
-    if (!product) {
-      return Fail(new ProductNotFoundFailure(id));
-    }
-
-    return Ok(product);
-  }
-}
-```
-
-### TypeScript
-
-- Use strict TypeScript settings
-- Prefer type inference where possible
-- Use explicit types for function parameters and return values
-- Leverage `Result` types for error handling
-
-### Configuration
-
-Use environment variables and Zod schemas for type-safe configuration:
-
-```typescript
-import { z } from 'zod';
-import { parseConfig } from '@jsfsi-core/ts-nodejs';
-
-const ConfigSchema = z.object({
-  PORT: z.string().transform(Number),
-  DATABASE_URL: z.string().url(),
-  CORS_ORIGIN: z.string(),
-});
-
-export const config = parseConfig(ConfigSchema);
-```
-
-For more coding guidelines, refer to the [root README](../README.md) and [jsfsi-core-typescript documentation](https://github.com/jsfsi/jsfsi-core-typescript/).
-
-## 🧪 Testing Principles
-
-### Test Setup
-
-Tests use:
-- **Vitest** as the test runner
-- **NestJS Testing Module** for dependency injection
-- **100% code coverage** threshold
-
-### Unit Tests vs Integration Tests
-
-#### Unit Tests
-
-- **Purpose**: Test individual units of code in isolation
-- **Naming**: `.unit.test.ts` suffix (e.g., `ProductsService.unit.test.ts`)
-- **Scope**: Single class or function
-- **Dependencies**: All dependencies are **mocked**
-- **Speed**: Very fast (no I/O operations)
-
-**Example**:
-
-```typescript
-import { mock, Ok } from '@jsfsi-core/ts-crossplatform';
-import { Test, TestingModule } from '@nestjs/testing';
-import { describe, expect, it, vi } from 'vitest';
-import { ProductsService } from './Products.service';
-import { ProductRepository } from '../../../repositories/ProductRepository/ProductRepository';
-
-describe('ProductsService', () => {
-  let service: ProductsService;
-  let productRepository: ProductRepository;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ProductsService,
-        {
-          provide: ProductRepository,
-          useValue: {
-            getUserProduct: vi.fn().mockResolvedValue(
-              Ok(mock<Product>({ id: 'some-product-id' }))
-            ),
-          },
-        },
-      ],
-    }).compile();
-
-    service = module.get<ProductsService>(ProductsService);
-    productRepository = module.get<ProductRepository>(ProductRepository);
-  });
-
-  it('gets product from repository', async () => {
-    const [product] = await service.getProduct({
-      id: 'some-product-id',
-      user: { id: 'some-user-id', email: 'some-user-email' },
-    });
-
-    expect(product).toEqual({ id: 'some-product-id' });
-    expect(productRepository.getUserProduct).toHaveBeenCalledWith({
-      id: 'some-product-id',
-      user: { id: 'some-user-id', email: 'some-user-email' },
-    });
-  });
-});
-```
-
-#### Integration Tests
-
-- **Purpose**: Test how multiple components work together with real dependencies
-- **Naming**: `.integration.test.ts` suffix (e.g., `ProductRepository.getProduct.integration.test.ts`)
-- **Scope**: Multiple components (repositories, databases, external services)
-- **Dependencies**: Use **real** implementations (database, file system, etc.)
-- **Speed**: Slower (involves I/O operations)
-
-**Example**:
-
-```typescript
-import { MockLogger } from '@jsfsi-core/ts-nodejs';
-import { INestApplication } from '@nestjs/common';
-import { beforeEach, describe, expect, it } from 'vitest';
-import { createTestingApp } from '../../../test/testing-app';
-import { ProductRepository } from './ProductRepository';
-
-describe('ProductRepository.getProduct', () => {
-  let app: INestApplication;
-
-  beforeEach(async () => {
-    app = await createTestingApp({
-      logger: new MockLogger(),
-    });
-  });
-
-  it('returns a product from database', async () => {
-    const productRepository = app.get(ProductRepository);
-
-    const [createdProduct] = await productRepository.createProduct({
-      userId: 'some-user-id',
-    });
-
-    const [product] = await productRepository.getUserProduct({
-      id: createdProduct.id,
-      user: { id: 'some-user-id', email: 'some-user-email' },
-    });
-
-    expect(product).toEqual({
-      id: createdProduct.id,
-      // ... other properties
-    });
-  });
-});
-```
+1. **Red**: Write a failing test first
+2. **Green**: Write minimal code to pass
+3. **Refactor**: Improve code while keeping tests green
 
 ### Running Tests
 
@@ -344,76 +103,108 @@ npm run test:coverage
 npm run test:watch
 ```
 
-### Difference Between Unit and Integration Tests
-
-| Aspect | Unit Tests | Integration Tests |
-|--------|------------|-------------------|
-| **Purpose** | Test individual units in isolation | Test component interactions |
-| **Naming** | `.unit.test.ts` | `.integration.test.ts` |
-| **Dependencies** | All mocked | Real implementations |
-| **Speed** | Very fast | Slower (I/O operations) |
-| **Scope** | Single class/function | Multiple components |
-| **Database** | Not used | Real database |
-| **Examples** | `ProductsService.unit.test.ts` | `ProductRepository.getProduct.integration.test.ts` |
-
-For more testing information, refer to the [root README](../README.md).
-
-## ⚠️ Error Handling Principles
-
-### Result Pattern
-
-All service and repository methods return `Result` types for type-safe error handling.
-
-### Using `isFailure` for Failure Checks
-
-**Always** use `isFailure` or `notFailure` to check for failures:
+### Testing Controllers
 
 ```typescript
-import { isFailure, Failure } from '@jsfsi-core/ts-crossplatform';
+import { createTestingApp } from '@jsfsi-core/ts-nestjs';
+import { Controller, Get, Module } from '@nestjs/common';
+import request from 'supertest';
 
-const [product, failure] = await productsService.getProduct({ id, user });
-
-// ✅ Good - Use isFailure for type-safe checking
-if (isFailure(ProductNotFoundFailure)(failure)) {
-  throw new NotFoundException(failure);
+@Controller('health')
+class HealthController {
+  @Get()
+  getHealth(): { status: string } {
+    return { status: 'ok' };
+  }
 }
 
-// ✅ Good - Use notFailure when you need the result
-if (notFailure(Failure)(failure)) {
-  // TypeScript knows product is defined here
-  return product;
+@Module({
+  controllers: [HealthController],
+})
+class HealthModule {}
+
+describe('HealthController', () => {
+  it('returns health status', async () => {
+    const app = await createTestingApp(HealthModule);
+
+    const response = await request(app.getHttpServer()).get('/health');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ status: 'ok' });
+  });
+});
+```
+
+### Testing Services
+
+```typescript
+import { describe, it, expect, vi } from 'vitest';
+import { isFailure } from '@jsfsi-core/ts-crossplatform';
+import { HealthService } from './HealthService';
+
+describe('HealthService', () => {
+  it('returns health check data', async () => {
+    const service = new HealthService();
+    const [health, failure] = await service.getHealth();
+
+    expect(health).toBeDefined();
+    expect(failure).toBeUndefined();
+    expect(health?.status).toBe('ok');
+  });
+});
+```
+
+### Testing Adapters
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import { isFailure } from '@jsfsi-core/ts-crossplatform';
+import { AuthorizationAdapter } from './AuthorizationAdapter';
+
+describe('AuthorizationAdapter', () => {
+  it('converts exceptions to Result types', async () => {
+    const adapter = new AuthorizationAdapter();
+    
+    const [user, failure] = await adapter.decodeUser({
+      rawAuthorization: 'invalid-token',
+    });
+
+    expect(user).toBeUndefined();
+    expect(isFailure(UnableToValidateUserFailure)(failure)).toBe(true);
+  });
+});
+```
+
+## ⚠️ Error Handling
+
+### Result Types in Domain
+
+**Domain services return Result types** - no exceptions thrown:
+
+```typescript
+import { Result, Ok, Fail, isFailure } from '@jsfsi-core/ts-crossplatform';
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class UserService {
+  async getUser(id: string): Promise<Result<User, UserNotFoundFailure>> {
+    // No try-catch - errors handled as Result types
+    return this.userRepository.findById(id);
+  }
 }
 ```
 
-**Never** use direct boolean checks or type assertions:
+### Try-Catch at Edges
+
+**Try-catch blocks only exist in adapters** (edges of hexagonal architecture):
 
 ```typescript
-// ❌ Bad
-if (failure) {
-  // ...
-}
-```
-
-### Try-Catch Only in Adapters and Exception Filters
-
-`try-catch` blocks should **ONLY** be used in:
-1. **Adapters** (external service integrations)
-2. **Exception Filters** (NestJS exception handling)
-
-```typescript
-// ✅ Good - Adapter using try-catch
 export class AuthorizationAdapter {
-  public async decodeUser({
+  async decodeUser({
     rawAuthorization,
   }: {
     rawAuthorization?: string;
-  }): Promise<
-    Result<User | undefined, UnableToValidateUserFailure | UserAuthorizationExpiredFailure>
-  > {
-    if (rawAuthorization === undefined) {
-      return Ok(undefined);
-    }
-
+  }): Promise<Result<User | undefined, UnableToValidateUserFailure | UserAuthorizationExpiredFailure>> {
     if (!rawAuthorization?.startsWith('Bearer ')) {
       return Fail(new UnableToValidateUserFailure());
     }
@@ -421,6 +212,7 @@ export class AuthorizationAdapter {
     const idToken = rawAuthorization.split('Bearer ')[1];
 
     try {
+      // Firebase throws exceptions - we catch and convert
       const decodedToken = await admin.auth().verifyIdToken(idToken);
       const user: User = {
         id: decodedToken.uid,
@@ -440,180 +232,169 @@ export class AuthorizationAdapter {
 }
 ```
 
-```typescript
-// ✅ Good - Exception filter using try-catch
-@Catch()
-export class AllExceptionsFilter implements ExceptionFilter {
-  catch(error: unknown, host: ArgumentsHost) {
-    const { httpAdapter } = this.httpAdapterHost;
-    const ctx = host.switchToHttp();
-
-    this.logger.error('Unhandled exception', error);
-
-    const httpStatus = this.mapStatusCode(error);
-    const responseBody = this.mapError(error);
-
-    httpAdapter.reply(ctx.getResponse(), responseBody, httpStatus);
-  }
-}
-```
-
-```typescript
-// ✅ Good - Domain service using Result types (no try-catch)
-export class ProductsService {
-  constructor(private readonly productRepository: ProductRepository) {}
-
-  public async getProduct({
-    id,
-    user,
-  }: {
-    id: string;
-    user: User;
-  }): Promise<Result<Product, ProductNotFoundFailure>> {
-    // No try-catch - repository already returns Result types
-    return this.productRepository.getUserProduct({ id, user });
-  }
-}
-```
-
-### Controllers: Convert Results to HTTP Responses
+### Controllers Convert Results to HTTP
 
 Controllers convert `Result` types to HTTP responses:
 
 ```typescript
-@Controller('products')
-export class ProductsController {
+import { Controller, Get, NotFoundException } from '@nestjs/common';
+import { isFailure } from '@jsfsi-core/ts-crossplatform';
+
+@Controller('users')
+export class UserController {
   @Get(':id')
-  async getProduct(@Param('id') id: string, @CurrentUser() user: User): Promise<ProductResponse> {
-    const [product, failure] = await this.productsService.getProduct({ id, user });
+  async getUser(@Param('id') id: string): Promise<UserResponse> {
+    const [user, failure] = await this.userService.getUser(id);
 
-    if (isFailure(ProductNotFoundFailure)(failure)) {
-      throw new NotFoundException(failure);
+    if (isFailure(UserNotFoundFailure)(failure)) {
+      throw new NotFoundException('User not found');
     }
 
-    if (isFailure(ProductPermissionFailure)(failure)) {
-      throw new ForbiddenException(failure);
-    }
-
-    return product;
+    return user;
   }
 }
 ```
-
-For comprehensive error handling documentation, refer to the [root README](../README.md) and [jsfsi-core-typescript documentation](https://github.com/jsfsi/jsfsi-core-typescript/).
-
-## 🔄 Result Class for Typed Returns
-
-The `Result` type provides type-safe error handling. All service and repository methods return `Result` types.
-
-### Basic Usage
-
-```typescript
-import { Result, Ok, Fail, isFailure } from '@jsfsi-core/ts-crossplatform';
-
-async function getProduct(id: string): Promise<Result<Product, ProductNotFoundFailure>> {
-  const product = await this.productRepository.findOne({ where: { id } });
-
-  if (!product) {
-    return Fail(new ProductNotFoundFailure(id));
-  }
-
-  return Ok(product);
-}
-
-// Usage
-const [product, failure] = await getProduct('some-id');
-
-if (isFailure(ProductNotFoundFailure)(failure)) {
-  throw new NotFoundException(failure);
-}
-
-// TypeScript knows product is defined here
-console.log(product.name);
-```
-
-### In Controllers
-
-```typescript
-@Get(':id')
-async getProduct(@Param('id') id: string, @CurrentUser() user: User): Promise<ProductResponse> {
-  const [product, failure] = await this.productsService.getProduct({ id, user });
-
-  if (isFailure(ProductNotFoundFailure)(failure)) {
-    throw new NotFoundException(failure);
-  }
-
-  return product;
-}
-```
-
-For comprehensive Result class documentation, refer to the [root README](../README.md) and [jsfsi-core-typescript documentation](https://github.com/jsfsi/jsfsi-core-typescript/).
 
 ## 🎯 Domain-Driven Design
 
-The core-api package follows **Domain-Driven Design (DDD)** principles.
-
 ### Domain Models
 
-Domain models are located in `src/domain/models/`:
-
-- **Entities**: `Product.model.ts`, `User.model.ts`
-- **Value Objects**: `ProductDetail.model.ts`, `ProductVersionState.model.ts`
-- **Failures**: `ProductNotFoundFailure.ts`, `ProductPermissionFailure.ts`, `DuplicatedProductVersionFailure.ts`
-
-### Domain Services
-
-Domain services are located in `src/domain/services/`:
-
-- `ProductsService.ts`: Product-related business logic
-- `ProductShareService.ts`: Product sharing business logic
-- `UserService.ts`: User-related business logic
-
-### Example
+Domain models represent business concepts:
 
 ```typescript
-// Domain model
-export type Product = {
+// Domain entity
+export type User = {
   id: string;
-  name: string;
-  idea: string;
-  created: number;
-  createdBy: string;
-  owner: string;
-  state: ProductVersionState;
-  detail?: ProductDetail;
+  email: string | null;
+  name: string | null;
+  avatar: string | null;
 };
 
-// Domain service
-@Injectable()
-export class ProductsService {
-  constructor(
-    private readonly productRepository: ProductRepository,
-    private readonly aiAdapter: AIAdapter,
-  ) {}
-
-  public async getProduct({
-    id,
-    user,
-  }: {
-    id: string;
-    user: User;
-  }): Promise<Result<Product, ProductNotFoundFailure | ProductPermissionFailure>> {
-    return this.productRepository.getUserProduct({ id, user });
-  }
-}
-
 // Domain failure
-export class ProductNotFoundFailure extends Failure {
-  constructor(public readonly productId: string) {
+export class UnableToValidateUserFailure extends Failure {
+  constructor(public readonly error?: Error) {
     super();
   }
 }
 ```
 
-For more DDD information, refer to the [root README](../README.md) and [jsfsi-core-typescript documentation](https://github.com/jsfsi/jsfsi-core-typescript/).
+### Domain Services
 
-## ✨ Best Practices
+Domain services contain business logic:
+
+```typescript
+@Injectable()
+export class UserService {
+  constructor(private readonly authAdapter: AuthorizationAdapter) {}
+
+  async getUserFromToken(token: string): Promise<Result<User, UnableToValidateUserFailure>> {
+    return this.authAdapter.decodeUser({ rawAuthorization: token });
+  }
+}
+```
+
+### Guards
+
+Use guards for authentication and authorization:
+
+```typescript
+import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+
+@Injectable()
+export class UserGuard implements CanActivate {
+  constructor(private readonly userService: UserService) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest();
+    const token = request.headers.authorization;
+
+    const [user, failure] = await this.userService.getUserFromToken(token);
+
+    if (isFailure(UnableToValidateUserFailure)(failure)) {
+      return false;
+    }
+
+    request.user = user;
+    return true;
+  }
+}
+```
+
+```typescript
+import { SetMetadata } from '@nestjs/common';
+
+export const Auth = (...roles: string[]) => SetMetadata('roles', roles);
+```
+
+```typescript
+import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+
+@Injectable()
+export class AuthorizeGuard implements CanActivate {
+  constructor(private readonly reflector: Reflector) {}
+
+  canActivate(context: ExecutionContext): boolean {
+    const roles = this.reflector.get<string[]>('roles', context.getHandler());
+    
+    if (!roles) {
+      return true;
+    }
+
+    const request = context.switchToHttp().getRequest();
+    const user = request.user;
+
+    return roles.includes(user.role);
+  }
+}
+```
+
+## 🔄 Result Class Usage
+
+### Using Result Types in Controllers
+
+```typescript
+import { Result, isFailure } from '@jsfsi-core/ts-crossplatform';
+import { HealthService } from '../../domain/services/health-service/HealthService';
+
+@Controller('health')
+export class HealthController {
+  constructor(private readonly healthService: HealthService) {}
+
+  @Get()
+  async getHealth(): Promise<HealthCheck> {
+    const [health, failure] = await this.healthService.getHealth();
+
+    if (isFailure(HealthCheckFailure)(failure)) {
+      throw new InternalServerErrorException('Health check failed');
+    }
+
+    return health;
+  }
+}
+```
+
+### Chaining Results
+
+```typescript
+async function getUserAndProfile(userId: string): Promise<Result<Profile, UserNotFoundFailure | ProfileLoadFailure>> {
+  const [user, userFailure] = await userService.getUser(userId);
+  
+  if (isFailure(UserNotFoundFailure)(userFailure)) {
+    return Fail(userFailure);
+  }
+
+  const [profile, profileFailure] = await profileService.getProfile(user.id);
+  
+  if (isFailure(ProfileLoadFailure)(profileFailure)) {
+    return Fail(profileFailure);
+  }
+
+  return Ok(profile);
+}
+```
+
+## 📚 Best Practices
 
 ### 1. Dependency Injection
 
@@ -621,144 +402,94 @@ Use NestJS dependency injection:
 
 ```typescript
 @Injectable()
-export class ProductsService {
+export class UserService {
   constructor(
-    private readonly productRepository: ProductRepository,
-    private readonly aiAdapter: AIAdapter,
+    private readonly userRepository: UserRepository,
+    private readonly authAdapter: AuthorizationAdapter,
   ) {}
 }
 ```
 
-### 2. Single Responsibility
-
-Each class should have one responsibility:
+### 2. Guards for Authentication/Authorization
 
 ```typescript
-// ✅ Good
-@Injectable()
-export class ProductValidator {
-  validateName(name: string): boolean {
-    /* ... */
-  }
-}
-
-@Injectable()
-export class EmailSender {
-  sendEmail(to: string, subject: string): Promise<void> {
-    /* ... */
-  }
-}
-
-// ❌ Bad
-@Injectable()
-export class ProductManager {
-  validateName(name: string): boolean {
-    /* ... */
-  }
-  sendEmail(to: string, subject: string): Promise<void> {
-    /* ... */
-  }
-  saveProduct(product: Product): Promise<void> {
-    /* ... */
-  }
-}
-```
-
-### 3. Use Guards for Authentication/Authorization
-
-```typescript
-@Controller('products')
-export class ProductsController {
+@Controller('users')
+export class UserController {
   @Get(':id')
-  @Authorize() // Custom guard
-  async getProduct(@Param('id') id: string, @CurrentUser() user: User): Promise<ProductResponse> {
-    // User is guaranteed to be authenticated and authorized
-    return this.productsService.getProduct({ id, user });
+  @UseGuards(UserGuard)
+  @Auth('admin', 'user')
+  @UseGuards(AuthorizeGuard)
+  async getUser(@Param('id') id: string): Promise<UserResponse> {
+    return this.userService.getUser(id);
   }
 }
 ```
 
-### 4. Use Pipes for Validation
+### 3. Configuration
 
-```typescript
-@Post('')
-async createProduct(
-  @Body(new ZodValidationPipe(NewProductRequest)) newProduct: NewProductRequest,
-  @CurrentUser() user: User,
-): Promise<NewProductResponse> {
-  // newProduct is validated and typed
-  return this.productsService.createProduct({ newProduct, user });
-}
-```
-
-### 5. Configuration
-
-Use environment variables and Zod schemas for type-safe configuration:
+Use type-safe configuration:
 
 ```typescript
 import { z } from 'zod';
-import { parseConfig } from '@jsfsi-core/ts-nodejs';
+import { parseConfig } from '@jsfsi-core/ts-crossplatform';
 
 const ConfigSchema = z.object({
   PORT: z.string().transform(Number),
   DATABASE_URL: z.string().url(),
-  CORS_ORIGIN: z.string(),
+  FIREBASE_PROJECT_ID: z.string(),
 });
 
 export const config = parseConfig(ConfigSchema);
 ```
 
-For more best practices, refer to the [root README](../README.md).
+### 4. Error Handling
 
-## 🗄️ Database Migrations
+Use Result types in domain, exceptions only in controllers:
 
-### Generating Migrations
+```typescript
+// Domain: Result types
+async getUser(id: string): Promise<Result<User, UserNotFoundFailure>> {
+  // ...
+}
 
-```bash
-npm run db:migrations:generate
+// Controller: Map to HTTP
+async getUser(@Param('id') id: string) {
+  const [user, failure] = await this.userService.getUser(id);
+
+  if (isFailure(UserNotFoundFailure)(failure)) {
+    throw new NotFoundException();
+  }
+
+  return user;
+}
 ```
-
-### Running Migrations
-
-```bash
-# Run migrations in production
-npm run db:migrations:run
-
-# Run migrations in local environment
-npm run db:migrations:run:local
-```
-
-### Migration Files
-
-Migrations are located in `src/repositories/migrations/` and follow TypeORM conventions.
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- **Node.js**: 25.0.0
-- **npm**: 11.6.2
-- **PostgreSQL**: For database (configured in environment variables)
+- Node.js 25.0.0 or higher
+- npm 11.6.2 or higher
+- PostgreSQL database (optional, for repositories)
+- Firebase project (for authentication)
 
 ### Installation
 
 ```bash
-# From monorepo root
-npm install
-
-# Or for this package specifically
-cd packages/core-api
+# Install dependencies
 npm install
 ```
 
 ### Configuration
 
-Create a `.env` file in `src/configuration/` with the following variables:
+Create a `.env` file in `configuration/` directory:
 
 ```env
 PORT=3000
-DATABASE_URL=postgresql://user:password@localhost:5432/doraflow
-CORS_ORIGIN=http://localhost:5173
+DATABASE_URL=postgresql://user:password@localhost:5432/database
+FIREBASE_PROJECT_ID=your-firebase-project-id
+FIREBASE_PRIVATE_KEY=your-firebase-private-key
+FIREBASE_CLIENT_EMAIL=your-firebase-client-email
 ```
 
 ### Development
@@ -767,8 +498,8 @@ CORS_ORIGIN=http://localhost:5173
 # Run development server
 npm run dev
 
-# Or from monorepo root
-npm run dev --workspace=@dora-flow/core-api
+# Watch mode
+npm run dev:watch
 ```
 
 ### Building
@@ -777,8 +508,8 @@ npm run dev --workspace=@dora-flow/core-api
 # Build for production
 npm run build
 
-# Or from monorepo root
-npm run build --workspace=@dora-flow/core-api
+# Start production server
+npm run start:dist
 ```
 
 ### Testing
@@ -795,9 +526,6 @@ npm run test:integration
 
 # Run tests with coverage
 npm run test:coverage
-
-# Watch mode
-npm run test:watch
 ```
 
 ### Linting
@@ -812,27 +540,26 @@ npm run lint:fix
 
 ## 🔗 Additional Resources
 
-### Core Packages
-
-- **[jsfsi-core-typescript](https://github.com/jsfsi/jsfsi-core-typescript/)**: Core TypeScript packages with shared utilities, Result types, and architectural patterns
-- **[@jsfsi-core/ts-crossplatform](https://github.com/jsfsi/jsfsi-core-typescript/)**: Cross-platform utilities including Result types and Failure classes
-- **[@jsfsi-core/ts-nodejs](https://github.com/jsfsi/jsfsi-core-typescript/)**: Node.js-specific utilities including logging and testing helpers
-
 ### Architecture
 
-- [Root README](../README.md): Monorepo-level architecture and guidelines
-- [jsfsi-core-typescript Documentation](https://github.com/jsfsi/jsfsi-core-typescript/): Core packages documentation
+- [Hexagonal Architecture](https://alistair.cockburn.us/hexagonal-architecture/)
+- [Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
 
 ### NestJS
 
 - [NestJS Documentation](https://docs.nestjs.com/)
 - [NestJS Testing](https://docs.nestjs.com/fundamentals/testing)
 
-### TypeORM
+### Firebase
 
-- [TypeORM Documentation](https://typeorm.io/)
-- [TypeORM Migrations](https://typeorm.io/migrations)
+- [Firebase Admin SDK](https://firebase.google.com/docs/admin/setup)
+
+### Error Handling
+
+- [Result Type Pattern](https://enterprisecraftsmanship.com/posts/functional-c-handling-failures-input-errors/)
+- [Railway Oriented Programming](https://fsharpforfunandprofit.com/rop/)
 
 ## 📄 License
 
 ISC
+

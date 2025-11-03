@@ -55,12 +55,14 @@ import 'reflect-metadata';
 
 import * as path from 'path';
 import { bootstrap } from '@jsfsi-core/ts-nestjs';
+import { GCPLogger } from '@jsfsi-core/ts-nodejs';
 
 import { AppModule } from './app/AppModule';
 
 bootstrap({
   appModule: AppModule,
   configPath: path.resolve(__dirname, '../configuration'),
+  logger: new GCPLogger('my-app'),
 });
 ```
 
@@ -132,23 +134,14 @@ export class MyService {
 
 Centralized exception handling at the application edge:
 
-```typescript
-import { AllExceptionsFilter } from '@jsfsi-core/ts-nestjs';
-import { HttpAdapterHost } from '@nestjs/core';
-
-// Automatically registered in createApp()
-// Or manually:
-app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
-```
-
-This filter:
+The `createApp()` function automatically registers `AllExceptionsFilter` which:
 
 - Catches all unhandled exceptions
 - Maps HTTP exceptions to appropriate status codes
 - Logs errors for monitoring
 - Returns consistent error responses
 
-**Note**: This is where exceptions are caught (edge of hexagonal architecture).
+**Note**: This is where exceptions are caught (edge of hexagonal architecture). The filter is automatically registered, no manual setup needed.
 
 ### Request Validation
 
@@ -238,8 +231,9 @@ Logs include:
 ### Testing Controllers
 
 ```typescript
-import { TestingApp } from '@jsfsi-core/ts-nestjs';
-import { Controller, Get } from '@nestjs/common';
+import { createTestingApp } from '@jsfsi-core/ts-nestjs';
+import { Controller, Get, Module } from '@nestjs/common';
+import request from 'supertest';
 
 @Controller('test')
 class TestController {
@@ -249,13 +243,16 @@ class TestController {
   }
 }
 
+@Module({
+  controllers: [TestController],
+})
+class TestModule {}
+
 describe('TestController', () => {
   it('returns hello message', async () => {
-    const app = await TestingApp.create({
-      controllers: [TestController],
-    });
+    const app = await createTestingApp(TestModule);
 
-    const response = await app.get('/test');
+    const response = await request(app.getHttpServer()).get('/test');
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ message: 'Hello' });

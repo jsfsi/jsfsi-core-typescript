@@ -384,10 +384,13 @@ expect(logger.logs).toContainEqual({ level: 'log', message: 'Hello world' });
 Type-safe environment variable loading:
 
 ```typescript
-import { loadEnv } from '@jsfsi-core/ts-nodejs';
+import { loadEnvConfig } from '@jsfsi-core/ts-nodejs';
 
-// Load .env file
-loadEnv();
+// Load .env file from configuration directory
+loadEnvConfig({
+  configPath: './configuration',
+  env: 'development', // optional, defaults to no suffix
+});
 
 // Access environment variables
 const port = process.env.PORT;
@@ -415,17 +418,18 @@ const dbUrl = process.env.DATABASE_URL;
 
 ### Testing Repositories
 
-Use `TransactionalRepositoryMock` for testing:
+Use `buildTransactionalRepositoryMock` for testing:
 
 ```typescript
-import { TransactionalRepositoryMock } from '@jsfsi-core/ts-nodejs';
+import { buildTransactionalRepositoryMock } from '@jsfsi-core/ts-nodejs';
 
 describe('UserRepository', () => {
   let repository: UserRepository;
 
   beforeEach(() => {
     const mockDataSource = {} as DataSource;
-    repository = new UserRepository(mockDataSource);
+    const repositoryInstance = new UserRepository(mockDataSource);
+    repository = buildTransactionalRepositoryMock(repositoryInstance);
   });
 
   it('finds user by id', async () => {
@@ -451,7 +455,7 @@ describe('UserService', () => {
 
 ### Testing Logging
 
-Use `MockLogger` for testing:
+Use `MockLogger` for testing (it provides no-op implementations of all logging methods):
 
 ```typescript
 import { MockLogger } from '@jsfsi-core/ts-nodejs';
@@ -465,14 +469,9 @@ describe('UserService', () => {
     service = new UserService(logger);
   });
 
-  it('logs error on failure', async () => {
-    await service.processOrder('invalid-id');
-
-    expect(logger.error).toHaveBeenCalled();
-    expect(logger.error).toHaveBeenCalledWith(
-      expect.stringContaining('Failed'),
-      expect.any(Object),
-    );
+  it('processes order without throwing', async () => {
+    // MockLogger silently absorbs all logs, making tests cleaner
+    await expect(service.processOrder('invalid-id')).resolves.not.toThrow();
   });
 });
 ```
