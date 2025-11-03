@@ -27,7 +27,7 @@ This package provides NestJS-specific implementations of hexagonal architecture 
 
 ### Application Structure
 
-```
+```text
 src/
 ├── app/
 │   ├── app.ts              # Application factory
@@ -70,8 +70,11 @@ The `bootstrap` function:
 
 - Loads environment configuration from the specified `configPath`
 - Creates and configures the NestJS application
+- Retrieves configuration using `ConfigService` with `APP_CONFIG_TOKEN`
 - Automatically starts the application on the port specified in your configuration
 - Handles CORS, exception filters, and logging setup
+
+**Important**: Your `AppModule` must import `appConfigModuleSetup()` to register the configuration with the `APP_CONFIG_TOKEN`. The bootstrap function will throw an error if the configuration is not found.
 
 ### Configuration Service
 
@@ -429,7 +432,7 @@ async createUser(@Body() user: any) {
 
 Domain logic should be framework-agnostic:
 
-```
+```text
 src/
 ├── domain/
 │   ├── models/

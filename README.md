@@ -49,7 +49,7 @@ Installing as a dependency may make sense if:
 
 However, for most applications, **copying the code is the recommended approach**.
 
-> **For AI Assistants**: See [AI_CODING_GUIDELINES.md](./AI_CODING_GUIDELINES.md) for comprehensive guidelines on generating code that follows this repository's patterns and best practices.
+> **For AI Assistants**: See [.cursorrules](./.cursorrules) for comprehensive guidelines on generating code that follows this repository's patterns and best practices.
 
 ## 🏗️ Architecture
 
@@ -1033,7 +1033,7 @@ export const config = parseConfig(ConfigSchema);
 
 ### Documentation
 
-- **[AI Coding Guidelines](./AI_CODING_GUIDELINES.md)** - Comprehensive guidelines for AI assistants to generate code that follows this repository's patterns and best practices
+- **[Cursor IDE Rules](./.cursorrules)** - Comprehensive guidelines for AI assistants to generate code that follows this repository's patterns and best practices
 
 ### Architecture
 

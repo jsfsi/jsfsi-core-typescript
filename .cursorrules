@@ -255,12 +255,15 @@ import {
 import {
   bootstrap,
   appConfigModuleSetup,
+  APP_CONFIG_TOKEN,
   RequestMiddleware,
   SafeBody,
   SafeQuery,
   SafeParams,
 } from '@jsfsi-core/ts-nestjs';
 ```
+
+**Important**: The `bootstrap` function retrieves configuration using `ConfigService` with `APP_CONFIG_TOKEN`. Your `AppModule` must import `appConfigModuleSetup()` to register the configuration. The bootstrap function will throw an error if the configuration is not found.
 
 ### From ts-nodejs
 

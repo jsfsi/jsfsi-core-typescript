@@ -2,7 +2,7 @@ import * as path from 'path';
 import 'reflect-metadata';
 
 import { loadEnvConfig } from '@jsfsi-core/ts-nodejs';
-import { LoggerService, Type } from '@nestjs/common';
+import { INestApplication, LoggerService, Type } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import { APP_CONFIG_TOKEN, AppConfig } from '../configuration/AppConfigurationService';
@@ -35,4 +35,29 @@ export async function bootstrap({
   await app.listen(config.APP_PORT);
 
   logger.log(`NestJS App is running at http://localhost:${config.APP_PORT}`);
+
+  setupGracefulShutdown(app, logger);
+}
+
+function setupGracefulShutdown(app: INestApplication, logger: LoggerService): void {
+  const shutdown = async (signal: string) => {
+    logger.log(`Received ${signal}, starting graceful shutdown...`);
+
+    try {
+      await app.close();
+      logger.log('Application closed successfully');
+      process.exit(0);
+    } catch (error) {
+      logger.error('Error during shutdown', error);
+      process.exit(1);
+    }
+  };
+
+  process.on('SIGINT', () => {
+    shutdown('SIGINT');
+  });
+
+  process.on('SIGTERM', () => {
+    shutdown('SIGTERM');
+  });
 }
