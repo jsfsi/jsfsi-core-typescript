@@ -30,11 +30,11 @@
   "dependencies": {
     "@jsfsi-core/ts-crossplatform": "file:../ts-crossplatform",
     "@jsfsi-core/ts-nodejs": "file:../ts-nodejs",
-    "@nestjs/cli": "11.0.10",
-    "@nestjs/common": "11.1.8",
+    "@nestjs/cli": "11.0.12",
+    "@nestjs/common": "11.1.9",
     "@nestjs/config": "4.0.2",
-    "@nestjs/core": "11.1.8",
-    "@nestjs/platform-express": "11.1.8",
+    "@nestjs/core": "11.1.9",
+    "@nestjs/platform-express": "11.1.9",
     "@nestjs/typeorm": "11.0.0",
     "body-parser": "2.2.0",
     "express": "5.1.0",
@@ -43,16 +43,16 @@
     "zod": "4.1.12"
   },
   "devDependencies": {
-    "@nestjs/testing": "11.1.8",
-    "@swc/core": "1.14.0",
+    "@nestjs/testing": "11.1.9",
+    "@swc/core": "1.15.2",
     "@types/supertest": "6.0.3",
-    "@vitest/coverage-v8": "4.0.6",
+    "@vitest/coverage-v8": "4.0.10",
     "supertest": "7.1.4",
     "ts-node": "10.9.2",
     "unplugin-swc": "1.5.8",
-    "vite": "7.1.12",
+    "vite": "7.2.2",
     "vite-plugin-dts": "4.5.4",
-    "vitest": "4.0.6"
+    "vitest": "4.0.10"
   },
   "peerDependenciesMeta": {
     "body-parser": {

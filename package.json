@@ -13,7 +13,7 @@
   "scripts": {
     "build:ordered": "npm run build --workspace=@jsfsi-core/ts-crossplatform && npm run build --workspace=@jsfsi-core/ts-nodejs && npm run build --workspace=@jsfsi-core/ts-nestjs && npm run build --workspace=@jsfsi-core/template-authenticated-dashboard && npm run build --workspace=@jsfsi-core/template-rest-api",
     "build": "npm run build:ordered",
-    "clean": "npm run clean --workspaces",
+    "clean": "npm run clean --workspaces && rm -rf node_modules",
     "lint": "npm run lint --workspaces",
     "setup": "rm -rf node_modules && npm run clean && npm ci",
     "setup:clean": "rm -rf node_modules && npm run clean && rm -rf package-lock.json && npm install --legacy-peer-deps",
@@ -22,12 +22,12 @@
     "update:deps": "ncu -u --workspaces"
   },
   "devDependencies": {
-    "@eslint/js": "9.39.0",
-    "@types/node": "24.9.2",
-    "@typescript-eslint/eslint-plugin": "8.46.2",
-    "@typescript-eslint/parser": "8.46.2",
+    "@eslint/js": "9.39.1",
+    "@types/node": "24.10.1",
+    "@typescript-eslint/eslint-plugin": "8.47.0",
+    "@typescript-eslint/parser": "8.47.0",
     "concurrently": "9.2.1",
-    "eslint": "9.39.0",
+    "eslint": "9.39.1",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-prettier": "5.5.4",
@@ -36,7 +36,7 @@
     "prettier": "3.6.2",
     "tsx": "4.20.6",
     "typescript": "5.9.3",
-    "typescript-eslint": "8.46.2",
+    "typescript-eslint": "8.47.0",
     "ajv": "8.17.1"
   },
   "engines": {

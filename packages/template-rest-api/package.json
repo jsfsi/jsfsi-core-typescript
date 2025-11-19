@@ -27,35 +27,35 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@google/genai": "1.28.0",
+    "@google/genai": "1.30.0",
     "@jsfsi-core/ts-crossplatform": "1.1.9",
     "@jsfsi-core/ts-nodejs": "1.1.11",
     "@jsfsi-core/ts-nestjs": "1.1.12",
     "@nestjs/axios": "4.0.1",
-    "@nestjs/cli": "11.0.10",
-    "@nestjs/common": "11.1.8",
+    "@nestjs/cli": "11.0.12",
+    "@nestjs/common": "11.1.9",
     "@nestjs/config": "4.0.2",
-    "@nestjs/core": "11.1.8",
-    "@nestjs/platform-express": "11.1.8",
+    "@nestjs/core": "11.1.9",
+    "@nestjs/platform-express": "11.1.9",
     "@nestjs/typeorm": "11.0.0",
-    "axios": "1.13.1",
+    "axios": "1.13.2",
     "body-parser": "2.2.0",
     "express": "5.1.0",
-    "firebase-admin": "13.5.0",
+    "firebase-admin": "13.6.0",
     "pg": "8.16.3",
     "reflect-metadata": "0.2.2",
     "typeorm": "0.3.27",
     "zod": "4.1.12"
   },
   "devDependencies": {
-    "@nestjs/testing": "11.1.8",
-    "@swc/core": "1.14.0",
+    "@nestjs/testing": "11.1.9",
+    "@swc/core": "1.15.2",
     "@types/supertest": "6.0.3",
-    "@vitest/coverage-v8": "4.0.6",
+    "@vitest/coverage-v8": "4.0.10",
     "supertest": "7.1.4",
     "ts-node": "10.9.2",
     "unplugin-swc": "1.5.8",
-    "vite": "7.1.12",
-    "vitest": "4.0.6"
+    "vite": "7.2.2",
+    "vitest": "4.0.10"
   }
 }
