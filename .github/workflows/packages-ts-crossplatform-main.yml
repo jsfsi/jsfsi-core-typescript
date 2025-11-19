@@ -4,6 +4,7 @@ on:
     branches:
       - main
     paths:
+      - ".github/actions/bump-and-push-version/action.yml"
       - "package.json"
       - "package-lock.json"
       - "tsconfig.json"
