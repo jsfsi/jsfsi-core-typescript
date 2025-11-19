@@ -13,11 +13,11 @@ inputs:
     required: false
     default: 'main'
   max-retries:
-    description: 'Maximum number of push retries (default: 5)'
+    description: 'Maximum number of push retries (default: 10)'
     required: false
     default: '10'
   retry-delay:
-    description: 'Initial retry delay in seconds (default: 2)'
+    description: 'Initial retry delay in seconds (default: 5)'
     required: false
     default: '5'
 
