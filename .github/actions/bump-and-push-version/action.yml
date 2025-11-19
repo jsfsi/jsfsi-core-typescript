@@ -35,10 +35,23 @@ runs:
         git fetch origin ${{ inputs.branch }}
         git pull --rebase origin ${{ inputs.branch }} || true
 
+    - name: Install jq
+      shell: bash
+      run: sudo apt-get update && sudo apt-get install -y jq
+
     - name: Bump patch version
+      id: bump
       shell: bash
       working-directory: ${{ inputs.package-directory }}
-      run: npm version patch --no-git-tag-version
+      run: |
+        current=$(jq -r '.version' package.json)
+        IFS='.' read -r major minor patch <<< "$current"
+        new_version="$major.$minor.$((patch + 1))"
+
+        # Apply version bump
+        jq --arg v "$new_version" '.version = $v' package.json > package.tmp && mv package.tmp package.json
+
+        echo "version=$new_version" >> $GITHUB_OUTPUT
 
     - name: Get new version
       id: version-step
