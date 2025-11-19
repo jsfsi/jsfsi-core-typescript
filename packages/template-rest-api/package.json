@@ -28,9 +28,9 @@
   },
   "dependencies": {
     "@google/genai": "1.30.0",
-    "@jsfsi-core/ts-crossplatform": "1.1.10",
-    "@jsfsi-core/ts-nodejs": "1.1.13",
-    "@jsfsi-core/ts-nestjs": "1.1.18",
+    "@jsfsi-core/ts-crossplatform": "1.1.12",
+    "@jsfsi-core/ts-nodejs": "1.1.17",
+    "@jsfsi-core/ts-nestjs": "1.1.19",
     "@nestjs/axios": "4.0.1",
     "@nestjs/cli": "11.0.12",
     "@nestjs/common": "11.1.9",
