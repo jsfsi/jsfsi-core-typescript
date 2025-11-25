@@ -33,6 +33,8 @@ export const createApp = async ({
       logger,
     }));
 
+  app.useLogger(logger);
+
   // Get the configuration using ConfigService
   const configService = app.get(ConfigService);
   const config = configService.get<AppConfig>(APP_CONFIG_TOKEN);
@@ -42,8 +44,6 @@ export const createApp = async ({
   }
 
   logger.setLogLevels?.(config.LOG_LEVELS);
-
-  app.useLogger(logger);
 
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
