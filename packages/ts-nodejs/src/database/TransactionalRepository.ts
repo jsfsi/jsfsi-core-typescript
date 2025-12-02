@@ -9,9 +9,7 @@ type LockMode =
   | 'pessimistic_partial_write'
   | 'pessimistic_write_or_fail';
 
-export abstract class TransactionalRepository
-  implements TransactionalEntity<TransactionalRepository>
-{
+export abstract class TransactionalRepository implements TransactionalEntity<TransactionalRepository> {
   private em?: EntityManager;
 
   constructor(protected readonly dataSource: DataSource) {}

@@ -35,9 +35,9 @@
     "typeorm": "0.3.27"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "4.0.10",
-    "vite": "7.2.2",
+    "@vitest/coverage-v8": "4.0.15",
+    "vite": "7.2.6",
     "vite-plugin-dts": "4.5.4",
-    "vitest": "4.0.10"
+    "vitest": "4.0.15"
   }
 }
