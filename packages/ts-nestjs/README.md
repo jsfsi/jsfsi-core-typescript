@@ -187,6 +187,41 @@ export class UserController {
 }
 ```
 
+### Custom Logger
+
+Use `CustomLogger` instead of the built-in NestJS `Logger` for consistent logging across your application:
+
+```typescript
+import { CustomLogger } from '@jsfsi-core/ts-nestjs';
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class HealthService {
+  private readonly logger = new CustomLogger(HealthService.name);
+
+  async check(): Promise<{ status: string }> {
+    this.logger.log('Checking health');
+    return { status: 'OK' };
+  }
+}
+```
+
+The `CustomLogger` extends NestJS's `Logger` and provides a consistent interface for logging throughout your services. By passing the class name to the constructor, logs will be prefixed with the service name, making it easier to trace logs in production.
+
+**Available methods:**
+
+- `log(message: string)` - General information
+- `error(message: string, trace?: string)` - Error messages with optional stack trace
+- `warn(message: string)` - Warning messages
+- `debug(message: string)` - Debug information (only shown in development)
+- `verbose(message: string)` - Verbose logging
+
+**Example output:**
+
+```
+[Nest] 12345  - 2025/01/01, 12:00:00     LOG [HealthService] Checking health
+```
+
 ### Request Middleware
 
 Automatic request logging:

@@ -1,5 +1,6 @@
 import { Fail, Ok, Result } from '@jsfsi-core/ts-crossplatform';
-import { Injectable, Logger, Scope } from '@nestjs/common';
+import { CustomLogger } from '@jsfsi-core/ts-nestjs';
+import { Injectable, Scope } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { FirebaseAuthError } from 'firebase-admin/lib/utils/error';
 
@@ -16,7 +17,7 @@ if (!admin.apps.length) {
 
 @Injectable({ scope: Scope.DEFAULT })
 export class AuthorizationAdapter {
-  private readonly logger = new Logger(AuthorizationAdapter.name);
+  private readonly logger = new CustomLogger(AuthorizationAdapter.name);
 
   public async decodeUser({
     rawAuthorization,
