@@ -63,6 +63,5 @@ jobs:
 
       - name: Publish to npm
         run: |
-          npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
           cd packages/ts-nestjs
           npm publish --access public
