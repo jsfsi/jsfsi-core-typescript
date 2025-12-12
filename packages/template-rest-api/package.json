@@ -27,7 +27,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@google/genai": "1.30.0",
+    "@google/genai": "1.33.0",
     "@jsfsi-core/ts-crossplatform": "file:../ts-crossplatform",
     "@jsfsi-core/ts-nodejs": "file:../ts-nodejs",
     "@jsfsi-core/ts-nestjs": "file:../ts-nestjs",
@@ -44,7 +44,7 @@
     "firebase-admin": "13.6.0",
     "pg": "8.16.3",
     "reflect-metadata": "0.2.2",
-    "typeorm": "0.3.27",
+    "typeorm": "0.3.28",
     "zod": "4.1.13"
   },
   "devDependencies": {
@@ -55,7 +55,7 @@
     "supertest": "7.1.4",
     "ts-node": "10.9.2",
     "unplugin-swc": "1.5.9",
-    "vite": "7.2.6",
+    "vite": "7.2.7",
     "vitest": "4.0.15"
   }
 }

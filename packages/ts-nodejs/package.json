@@ -32,11 +32,11 @@
     "@jsfsi-core/ts-crossplatform": "file:../ts-crossplatform",
     "dotenv": "17.2.3",
     "fast-safe-stringify": "2.1.1",
-    "typeorm": "0.3.27"
+    "typeorm": "0.3.28"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "4.0.15",
-    "vite": "7.2.6",
+    "vite": "7.2.7",
     "vite-plugin-dts": "4.5.4",
     "vitest": "4.0.15"
   }
