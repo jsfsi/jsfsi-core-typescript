@@ -29,9 +29,10 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
+          registry-url: "https://registry.npmjs.org/"
 
       - name: Cache npm dependencies
         uses: actions/cache@v4
@@ -63,6 +64,5 @@ jobs:
 
       - name: Publish to npm
         run: |
-          npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
           cd packages/ts-crossplatform
           npm publish --access public
