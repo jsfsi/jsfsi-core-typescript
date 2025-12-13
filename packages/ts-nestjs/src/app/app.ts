@@ -50,7 +50,7 @@ export const createApp = async ({
 
   // Enable CORS with configuration
   app.enableCors({
-    origin: config.CORS_ORIGIN,
+    origin: config.CORS_ORIGIN.split(',').map((o) => o.trim()),
     methods: config.CORS_METHODS,
     allowedHeaders: config.CORS_ALLOWED_HEADERS,
     credentials: config.CORS_CREDENTIALS,

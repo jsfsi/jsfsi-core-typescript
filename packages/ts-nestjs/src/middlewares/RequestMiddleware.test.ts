@@ -160,7 +160,6 @@ describe('RequestMiddleware', () => {
         },
         responseHeaders: {
           'access-control-allow-credentials': 'true',
-          'access-control-allow-origin': 'http://localhost:5003',
           'content-length': '26',
           'content-type': 'application/json; charset=utf-8',
           etag: expect.any(String),
