@@ -164,7 +164,7 @@ import { AuthorizationAdapter } from './AuthorizationAdapter';
 describe('AuthorizationAdapter', () => {
   it('converts exceptions to Result types', async () => {
     const adapter = new AuthorizationAdapter();
-    
+
     const [user, failure] = await adapter.decodeUser({
       rawAuthorization: 'invalid-token',
     });
@@ -204,7 +204,9 @@ export class AuthorizationAdapter {
     rawAuthorization,
   }: {
     rawAuthorization?: string;
-  }): Promise<Result<User | undefined, UnableToValidateUserFailure | UserAuthorizationExpiredFailure>> {
+  }): Promise<
+    Result<User | undefined, UnableToValidateUserFailure | UserAuthorizationExpiredFailure>
+  > {
     if (!rawAuthorization?.startsWith('Bearer ')) {
       return Fail(new UnableToValidateUserFailure());
     }
@@ -221,7 +223,7 @@ export class AuthorizationAdapter {
       return Ok(user);
     } catch (error) {
       const firebaseError = error as FirebaseAuthError;
-      
+
       if (firebaseError.code === 'auth/id-token-expired') {
         return Fail(new UserAuthorizationExpiredFailure(firebaseError));
       }
@@ -336,7 +338,7 @@ export class AuthorizeGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const roles = this.reflector.get<string[]>('roles', context.getHandler());
-    
+
     if (!roles) {
       return true;
     }
@@ -377,15 +379,17 @@ export class HealthController {
 ### Chaining Results
 
 ```typescript
-async function getUserAndProfile(userId: string): Promise<Result<Profile, UserNotFoundFailure | ProfileLoadFailure>> {
+async function getUserAndProfile(
+  userId: string,
+): Promise<Result<Profile, UserNotFoundFailure | ProfileLoadFailure>> {
   const [user, userFailure] = await userService.getUser(userId);
-  
+
   if (isFailure(UserNotFoundFailure)(userFailure)) {
     return Fail(userFailure);
   }
 
   const [profile, profileFailure] = await profileService.getProfile(user.id);
-  
+
   if (isFailure(ProfileLoadFailure)(profileFailure)) {
     return Fail(profileFailure);
   }
@@ -469,7 +473,7 @@ async getUser(@Param('id') id: string) {
 ### Prerequisites
 
 - Node.js 25.0.0 or higher
-- npm 11.6.2 or higher
+- npm 11.7.0 or higher
 - PostgreSQL database (optional, for repositories)
 - Firebase project (for authentication)
 
@@ -562,4 +566,3 @@ npm run lint:fix
 ## 📄 License
 
 ISC
-

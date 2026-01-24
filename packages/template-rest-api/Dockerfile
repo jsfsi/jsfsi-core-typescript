@@ -1,5 +1,5 @@
 # Build layer
-FROM node:25.2.1-alpine
+FROM node:25.4.0-alpine
 
 RUN apk add --no-cache bash git openssh-client
 
