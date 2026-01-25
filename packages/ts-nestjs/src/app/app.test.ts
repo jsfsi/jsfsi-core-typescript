@@ -1,10 +1,11 @@
 import { MockLogger } from '@jsfsi-core/ts-nodejs';
-import { BadRequestException, Controller, Get, Logger, Module } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Logger, Module, Post } from '@nestjs/common';
 import request from 'supertest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { appConfigModuleSetup } from '../configuration/AppConfigurationService';
 import { createTestingApp } from '../test/testing-app';
+import { SafeRawBody } from '../validators/ZodValidator';
 
 @Controller('test')
 class TestController {
@@ -14,6 +15,12 @@ class TestController {
   getHello(): { message: string } {
     this.logger.log('some testing log');
     return { message: 'Hello World' };
+  }
+
+  @Post()
+  rawBody(@Body() body: unknown, @SafeRawBody() rawBody: string) {
+    this.logger.debug(rawBody);
+    this.logger.debug(body);
   }
 
   @Get('http-error')
@@ -75,6 +82,21 @@ describe('app', () => {
 
       expect(logSpy).toHaveBeenCalledOnce();
       expect(logSpy).toHaveBeenCalledWith('some testing log', TestController.name);
+    });
+
+    it('has parsed body when json and also the raw body', async () => {
+      const mockLogger = new MockLogger();
+
+      const logSpy = vi.spyOn(mockLogger, 'debug');
+
+      const app = await createTestingApp(TestModule, {
+        logger: mockLogger,
+      });
+
+      await request(app.getHttpServer()).post('/test').send({ foo: 'bar' });
+
+      expect(logSpy).toHaveBeenNthCalledWith(1, '{"foo":"bar"}', TestController.name);
+      expect(logSpy).toHaveBeenNthCalledWith(2, { foo: 'bar' }, TestController.name);
     });
   });
 });

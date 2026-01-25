@@ -31,6 +31,7 @@ export const createApp = async ({
     (await NestFactory.create<NestExpressApplication>(appModule!, {
       bufferLogs: true,
       logger,
+      rawBody: true,
     }));
 
   app.useLogger(logger);
