@@ -23,6 +23,7 @@
   ],
   "scripts": {
     "build": "npm run lint && tsc && vite build",
+    "build:watch": "tsc && (tsc --watch & vite build --watch)",
     "clean": "rm -rf dist && rm -rf node_modules && rm -rf coverage",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
     "lint": "npm run lint:fix && npm run format",

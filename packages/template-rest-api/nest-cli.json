@@ -2,6 +2,7 @@
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
   "compilerOptions": {
+    "tsConfigPath": "tsconfig.build.json",
     "deleteOutDir": true,
     "assets": [
       {

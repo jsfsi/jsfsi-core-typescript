@@ -1,8 +1,23 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@jsfsi-core/ts-crossplatform": ["../ts-crossplatform/src/index.ts"],
+      "@jsfsi-core/ts-nodejs": ["../ts-nodejs/src/index.ts"],
+      "@jsfsi-core/ts-nestjs": ["../ts-nestjs/src/index.ts"]
+    }
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "vite.config.ts"],
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "vitest.unit.config.ts",
+    "vitest.integration.config.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }
