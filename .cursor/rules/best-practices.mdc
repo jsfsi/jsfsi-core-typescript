@@ -1,0 +1,483 @@
+---
+alwaysApply: true
+---
+
+# Best Practices
+
+## Immutability
+
+Prefer immutable data structures:
+
+```typescript
+// ✅ Good
+const updatedTenant = { ...tenant, displayName: 'New Name' };
+
+// ❌ Bad
+tenant.displayName = 'New Name';
+```
+
+## Pure Functions
+
+Prefer pure functions when possible:
+
+```typescript
+// ✅ Good - Pure function
+function calculateTotal(items: Item[]): number {
+  return items.reduce((sum, item) => sum + item.price, 0);
+}
+
+// ❌ Bad - Side effects
+function calculateTotal(items: Item[]): number {
+  let total = 0;
+  items.forEach((item) => {
+    total += item.price;
+    console.log(item); // Side effect
+  });
+  return total;
+}
+```
+
+## Dependency Injection
+
+Use constructor injection:
+
+```typescript
+// ✅ Good
+export class TenantFiscalService {
+  constructor(private readonly repository: TenantFiscalRepository) {}
+}
+
+// ❌ Bad
+export class TenantFiscalService {
+  private repository = new TenantFiscalRepository(); // Hard dependency
+}
+```
+
+## Single Responsibility
+
+Each class/function should have one reason to change:
+
+```typescript
+// ✅ Good
+export class TenantValidator {
+  validateDisplayName(displayName: string): boolean {
+    /* ... */
+  }
+}
+
+export class EmailSender {
+  sendEmail(to: string, subject: string): Promise<void> {
+    /* ... */
+  }
+}
+
+// ❌ Bad
+export class TenantManager {
+  validateDisplayName(displayName: string): boolean {
+    /* ... */
+  }
+  sendEmail(to: string, subject: string): Promise<void> {
+    /* ... */
+  }
+  saveTenant(tenant: Tenant): Promise<void> {
+    /* ... */
+  }
+}
+```
+
+## TypeScript
+
+- Use strict TypeScript settings
+- Prefer type inference where possible
+- Use explicit types for function parameters and return values
+- Leverage `Result` types for error handling
+
+### Avoid `any` and unsafe escape hatches
+
+- **`any` is not allowed anywhere in the codebase**, including tests. Do not add new `any` usages under any circumstances.
+- **Double casts like `as unknown as SomeType` are not allowed**. Model the types explicitly instead of bypassing the type system.
+- Prefer precise domain types and narrow interfaces over broad structural types and casts.
+- When you need new methods or fields for TDD (e.g., adding behavior that does not exist yet), **add minimal, correctly typed signatures to the real implementation** rather than weakening types or casting in tests.
+- In tests, when you need partially-specified objects or mocks, use the `mock<T>()` helper from `@jsfsi-core/ts-crossplatform` instead of `any` or double casts. This provides type-safe, recursive partials while keeping tests readable.
+
+## Code Organization
+
+- Organize code by **domain** (bounded contexts), not by technical layers
+- Keep related code together (models, services, failures in the same domain folder)
+- Use barrel exports (`index.ts`) for cleaner imports
+
+## Repository Failure Handling
+
+**Repositories should NOT return domain failures** (like `NotFoundFailure`, `ValidationFailure`, etc.) unless the failure originates from a database schema constraint violation (e.g., unique constraint violations, foreign key violations).
+
+- **Domain services** decide which failures to return based on repository results (e.g., checking if a value is `undefined` and returning `NotFoundFailure`)
+- **Repositories** return `Result<T | undefined>` for "not found" cases, not `Result<T, NotFoundFailure>`
+- **Schema constraint failures** (like `DuplicatedTenantFailure` from unique constraints) are the exception and can be returned from repositories
+
+```typescript
+// ✅ Good - Repository returns undefined, domain service decides failure
+export class TenantPaymentRepository {
+  async disconnectTenantPaymentProvider({
+    tenantId,
+    providerId,
+  }: {
+    tenantId: string;
+    providerId: string;
+  }): Promise<Result<void>> {
+    await this.getRepository(TenantPaymentProvider).update(
+      { id: providerId, tenantId },
+      { connected: false, default: false },
+    );
+    return Ok(undefined);
+  }
+
+  async getTenantPaymentProviderById({
+    tenantId,
+    providerId,
+  }: {
+    tenantId: string;
+    providerId: string;
+  }): Promise<Result<PaymentProvider | undefined>> {
+    const entity = await this.getRepository(TenantPaymentProvider).findOne({
+      where: { id: providerId, tenantId },
+    });
+    if (!entity) {
+      return Ok(undefined);
+    }
+    return Ok(this.mapTenantPaymentProvider(entity));
+  }
+}
+
+export class TenantPaymentService {
+  async disconnectTenantPaymentProvider({
+    tenantId,
+    providerId,
+    user,
+  }: {
+    tenantId: string;
+    providerId: string;
+    user: User;
+  }): Promise<Result<void, TenantPaymentProviderNotFoundFailure>> {
+    const [provider] = await this.repository.getTenantPaymentProviderById({ tenantId, providerId });
+    if (!provider) {
+      return Fail(new TenantPaymentProviderNotFoundFailure(tenantId, providerId));
+    }
+    await this.repository.disconnectTenantPaymentProvider({ tenantId, providerId });
+    return Ok(undefined);
+  }
+}
+
+// ❌ Bad - Repository returning domain failure
+export class TenantPaymentRepository {
+  async disconnectTenantPaymentProvider({
+    tenantId,
+    providerId,
+  }: {
+    tenantId: string;
+    providerId: string;
+  }): Promise<Result<void, TenantPaymentProviderNotFoundFailure>> {
+    const entity = await this.getRepository(TenantPaymentProvider).findOne({
+      where: { id: providerId, tenantId },
+    });
+    if (!entity) {
+      return Fail(new TenantPaymentProviderNotFoundFailure(tenantId, providerId)); // ❌ Repository shouldn't return domain failures
+    }
+    // ...
+  }
+}
+
+// ✅ Good - Repository returning schema constraint failure (exception)
+export class TenantRepository {
+  async createTenant(input: CreateTenantInput): Promise<Result<Tenant, DuplicatedTenantFailure>> {
+    try {
+      const entity = await this.dataSource.getRepository(TenantEntity).save(mapToEntity(input));
+      return Ok(mapToModel(entity));
+    } catch (error) {
+      if (error.code === '23505') {
+        // ✅ Unique constraint violation - schema restriction
+        return Fail(new DuplicatedTenantFailure(input.displayName));
+      }
+      throw error;
+    }
+  }
+}
+```
+
+## Naming Conventions
+
+### Acronyms
+
+Three-letter acronyms (TLAs) should be in all uppercase, even when used as a prefix:
+
+```typescript
+// ✅ Good
+export class PDFProductExportProvider {}
+export class APIClient {}
+export class HTTPService {}
+
+// ❌ Bad
+export class PdfProductExportProvider {}
+export class ApiClient {}
+export class HttpService {}
+```
+
+### Filenames
+
+Filenames should match the class name exactly, including acronym casing:
+
+```
+✅ Good
+PDFProductExportProvider.ts → export class PDFProductExportProvider
+APIClient.ts → export class APIClient
+HTTPService.ts → export class HTTPService
+
+❌ Bad
+PdfProductExportProvider.ts → export class PDFProductExportProvider
+ApiClient.ts → export class APIClient
+HttpService.ts → export class HTTPService
+```
+
+## Logging
+
+### Structured Logging Pattern
+
+Always use structured logging with message as first parameter and metadata as second parameter:
+
+```typescript
+// ✅ Good - Structured logging
+this.logger.log('Starting PDF export', {
+  productId: product.id,
+  exportType: 'pdf',
+});
+
+this.logger.error('Failed to export product', {
+  productId: product.id,
+  exportType: 'pdf',
+  error: error instanceof Error ? error.message : String(error),
+  stack: error instanceof Error ? error.stack : undefined,
+});
+
+// ❌ Bad - String concatenation
+this.logger.log(`Starting PDF export for product ${product.id}`);
+this.logger.error(`Failed to export product ${product.id}`, error);
+
+// ❌ Bad - Message in metadata
+this.logger.log({
+  message: 'Starting PDF export',
+  productId: product.id,
+});
+```
+
+### Logging Location
+
+Logging should be done at the **edges** of the architecture (adapters), not in the domain layer:
+
+```typescript
+// ✅ Good - Logging in adapter
+import { CustomLogger } from '@jsfsi-core/ts-nestjs';
+
+export class PDFProductExportProvider {
+  private readonly logger = new CustomLogger(PDFProductExportProvider.name);
+
+  async export(product: Product): Promise<Buffer> {
+    this.logger.log('Starting PDF export', { productId: product.id });
+    // ... export logic
+  }
+}
+
+// ❌ Bad - Logging in domain service
+export class ProductExportService {
+  private readonly logger = new CustomLogger(ProductExportService.name); // ❌ Don't do this
+
+  async exportProduct(productId: string): Promise<Result<Buffer, Failure>> {
+    this.logger.log('Exporting product', { productId }); // ❌ Domain layer should not log
+    // ...
+  }
+}
+```
+
+### CustomLogger
+
+In NestJS applications, always use `CustomLogger` from `@jsfsi-core/ts-nestjs` instead of the default NestJS `Logger`:
+
+```typescript
+import { CustomLogger } from '@jsfsi-core/ts-nestjs';
+
+export class MyService {
+  private readonly logger = new CustomLogger(MyService.name);
+}
+```
+
+## Build and Linting
+
+Always run `npm run build` to automatically fix imports and lint issues. This command:
+
+- Runs ESLint with `--fix` to auto-fix linting issues
+- Runs Prettier to format code
+- Compiles TypeScript to catch type errors
+
+Use this instead of running lint/format/typecheck separately.
+
+### Running Build
+
+**From workspace root:**
+
+```bash
+npm run build
+```
+
+**From a specific package:**
+
+```bash
+cd packages/core-api && npm run build
+cd packages/console && npm run build
+```
+
+## Running Tests
+
+### Running All Tests
+
+**From workspace root:**
+
+```bash
+npm run test
+```
+
+This runs tests for all packages in the workspace.
+
+### Running Tests for a Specific Package
+
+**From the package directory:**
+
+```bash
+cd packages/core-api && npm run test
+cd packages/console && npm run test
+```
+
+### Running a Specific Test File
+
+**From the package directory:**
+
+```bash
+cd packages/core-api && npm run test -- src/domain/services/tenant-payment-service/TenantPaymentService.unit.test.ts
+```
+
+### Running Tests in Watch Mode
+
+**From the package directory:**
+
+```bash
+cd packages/core-api && npm run test -- --watch
+```
+
+### Test File Patterns
+
+- Test files should be named `*.test.ts`, `*.test.tsx`, `*.unit.test.ts`, or `*.integration.test.ts`
+- Test files are automatically discovered based on the package's Vitest configuration
+
+## Configuration
+
+Use environment variables and Zod schemas for type-safe configuration:
+
+```typescript
+// ✅ Good - Type-safe configuration
+import { z } from 'zod';
+import { parseConfig } from '@jsfsi-core/ts-crossplatform';
+
+const ConfigSchema = z.object({
+  PORT: z.string().transform(Number),
+  DATABASE_URL: z.string().url(),
+  FIREBASE_API_KEY: z.string(),
+});
+
+export const config = parseConfig(ConfigSchema);
+
+// ❌ Bad - Hardcoded configuration
+export const config = {
+  port: 3000, // ❌ Hardcoded
+  databaseUrl: 'postgres://localhost:5432/app', // ❌ Hardcoded
+};
+```
+
+## Result Type Pattern
+
+Use `isFailure` for early returns when working with Result types to avoid try-catch nesting:
+
+```typescript
+// ✅ Good - Using isFailure for early returns
+const [account, accountFailure] = await this.createStripeAccount({ tenantId, type });
+if (isFailure(CreatePaymentAccountFailure)(accountFailure)) {
+  return Fail(accountFailure);
+}
+
+const [accountLink, accountLinkFailure] = await this.createAccountLinks({
+  accountId: account.id,
+  tenantId,
+  type,
+});
+if (isFailure(CreatePaymentAccountFailure)(accountLinkFailure)) {
+  return Fail(accountLinkFailure);
+}
+
+// Continue with success path...
+
+// ❌ Bad - Nested try-catch blocks
+try {
+  const account = await this.createStripeAccount({ tenantId, type });
+  try {
+    const accountLink = await this.createAccountLinks({ accountId: account.id, tenantId, type });
+    // ...
+  } catch (error) {
+    // Nested error handling
+  }
+} catch (error) {
+  // Outer error handling
+}
+```
+
+## Configuration as Private Fields
+
+Store configuration resolved in constructors as private readonly fields to avoid repeated lookups:
+
+```typescript
+// ✅ Good - Config stored as private field
+export class StripePaymentProvider {
+  private readonly config: StripeConfig;
+
+  constructor(private readonly configService: ConfigService) {
+    this.config = this.configService.get<StripeConfig>(STRIPE_CONFIG_TOKEN)!;
+  }
+
+  public async createPaymentAccount() {
+    // Use this.config throughout the class
+    const url = `${this.config.STRIPE_ONBOARDING_BASE_URL}/tenant/${tenantId}/settings/payout`;
+  }
+}
+
+// ❌ Bad - Config retrieved in methods
+export class StripePaymentProvider {
+  constructor(private readonly configService: ConfigService) {}
+
+  public async createPaymentAccount() {
+    // ❌ Repeated config lookups
+    const config = this.configService.get<StripeConfig>(STRIPE_CONFIG_TOKEN)!;
+    const url = `${config.STRIPE_ONBOARDING_BASE_URL}/tenant/${tenantId}/settings/payout`;
+  }
+}
+```
+
+## Code Quality
+
+- Keep modules short (<200 lines) and extract helper functions when logic branches more than twice
+- Prefer pure functions when possible
+- Use descriptive names that express intent
+- Limit function parameters (prefer objects for multiple parameters)
+- Maintain immutability - prefer spreading (`{ ...tenant, name }`) over in-place mutation
+- Don't use barrel export since it reduces file discoverability
+- **Avoid unnecessary comments** - code should be self-documenting through clear naming and structure. Only add comments when the code cannot express the "why" (e.g., workarounds, non-obvious business rules, or external constraints)
+
+## References
+
+- Root README: `/README.md`
+- Core API README: `/packages/core-api/README.md`
+- Console README: `/packages/console/README.md`

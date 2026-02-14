@@ -1,0 +1,418 @@
+---
+alwaysApply: true
+---
+
+# Architecture
+
+## Hexagonal Architecture
+
+The codebase follows **Hexagonal Architecture** (also known as Ports and Adapters), which separates business logic from external concerns:
+
+```
+┌─────────────────────────────────────────────────┐
+│              Application Layer                  │
+│  (UI Components, Controllers, CLI Interfaces)   │
+└───────────────────┬─────────────────────────────┘
+                    │
+┌───────────────────▼─────────────────────────────┐
+│              Domain Layer                       │
+│  (Services, Models, Domain Logic)               │
+└───────────────────┬─────────────────────────────┘
+                    │
+┌───────────────────▼─────────────────────────────┐
+│              Adapter Layer                      │
+│  (External Services, Database, APIs)            │
+└─────────────────────────────────────────────────┘
+```
+
+## Key Principles
+
+1. **Domain Layer** contains pure business logic with no external dependencies
+2. **Adapters** implement interfaces defined in the domain
+3. **Application Layer** orchestrates domain services
+4. **Dependency Inversion**: Domain depends on abstractions, not implementations
+
+## Layer Definitions
+
+### Application Layer (UI/Controllers)
+
+Entry points that orchestrate domain services:
+
+- React components in `src/ui/` (console/customer)
+- NestJS controllers in `src/communication/controllers/` (core-api)
+- Pulumi programs in `src/environments/` (infrastructure)
+
+```typescript
+// ✅ Good - Application layer orchestrates domain services
+@Controller('tenant-fiscal')
+export class TenantFiscalController {
+  constructor(private readonly service: TenantFiscalService) {}
+
+  @Patch()
+  async update(
+    @SafeBody(UpdateTenantFiscalRequest) body: UpdateTenantFiscalRequest,
+  ): Promise<TenantFiscalResponse> {
+    const [fiscal, failure] = await this.service.updateTenantFiscal(body.toModel());
+    // Handle failures and map to response
+    return mapTenantFiscalToResponse(fiscal);
+  }
+}
+
+// ❌ Bad - Business logic in application layer
+@Controller('tenant-fiscal')
+export class TenantFiscalController {
+  @Patch()
+  async update(@Body() body: any) {
+    // Business logic should not be here
+    if (body.taxId.length < 9) {
+      throw new BadRequestException();
+    }
+    // ...
+  }
+}
+```
+
+### Domain Layer
+
+Pure business logic with no external dependencies:
+
+- Domain models in `src/domain/models/`
+- Domain services in `src/domain/services/`
+- Failures in `src/domain/models/failures/`
+
+```typescript
+// ✅ Good - Pure domain service
+export class TenantsService {
+  constructor(
+    private readonly repository: TenantRepository,
+    private readonly tenantAuthorizationService: TenantAuthorizationService,
+  ) {}
+
+  async createTenant(
+    input: CreateTenantInput,
+  ): Promise<Result<Tenant, DuplicatedTenantFailure | DatabaseFailure>> {
+    const [tenant, failure] = await this.repository.createTenant(input);
+    if (isFailure(DuplicatedTenantFailure)(failure)) {
+      return Fail(failure);
+    }
+
+    await this.tenantAuthorizationService.addUserRoleInTenant({
+      tenantId: tenant.id,
+      user: input.user,
+      role: 'admin',
+    });
+
+    return Ok(tenant);
+  }
+}
+
+// ❌ Bad - Domain service with external dependencies
+export class TenantsService {
+  constructor(private readonly httpClient: HttpClient) {} // ❌ External dependency
+
+  async createTenant(input: CreateTenantInput): Promise<Tenant> {
+    // ❌ Direct HTTP call in domain
+    const response = await this.httpClient.post('/api/tenants', input);
+    return response.data;
+  }
+}
+```
+
+### Adapter Layer
+
+External integrations that convert exceptions to Results:
+
+- HTTP clients in `src/adapters/`
+- Repositories in `src/repositories/` (backend) or `src/adapters/` (frontend)
+- External service wrappers (Firebase, APIs, etc.)
+
+```typescript
+// ✅ Good - Adapter converts exceptions to Results
+export class FirebaseClient {
+  public async signInWithEmailAndPassword({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }): Promise<Result<User, SignInFailure>> {
+    try {
+      const firebaseUser = await this.firebaseAuth.signInWithEmailAndPassword(email, password);
+      if (!firebaseUser.user) {
+        return Fail(new SignInFailure('User not returned from Firebase'));
+      }
+      const user = await this.mapFirebaseUserToUser(firebaseUser.user);
+      return Ok(user);
+    } catch (error) {
+      return Fail(new SignInFailure(error));
+    }
+  }
+}
+
+// ❌ Bad - Adapter throws exceptions
+export class FirebaseClient {
+  public async signInWithEmailAndPassword({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }): Promise<User> {
+    // ❌ Throws exception instead of returning Result
+    const firebaseUser = await this.firebaseAuth.signInWithEmailAndPassword(email, password);
+    return this.mapFirebaseUserToUser(firebaseUser.user);
+  }
+}
+```
+
+## Dependency Flow
+
+```
+Application Layer (UI/Controllers)
+    ↓ depends on
+Domain Layer (Services)
+    ↓ depends on
+Adapter Layer (Repositories/Adapters)
+    ↓ depends on
+External Services (Database, APIs, Firebase)
+```
+
+**Never reverse this flow** - domain should never depend on application or adapter implementations.
+
+### Domain Layer Independence
+
+**Domain services and tests MUST NOT import from the application layer (controllers):**
+
+- Domain services receive all data as parameters (including User objects)
+- Domain test files should use `mock<User>()` with appropriate `type` field instead of importing controller-specific user constants
+- Controller-specific constants (e.g., `StripeSystemUser`, `AnonymousUser`) should only be used in controllers and their tests
+
+```typescript
+// ✅ Good - Domain service receives user as parameter
+export class TenantFiscalService {
+  async updateTenantFiscalFromPaymentProvider({
+    tenantId,
+    user, // User passed as parameter
+  }: {
+    tenantId: string;
+    user: User;
+  }): Promise<Result<void, Failure>> {
+    // Service logic using user parameter
+  }
+}
+
+// ✅ Good - Domain test uses mock user
+import { mock } from '@jsfsi-core/ts-crossplatform';
+import { User } from '../../models/User.model';
+
+it('updates fiscal data', async () => {
+  const systemUser = mock<User>({
+    id: 'system-user-id',
+    type: 'system', // Mock system user for testing
+  });
+  
+  await service.updateTenantFiscalFromPaymentProvider({
+    tenantId: 'tenant-id',
+    user: systemUser,
+  });
+});
+
+// ❌ Bad - Domain test imports from controller
+import { StripeSystemUser } from '../../../communication/controllers/stripe-webhook/StripeSystemUser';
+
+it('updates fiscal data', async () => {
+  await service.updateTenantFiscalFromPaymentProvider({
+    tenantId: 'tenant-id',
+    user: StripeSystemUser, // ❌ Domain test depends on controller
+  });
+});
+```
+
+## Package-Specific Structure
+
+### core-api (NestJS Backend)
+
+```text
+src/
+├── communication/        # Application layer (NestJS)
+│   ├── controllers/     # REST endpoints
+│   ├── decorators/       # Custom decorators (@Authorize, @CurrentUser)
+│   └── guards/           # Route guards
+├── domain/               # Domain layer (pure business logic)
+│   ├── models/          # Domain entities and value objects
+│   │   └── failures/    # Domain-specific failures
+│   └── services/        # Domain services
+├── repositories/         # Adapter layer (TypeORM persistence)
+└── adapters/            # Adapter layer (external services)
+```
+
+### console/customer (React Frontend)
+
+```text
+src/
+├── adapters/            # Adapter layer (HTTP clients, Firebase)
+├── domain/              # Domain layer
+│   ├── models/          # Domain entities and failures
+│   └── services/        # Domain services
+└── ui/                   # Application/UI layer (React)
+    ├── app/             # Application setup (routing, DI)
+    ├── components/      # React components
+    ├── hooks/          # React hooks
+    └── pages/          # Page components
+```
+
+### infrastructure (Pulumi)
+
+```text
+src/
+├── environments/        # Application layer (Pulumi programs)
+│   └── production/
+│       └── index.ts
+└── providers/          # Adapter layer (reusable building blocks)
+    ├── CloudSqlInstance.ts
+    └── StorageBucket.ts
+```
+
+## Multi-Provider Adapter Pattern
+
+When an adapter needs to support multiple provider implementations (e.g., Stripe, PayPal for payments), use the **Multi-Provider Adapter Pattern**:
+
+1. **Abstract Provider Interface**: Define an abstract class or interface that all providers must implement
+2. **Provider Implementations**: Create concrete provider classes for each implementation
+3. **Adapter with Provider Resolution**: Create an adapter that resolves providers by type and delegates calls
+4. **Dependency Injection**: Register all providers and the adapter in the IoC container
+
+### Backend (NestJS) Pattern
+
+```typescript
+// ✅ Good - Multi-provider adapter pattern (backend)
+// providers/PaymentProvider.ts
+export abstract class PaymentProvider {
+  public abstract readonly name: string;
+  public abstract readonly type: PaymentProviderType;
+
+  public abstract createPaymentAccount(
+    input: NewTenantPaymentAccount,
+  ): Promise<Result<TMetadata, CreatePaymentAccountFailure>>;
+}
+
+// PaymentAdapter.ts
+@Injectable()
+export class PaymentAdapter {
+  constructor(
+    @Inject(PAYMENT_PROVIDER_TOKEN)
+    private readonly paymentProviders: PaymentProvider[],
+  ) {}
+
+  private resolveProvider(
+    type: PaymentProviderType,
+  ): Result<PaymentProvider, ProviderNotFoundFailure> {
+    const provider = this.paymentProviders.find((p) => p.type === type);
+    if (!provider) {
+      return Fail(new ProviderNotFoundFailure(type));
+    }
+    return Ok(provider);
+  }
+
+  async createPaymentAccount(input: NewTenantPaymentAccount): Promise<Result<unknown>> {
+    const [provider, providerFailure] = this.resolveProvider(input.type);
+    if (isFailure(ProviderNotFoundFailure)(providerFailure)) {
+      return Fail(new CreatePaymentAccountFailure(input, new Error('No payment provider found')));
+    }
+    return await provider.createPaymentAccount(input);
+  }
+}
+
+// app.module.ts
+const paymentProviders: Provider[] = [
+  StripePaymentProvider,
+  {
+    provide: PAYMENT_PROVIDER_TOKEN,
+    useFactory: (...args: PaymentProvider[]) => args,
+    inject: [StripePaymentProvider],
+  },
+];
+```
+
+### Frontend (React) Pattern
+
+```typescript
+// ✅ Good - Multi-provider adapter pattern (frontend)
+// providers/PayoutProvider.ts
+export abstract class PayoutProvider {
+  public abstract readonly name: string;
+  public abstract readonly type: PaymentProviderType;
+
+  public abstract isPaymentProviderReady(
+    provider: PaymentProvider,
+  ): Promise<Result<boolean, SetupTenantPayoutProviderFailure>>;
+}
+
+// PayoutAdapter.ts
+export class PayoutAdapter {
+  constructor(private readonly payoutProviders: PayoutProvider[]) {}
+
+  private resolveProvider(
+    type: PaymentProviderType,
+  ): Result<PayoutProvider, ProviderNotFoundFailure> {
+    const provider = this.payoutProviders.find((p) => p.type === type);
+    if (!provider) {
+      return Fail(new ProviderNotFoundFailure(type));
+    }
+    return Ok(provider);
+  }
+
+  async isPaymentProviderReady(
+    provider: PaymentProvider,
+  ): Promise<Result<boolean, SetupTenantPayoutProviderFailure>> {
+    const [payoutProvider, providerFailure] = this.resolveProvider(provider.type);
+    if (isFailure(ProviderNotFoundFailure)(providerFailure)) {
+      return Fail(
+        new SetupTenantPayoutProviderFailure(
+          new Error(`No payout provider found for type: ${provider.type}`),
+        ),
+      );
+    }
+    return await payoutProvider.isPaymentProviderReady(provider);
+  }
+}
+
+// AppBindings.ts
+const adapters: readonly BindingType<unknown>[] = [
+  {
+    type: StripePayoutProvider,
+    instance: new StripePayoutProvider(),
+  },
+  {
+    type: PayoutAdapter,
+    dynamicValue: (context) => {
+      const stripePayoutProvider = context.get(StripePayoutProvider);
+      return new PayoutAdapter([stripePayoutProvider]);
+    },
+  },
+];
+```
+
+### Key Principles
+
+1. **Provider Resolution**: Adapter resolves provider by `type` field, returns `ProviderNotFoundFailure` if not found
+2. **Type Safety**: Use abstract classes/interfaces to ensure all providers implement required methods
+3. **Failure Propagation**: Adapter converts `ProviderNotFoundFailure` to domain-specific failures
+4. **IoC Registration**:
+   - **Backend**: Use NestJS `@Inject` with token and factory function for array injection
+   - **Frontend**: Manually resolve all provider instances in adapter's `dynamicValue` and pass as array
+
+### Adding New Providers
+
+1. Create new provider class extending the abstract provider interface
+2. Implement all abstract methods
+3. Register provider in IoC container
+4. Add provider instance to adapter's constructor array (frontend) or factory inject array (backend)
+
+## References
+
+- Root README: `/README.md`
+- Core API README: `/packages/core-api/README.md`
+- Console README: `/packages/console/README.md`
+- Customer README: `/packages/customer/README.md`
+- Infrastructure README: `/packages/infrastructure/README.md`

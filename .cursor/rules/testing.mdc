@@ -1,0 +1,925 @@
+---
+alwaysApply: true
+---
+
+# Testing
+
+## Test-Driven Development (TDD)
+
+This project follows **TDD** principles:
+
+1. **Red**: Write a failing test first
+2. **Green**: Write minimal code to make it pass
+3. **Refactor**: Improve code while keeping tests green
+
+## Test Organization
+
+### Frontend Testing
+
+Frontend tests should be organized into three describe blocks: `Render`, `Behavior`, and `Error handling`.
+
+- **Render**: Tests that given different states, assert on the rendered elements
+- **Behavior**: Given an initial state, when the state mutates because of an action (e.g., clicking a button), assert on the rendered elements and domain services called
+- **Error handling**: Same as behavior, but also assert that crashlytics is called and proper notifications are displayed to the user
+
+```tsx
+// ✅ Good - Component test organized by describe blocks
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { mock, isFailure } from '@jsfsi-core/ts-crossplatform';
+import { AddUserDialog } from './AddUserDialog';
+import { DuplicatedTenantUserFailure } from '../../../../domain/models/failures/DuplicatedTenantUserFailure';
+import { NetworkFailure } from '../../../../domain/models/failures/NetworkFailure';
+
+describe('AddUserDialog', () => {
+  describe('Render', () => {
+    it('renders email input field', () => {
+      const tenantUsersService = mock<TenantUsersService>();
+      render(<AddUserDialog tenantUsersService={tenantUsersService} />);
+
+      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    });
+
+    it('renders roles selection when provided', () => {
+      const tenantUsersService = mock<TenantUsersService>();
+      render(
+        <AddUserDialog
+          tenantUsersService={tenantUsersService}
+          availableRoles={['admin', 'manager']}
+        />,
+      );
+
+      expect(screen.getByText(/admin/i)).toBeInTheDocument();
+    });
+  });
+
+  describe('Behavior', () => {
+    it('calls addTenantUser service when form is submitted with valid data', async () => {
+      const tenantUsersService = mock<TenantUsersService>();
+      tenantUsersService.addTenantUser.mockResolvedValue([{}, undefined]);
+
+      render(<AddUserDialog tenantUsersService={tenantUsersService} />);
+
+      await userEvent.type(screen.getByLabelText(/email/i), 'john@example.com');
+      await userEvent.click(screen.getByRole('button', { name: /add/i }));
+
+      await waitFor(() => {
+        expect(tenantUsersService.addTenantUser).toHaveBeenCalledWith(
+          expect.objectContaining({ email: 'john@example.com' }),
+        );
+      });
+    });
+
+    it('displays success toast when user is added successfully', async () => {
+      const tenantUsersService = mock<TenantUsersService>();
+      tenantUsersService.addTenantUser.mockResolvedValue([{}, undefined]);
+
+      render(<AddUserDialog tenantUsersService={tenantUsersService} />);
+
+      await userEvent.type(screen.getByLabelText(/email/i), 'john@example.com');
+      await userEvent.click(screen.getByRole('button', { name: /add/i }));
+
+      await waitFor(() => expect(toast.success).toHaveBeenCalled());
+    });
+  });
+
+  describe('Error handling', () => {
+    it('displays error message when duplicate user failure occurs', async () => {
+      const tenantUsersService = mock<TenantUsersService>();
+      tenantUsersService.addTenantUser.mockResolvedValue([
+        undefined,
+        new DuplicatedTenantUserFailure('john@example.com'),
+      ]);
+
+      render(<AddUserDialog tenantUsersService={tenantUsersService} />);
+
+      await userEvent.type(screen.getByLabelText(/email/i), 'john@example.com');
+      await userEvent.click(screen.getByRole('button', { name: /add/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/user already exists/i)).toBeInTheDocument();
+      });
+    });
+
+    it('calls crashlytics when network failure occurs', async () => {
+      const tenantUsersService = mock<TenantUsersService>();
+      const crashlytics = mock<CrashlyticsService>();
+      tenantUsersService.addTenantUser.mockResolvedValue([
+        undefined,
+        new NetworkFailure('Network error'),
+      ]);
+
+      render(<AddUserDialog tenantUsersService={tenantUsersService} crashlytics={crashlytics} />);
+
+      await userEvent.type(screen.getByLabelText(/email/i), 'john@example.com');
+      await userEvent.click(screen.getByRole('button', { name: /add/i }));
+
+      await waitFor(() => {
+        expect(crashlytics.recordError).toHaveBeenCalledWith(
+          expect.objectContaining({ message: 'Network error' }),
+        );
+      });
+    });
+  });
+});
+```
+
+### Comprehensive Error Handling Tests
+
+**When testing error handling, test ALL failure types that the component handles.** Components often handle multiple failure scenarios (specific failures, `NotFoundFailure`, generic `Failure`), and each should be tested separately.
+
+**Error handling tests must verify:**
+
+1. **Toast error messages**: `toast.error` is called with the correct i18n translation key
+2. **Crashlytics reporting**: `reportFailure` is called with the correct message and failure object
+3. **Success callbacks are NOT called**: Verify that success callbacks (e.g., `onMutation`, `onSuccess`) are NOT invoked when failures occur
+
+**Use `vi.spyOn` for mocking context hooks and toast:**
+
+- Mock `useCrashlytics` with `vi.spyOn(CrashlyticsContext, 'useCrashlytics').mockReturnValue({ reportFailure: vi.fn() })`
+- Spy on `toast.error` with `vi.spyOn(toast, 'error')`
+
+**Failure object construction**: Some failure classes accept parameters (e.g., `Error` objects, strings). When testing, construct failures with appropriate parameters to match real-world usage:
+
+```tsx
+// ✅ Good - Comprehensive error handling tests
+describe('Error handling', () => {
+  it('reports failure and displays error toast when connect fails with ConnectTenantPaymentProviderFailure', async () => {
+    const reportFailureMock = vi.fn();
+    vi.spyOn(CrashlyticsContext, 'useCrashlytics').mockReturnValue({
+      reportFailure: reportFailureMock,
+    });
+    const toastErrorSpy = vi.spyOn(toast, 'error');
+
+    const connectTenantPaymentProvider = vi
+      .fn()
+      .mockResolvedValue(
+        Fail(new ConnectTenantPaymentProviderFailure(new Error('Failed to connect'))),
+      );
+
+    // ... render component and trigger action ...
+
+    await waitFor(() => {
+      expect(toastErrorSpy).toHaveBeenCalledWith(
+        i18n.t('tenantSettings.payout.errors.connectFailed'),
+      );
+      expect(reportFailureMock).toHaveBeenCalledTimes(1);
+      expect(reportFailureMock).toHaveBeenCalledWith(
+        'Failed to connect payment provider',
+        new ConnectTenantPaymentProviderFailure(new Error('Failed to connect')),
+      );
+      expect(onMutation).not.toHaveBeenCalled(); // ✅ Verify success callback NOT called
+    });
+  });
+
+  it('reports failure and displays error toast when connect fails with NotFoundFailure', async () => {
+    // Test NotFoundFailure scenario
+  });
+
+  it('reports failure and displays error toast when connect fails with generic Failure', async () => {
+    // Test generic Failure scenario
+  });
+});
+
+// ❌ Bad - Missing failure type tests or not verifying callbacks
+describe('Error handling', () => {
+  it('handles errors', async () => {
+    // ❌ Only testing one failure type, missing others
+    // ❌ Not verifying onMutation is NOT called
+  });
+});
+```
+
+### Frontend Test Setup (AppProviders + IoC overrides)
+
+For Console/Customer UI tests, prefer rendering components inside `AppProviders` and inject mocked dependencies via IoC overrides.
+
+- **Use `AppProviders`**: ensures i18n, theme, auth, crashlytics, and IoC container are set up consistently with the app.
+- **Use `AppBindingsOverrides`**: override only the services used by the component under test.
+- **Prefer IoC overrides over mocking modules**: only mock `react-router-dom` hooks (`useParams`, `useNavigate`) or global UI components when unavoidable.
+- **Context providers**: if the app provides a real provider (e.g., `TenantsProvider`), prefer using it and mock its service dependency (e.g., `TenantsService`) rather than manually injecting the context.
+
+```tsx
+// ✅ Good - render with AppProviders and override IoC bindings
+import { mock, Ok } from '@jsfsi-core/ts-crossplatform';
+import { render, waitFor } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+
+import { AppBindingsOverrides } from '../../../../test/app-bindings-overrides';
+import { Tenant } from '../../../domain/models/Tenant';
+import { TenantsService } from '../../../domain/services/TenantsService/TenantsService';
+import { AppProviders } from '../../app/App';
+import { TenantsProvider } from '../../components/tenants-provider/TenantsProvider';
+import { SomeComponent } from './SomeComponent';
+
+vi.mock('react-router-dom', () => ({
+  useParams: () => ({ tenantId: '1' }),
+  useNavigate: () => vi.fn(),
+}));
+
+it('renders with tenant context', async () => {
+  const { getByText } = render(
+    <AppProviders
+      bindings={AppBindingsOverrides({
+        overrides: [
+          {
+            type: TenantsService,
+            dynamicValue: () =>
+              mock<TenantsService>({
+                getTenants: async () => Ok([mock<Tenant>({ id: '1', name: 'Tenant 1' })]),
+              }),
+          },
+        ],
+      })}
+    >
+      <TenantsProvider>
+        <SomeComponent />
+      </TenantsProvider>
+    </AppProviders>,
+  );
+
+  await waitFor(() => expect(getByText('...')).toBeInTheDocument());
+});
+```
+
+```tsx
+// ❌ Bad - bypasses app wiring by manually injecting context / instantiating services
+import { render } from '@testing-library/react';
+import { SomeComponent } from './SomeComponent';
+import { TenantsContext } from '../../components/tenants-provider/TenantsContext';
+import { TenantsService } from '../../../domain/services/TenantsService/TenantsService';
+
+it('renders', () => {
+  const tenantsService = new TenantsService(/* adapter */); // ❌ direct instantiation
+
+  render(
+    <TenantsContext.Provider
+      value={{
+        currentTenant: { id: '1' } as any,
+        setCurrentTenant: () => undefined,
+        tenants: [],
+        loadingTenants: false,
+        refetchTenants: () => undefined,
+      }}
+    >
+      <SomeComponent /* props + ad-hoc stubs */ />
+    </TenantsContext.Provider>,
+  );
+});
+```
+
+```tsx
+import { mock, Ok } from '@jsfsi-core/ts-crossplatform';
+import { render, waitFor } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+
+import { AppBindingsOverrides } from '../../../../test/app-bindings-overrides';
+import { TenantsService } from '../../../domain/services/TenantsService/TenantsService';
+import { AppProviders } from '../../app/App';
+import { TenantsProvider } from '../../components/tenants-provider/TenantsProvider';
+import { SomeComponent } from './SomeComponent';
+
+vi.mock('react-router-dom', () => ({
+  useParams: () => ({ tenantId: '1' }),
+  useNavigate: () => vi.fn(),
+}));
+
+it('renders with tenant context', async () => {
+  const { getByText } = render(
+    <AppProviders
+      bindings={AppBindingsOverrides({
+        overrides: [
+          {
+            type: TenantsService,
+            dynamicValue: () =>
+              mock<TenantsService>({
+                getTenants: async () => Ok([{ id: '1', name: 'Tenant 1' } as any]),
+              }),
+          },
+        ],
+      })}
+    >
+      <TenantsProvider>
+        <SomeComponent />
+      </TenantsProvider>
+    </AppProviders>,
+  );
+
+  await waitFor(() => expect(getByText('...')).toBeInTheDocument());
+});
+```
+
+### Backend Testing
+
+Backend tests should be organized into three describe blocks: `happy path`, `error handling`, and `logging`.
+
+- **happy path**: Tests the expected behavior on success
+- **error handling**: Ensures that failures and exceptions are handled correctly
+- **logging**: Ensures that proper logs are written for different scenarios
+
+```typescript
+// ✅ Good - Backend test organized by describe blocks
+import { describe, it, expect, vi } from 'vitest';
+import { mock, Ok, Fail, isFailure } from '@jsfsi-core/ts-crossplatform';
+import { TenantFiscalService } from './TenantFiscalService';
+import { DuplicateTaxIdFailure } from '../../models/failures/DuplicateTaxIdFailure';
+import { DatabaseFailure } from '../../models/failures/DatabaseFailure';
+
+describe('TenantFiscalService', () => {
+  describe('updateFiscalProfile', () => {
+    describe('happy path', () => {
+      it('returns fiscal profile on successful update', async () => {
+        const repository = mock<TenantFiscalRepository>();
+        const service = new TenantFiscalService(repository);
+        const fiscalData = mock<UpdateTenantFiscal>({
+          tenantId: '123',
+          taxId: '123456789',
+        });
+
+        repository.updateTenantFiscal.mockResolvedValue(Ok(mock<TenantFiscal>()));
+
+        const [fiscal, failure] = await service.updateFiscalProfile(fiscalData);
+
+        expect(fiscal).toBeDefined();
+        expect(failure).toBeUndefined();
+        expect(fiscal?.taxId).toBe('123456789');
+      });
+    });
+
+    describe('error handling', () => {
+      it('returns DuplicateTaxIdFailure when repository rejects duplicate tax ID', async () => {
+        const repository = mock<TenantFiscalRepository>();
+        const service = new TenantFiscalService(repository);
+
+        repository.updateTenantFiscal.mockResolvedValue(
+          Fail(new DuplicateTaxIdFailure('123456789')),
+        );
+
+        const [, failure] = await service.updateFiscalProfile(mock<UpdateTenantFiscal>());
+
+        expect(failure).toBeDefined();
+        expect(isFailure(DuplicateTaxIdFailure)(failure)).toBe(true);
+      });
+    });
+
+    describe('logging', () => {
+      it('logs warning when duplicate tax ID is detected', async () => {
+        const repository = mock<TenantFiscalRepository>();
+        const logger = mock<Logger>();
+        const service = new TenantFiscalService(repository, logger);
+
+        repository.updateTenantFiscal.mockResolvedValue(
+          Fail(new DuplicateTaxIdFailure('123456789')),
+        );
+
+        await service.updateFiscalProfile(mock<UpdateTenantFiscal>());
+
+        expect(logger.warn).toHaveBeenCalledWith(
+          'Duplicate tax ID detected',
+          expect.objectContaining({ taxId: '123456789' }),
+        );
+      });
+    });
+  });
+});
+```
+
+## Result Type Mocking
+
+**Always use `Ok()` and `Fail()` functions for mocking Result types** instead of array notation:
+
+```typescript
+// ✅ Good - Using Ok() and Fail() for Result types
+import { Ok, Fail } from '@jsfsi-core/ts-crossplatform';
+
+it('returns data on success', async () => {
+  const mockFetch = vi.fn().mockResolvedValue(Ok(mockData));
+  // ...
+});
+
+it('returns failure on error', async () => {
+  const mockFailure = new NetworkFailure(new Error('Network error'));
+  const mockFetch = vi.fn().mockResolvedValue(Fail(mockFailure));
+  // ...
+});
+
+// ❌ Bad - Using array notation for Result types
+it('returns data on success', async () => {
+  const mockFetch = vi.fn().mockResolvedValue([mockData, null]); // ❌ Don't use array notation
+  // ...
+});
+
+it('returns failure on error', async () => {
+  const mockFailure = new NetworkFailure(new Error('Network error'));
+  const mockFetch = vi.fn().mockResolvedValue([null, mockFailure]); // ❌ Don't use array notation
+  // ...
+});
+```
+
+## Mock Utilities
+
+Use the `mock` utility from `@jsfsi-core/ts-crossplatform` to create type-safe test data:
+
+```typescript
+// ✅ Good - Using mock utility
+import { mock } from '@jsfsi-core/ts-crossplatform';
+
+type TenantFiscal = {
+  id: string;
+  tenantId: string;
+  taxId: string;
+  legalName: string;
+  profile: {
+    address: string;
+    city: string;
+  };
+};
+
+it('creates fiscal profile with mock data', async () => {
+  // Create mock fiscal with only needed properties
+  const fiscalData = mock<TenantFiscal>({
+    tenantId: '123',
+    taxId: '123456789',
+    legalName: 'Acme Inc.',
+    // profile can be omitted - RecursivePartial makes it optional
+  });
+
+  const [fiscal, failure] = await service.updateFiscalProfile(fiscalData);
+
+  expect(fiscal).toBeDefined();
+  expect(fiscal?.taxId).toBe('123456789');
+});
+
+// ❌ Bad - Manual mock creation
+it('creates fiscal profile with mock data', async () => {
+  const fiscalData = {
+    tenantId: '123',
+    taxId: '123456789',
+    legalName: 'Acme Inc.',
+    // ❌ Missing required fields, no type safety
+  } as TenantFiscal;
+
+  const [fiscal, failure] = await service.updateFiscalProfile(fiscalData);
+  // ...
+});
+```
+
+### Type safety in tests
+
+- **Do not use `any` in tests**. All mocks and test data must be strongly typed.
+- **Do not use double casts like `as unknown as SomeType`** as a way to satisfy the compiler; instead, define proper types or use the `mock<T>()` helper.
+- When you need to mock a service or domain type but only care about a subset of its fields/methods, **always prefer `mock<T>()`** from `@jsfsi-core/ts-crossplatform`, which returns a recursively-typed partial mock:
+
+```typescript
+// ✅ Good - mocking only the methods you care about
+const paymentAdapter = mock<PaymentAdapter>({
+  updateFiscalData: vi.fn().mockResolvedValue(Ok(undefined)),
+});
+
+// ❌ Bad - widen type with any or unsafe casts
+const paymentAdapter = {
+  updateFiscalData: vi.fn(),
+} as unknown as PaymentAdapter; // ❌ Not allowed
+```
+
+## AAA Pattern (Arrange, Act, Assert)
+
+**All tests must follow the AAA pattern** to ensure clarity and maintainability:
+
+1. **Arrange**: Set up the test data and conditions
+2. **Act**: Execute the code being tested
+3. **Assert**: Verify the expected outcomes
+
+```typescript
+// ✅ Good - Clear AAA pattern without redundant comments
+it('successfully connects a provider', async () => {
+  const userId = Guid.new().toString();
+  const tenantName = `tenant-${Guid.new()}`;
+  const tenantRepository = app.get(TenantRepository);
+  const tenantPaymentRepository = app.get(TenantPaymentRepository);
+
+  const [tenantTypes] = await tenantRepository.getTenantTypes();
+  const [tenant] = await tenantRepository.createTenant({
+    user: mock<User>({ id: userId }),
+    newTenant: {
+      name: tenantName,
+      typeId: tenantTypes[0].id,
+      categoryId: tenantTypes[0].categories[0].id,
+    },
+  });
+
+  const [createdProvider] = await tenantPaymentRepository.createTenantPaymentProvider({
+    tenantId: tenant.id,
+    name: 'Stripe',
+    type: 'stripe',
+    metadata: {},
+  });
+
+  await tenantPaymentRepository.connectTenantPaymentProvider({
+    tenantId: tenant.id,
+    type: 'stripe',
+  });
+
+  const [connectedProvider] = await tenantPaymentRepository.getTenantPaymentProviderByType({
+    tenantId: tenant.id,
+    type: 'stripe',
+  });
+
+  expect(connectedProvider).toEqual({
+    id: createdProvider!.id,
+    name: createdProvider!.name,
+    type: createdProvider!.type,
+    connected: true,
+    default: createdProvider!.default,
+  });
+});
+
+// ❌ Bad - Mixed arrange, act, and assert
+it('successfully connects a provider', async () => {
+  const userId = Guid.new().toString();
+  const tenantRepository = app.get(TenantRepository);
+  const [tenant] = await tenantRepository.createTenant({
+    /* ... */
+  });
+  expect(tenant).toBeDefined(); // ❌ Assert mixed with arrange
+
+  const [createdProvider] = await tenantPaymentRepository.createTenantPaymentProvider({
+    /* ... */
+  });
+  const [, failure] = await tenantPaymentRepository.connectTenantPaymentProvider({
+    /* ... */
+  });
+  expect(failure).toBeUndefined(); // ❌ Assert mixed with act
+
+  const [connectedProvider] = await tenantPaymentRepository.getTenantPaymentProviderByType({
+    /* ... */
+  });
+  expect(connectedProvider?.connected).toBe(true); // ❌ Assert after act but not clearly separated
+});
+```
+
+**Guidelines**:
+
+- Keep all setup code together at the beginning (Arrange)
+- Keep all execution code together in the middle (Act)
+- Keep all verification code together at the end (Assert)
+- The pattern should be clear from the code structure without needing comments
+- If a test has multiple acts and asserts, clearly separate each AAA cycle
+
+## Testing Best Practices
+
+### Use Non-Null Assertions in Test Assertions
+
+**Always use non-null assertions (`!`) instead of optional chaining (`?`) in test assertions** when you know the value should exist. This makes test failures clearer by throwing a null pointer exception instead of having the assertion fail, making it immediately obvious why the test failed.
+
+```typescript
+// ✅ Good - Non-null assertion makes failures clearer
+it('successfully connects a provider', async () => {
+  // Arrange
+  const [createdProvider] = await tenantPaymentRepository.createTenantPaymentProvider({
+    tenantId: tenant.id,
+    name: 'Stripe',
+    type: 'stripe',
+    metadata: {},
+  });
+
+  // Act
+  await tenantPaymentRepository.connectTenantPaymentProvider({
+    tenantId: tenant.id,
+    type: 'stripe',
+  });
+
+  const [connectedProvider] = await tenantPaymentRepository.getTenantPaymentProviderByType({
+    tenantId: tenant.id,
+    type: 'stripe',
+  });
+
+  // Assert
+  expect(connectedProvider!.connected).toBe(true);
+  expect(connectedProvider!.id).toBe(createdProvider!.id);
+});
+
+// ❌ Bad - Optional chaining hides null/undefined issues
+it('successfully connects a provider', async () => {
+  // ... setup
+
+  // Assert
+  expect(connectedProvider?.connected).toBe(true); // ❌ If connectedProvider is undefined, assertion fails instead of throwing
+  expect(connectedProvider?.id).toBe(createdProvider?.id); // ❌ Unclear why test failed
+});
+```
+
+### Use toEqual for Object Assertions
+
+**Always use `toEqual` with an object literal instead of individual field assertions** when checking object properties. This provides better error messages showing the full object difference and is more concise.
+
+```typescript
+// ✅ Good - Single toEqual assertion with object literal
+it('successfully connects a provider', async () => {
+  // Arrange
+  const [createdProvider] = await tenantPaymentRepository.createTenantPaymentProvider({
+    tenantId: tenant.id,
+    name: 'Stripe',
+    type: 'stripe',
+    metadata: {},
+  });
+
+  // Act
+  await tenantPaymentRepository.connectTenantPaymentProvider({
+    tenantId: tenant.id,
+    type: 'stripe',
+  });
+
+  const [connectedProvider] = await tenantPaymentRepository.getTenantPaymentProviderByType({
+    tenantId: tenant.id,
+    type: 'stripe',
+  });
+
+  // Assert
+  expect(connectedProvider).toEqual({
+    id: createdProvider!.id,
+    name: createdProvider!.name,
+    type: createdProvider!.type,
+    connected: true,
+    default: createdProvider!.default,
+  });
+});
+
+// ❌ Bad - Multiple individual field assertions
+it('successfully connects a provider', async () => {
+  // ... setup
+
+  // Assert
+  expect(connectedProvider!.connected).toBe(true); // ❌ Multiple assertions
+  expect(connectedProvider!.id).toBe(createdProvider!.id); // ❌ Less clear error messages
+  expect(connectedProvider!.name).toBe(createdProvider!.name);
+  expect(connectedProvider!.type).toBe(createdProvider!.type);
+  expect(connectedProvider!.default).toBe(createdProvider!.default);
+});
+```
+
+### Keep Mocks Local
+
+```typescript
+// ✅ Good - Mocks local to each test
+it('returns fiscal profile on successful update', async () => {
+  const repository = mock<TenantFiscalRepository>();
+  const service = new TenantFiscalService(repository);
+  // ...
+});
+
+// ❌ Bad - Global mock registry
+beforeEach(() => {
+  global.mockRepository = mock<TenantFiscalRepository>();
+});
+```
+
+### Test Behavior, Not Implementation
+
+```typescript
+// ✅ Good - Test observable behavior
+it('displays error message when duplicate user failure occurs', async () => {
+  // ... setup
+  await waitFor(() => {
+    expect(screen.getByText(/user already exists/i)).toBeInTheDocument();
+  });
+});
+
+// ❌ Bad - Test implementation details
+it('sets error state when duplicate user failure occurs', async () => {
+  // ... setup
+  expect(component.state.error).toBe('User already exists'); // ❌ Testing internal state
+});
+```
+
+### Use Shared Test Configuration
+
+**Do not mock configuration services when values are provided via `.env.test` file.** The test setup automatically loads configuration from `.env.test`, so mocking `ConfigService` or other configuration services is unnecessary unless you're specifically testing invalid configuration scenarios.
+
+```typescript
+// ✅ Good - Use shared .env.test file
+// No need to stub ConfigurationService - use real config from .env.test
+import { createTestingApp } from '@jsfsi-core/ts-nestjs';
+import { AppModule } from './app.module';
+
+describe('MyService', () => {
+  let app: INestApplication;
+
+  beforeEach(async () => {
+    app = await createTestingApp(AppModule);
+  });
+  // ... tests use real config from .env.test
+});
+
+// ❌ Bad - Stub configuration service when not testing configuration
+const configService = mock<ConfigService>();
+configService.get.mockReturnValue('test-value');
+```
+
+### Don't Mock Unused Services
+
+**Only mock services that are directly used by the code under test.** If a service is not used in the code being tested (e.g., `DatabaseService` is not used in an adapter that only calls external APIs), do not mock it.
+
+```typescript
+// ✅ Good - Only mock what's used
+vi.mock('stripe', async () => {
+  const actual = await vi.importActual<typeof Stripe>('stripe');
+  return {
+    ...actual,
+    default: vi.fn().mockImplementation(function () {
+      return { accounts: { create: mockStripeAccountsCreate } };
+    }),
+  };
+});
+
+// ❌ Bad - Mocking unused services
+const databaseService = mock<DatabaseService>(); // ❌ Not used in adapter
+const configService = mock<ConfigService>(); // ❌ Use .env.test instead
+```
+
+### Logger Setup with createTestingApp
+
+**When using `createTestingApp` with a `MockLogger`, do not call `Logger.overrideLogger`.** The `MockLogger` provided to `createTestingApp` is automatically used, and `Logger.overrideLogger` is unnecessary.
+
+```typescript
+// ✅ Good - MockLogger provided to createTestingApp
+import { MockLogger } from '@jsfsi-core/ts-nodejs';
+import { createTestingApp } from '@jsfsi-core/ts-nestjs';
+
+describe('MyService', () => {
+  let app: INestApplication;
+  let mockLogger: MockLogger;
+
+  beforeEach(async () => {
+    mockLogger = new MockLogger();
+    app = await createTestingApp(AppModule, {
+      logger: mockLogger,
+    });
+  });
+
+  it('logs correctly', async () => {
+    const logSpy = vi.spyOn(mockLogger, 'log');
+    // ... test code
+    expect(logSpy).toHaveBeenCalledWith(/* ... */);
+  });
+});
+
+// ❌ Bad - Unnecessary Logger.overrideLogger
+beforeEach(async () => {
+  mockLogger = new MockLogger();
+  Logger.overrideLogger(mockLogger); // ❌ Not needed
+  app = await createTestingApp(AppModule, {
+    logger: mockLogger,
+  });
+});
+```
+
+### Mock Cleanup Placement
+
+**Use `vi.clearAllMocks()` only in `afterEach`, not in `beforeEach`.** This ensures mocks are cleaned up after each test, not before, which is the correct pattern for test isolation.
+
+```typescript
+// ✅ Good - clearAllMocks in afterEach
+describe('MyService', () => {
+  beforeEach(async () => {
+    app = await createTestingApp(AppModule);
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+});
+
+// ❌ Bad - clearAllMocks in beforeEach
+describe('MyService', () => {
+  beforeEach(async () => {
+    vi.clearAllMocks(); // ❌ Should be in afterEach
+    app = await createTestingApp(AppModule);
+  });
+});
+```
+
+### Result Type Assertions
+
+**Do not check for `undefined` in Result type assertions.** The Result type library guarantees that:
+Avoid `expect(result).toBeUndefined()` or `expect(failure).toBeUndefined()` in tests.
+
+- On success: `failure` is `undefined` and `result` is defined
+- On failure: `result` is `undefined` and `failure` is defined
+
+```typescript
+// ✅ Good - Trust Result type guarantees
+const [result, failure] = await service.doSomething();
+
+expect(result).toEqual(expectedResult);
+// No need to check failure === undefined
+
+// Or for error cases:
+const [, failure] = await service.doSomething();
+
+expect(failure).toEqual(expectedFailure);
+// No need to check result === undefined
+
+// ❌ Bad - Redundant undefined checks
+const [result, failure] = await service.doSomething();
+
+expect(failure).toBeUndefined(); // ❌ Redundant - library guarantees this
+expect(result).toBeDefined(); // ❌ Redundant - library guarantees this
+expect(result).toEqual(expectedResult);
+```
+
+### Focus on Observable Outcomes
+
+```typescript
+// ✅ Good - Test what user sees
+expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+expect(screen.getByRole('button', { name: /add/i })).toBeInTheDocument();
+
+// ❌ Bad - Test DOM structure
+expect(container.querySelector('form')).toBeInTheDocument(); // ❌ Testing tag names
+expect(element.className).toBe('form-container'); // ❌ Testing class names
+```
+
+### Do Not Test CSS Classes
+
+**Do not test CSS classes or styling in unit tests.** Testing CSS classes is the responsibility of visual regression testing, which is out of scope for unit tests. Focus on testing that information is visible to the user, not how it's styled.
+
+```typescript
+// ✅ Good - Test that information is visible
+it('renders setup text when provider is connected but not ready', async () => {
+  // ... setup
+  await waitFor(() => {
+    expect(getByText(i18n.t('tenantSettings.payout.setupRequired'))).toBeInTheDocument();
+  });
+});
+
+// ❌ Bad - Testing CSS classes
+it('renders setup text with correct styling', async () => {
+  // ... setup
+  const setupText = getByText(i18n.t('tenantSettings.payout.setupRequired'));
+  expect(setupText).toHaveClass('text-amber-600'); // ❌ CSS class testing
+  expect(setupText).toHaveClass('underline'); // ❌ CSS class testing
+});
+```
+
+### Mock Call Assertions
+
+**Always check `toHaveBeenCalledTimes` when using `toHaveBeenCalledWith`** to ensure the method is called exactly the expected number of times:
+
+```typescript
+// ✅ Good - Check both call count and arguments
+expect(mockService.connectTenantPaymentProvider).toHaveBeenCalledTimes(1);
+expect(mockService.connectTenantPaymentProvider).toHaveBeenCalledWith('tenant-id', 'stripe');
+
+// ❌ Bad - Only checking arguments without verifying call count
+expect(mockService.connectTenantPaymentProvider).toHaveBeenCalledWith('tenant-id', 'stripe');
+// ❌ Missing toHaveBeenCalledTimes - could be called multiple times unexpectedly
+```
+
+## Test Coverage
+
+- **High code coverage** required for domain logic and utilities
+- Use **Vitest** as the testing framework
+- Test files should be co-located with source files or mirror the source structure
+
+## Integration Tests
+
+### Never Access Database Directly
+
+**Integration tests must never access the database directly** (e.g., raw SQL queries via `dataSource.query`). Always use repository methods as the facade to interact with data. If you need to verify specific database behavior that existing repository methods don't support, create a new repository method.
+
+```typescript
+// ✅ Good - Use repository methods
+const [tenantFiscal] = await tenantFiscalRepository.getTenantFiscal({
+  tenantId: tenant.id,
+});
+
+expect(tenantFiscal).toEqual({
+  tenantId: tenant.id,
+  address: {},
+  vatNumber: undefined,
+  fiscalName: undefined,
+});
+
+// ❌ Bad - Direct database access
+const databaseService = app.get(DatabaseService);
+const [row] = await databaseService.dataSource.query(
+  'SELECT address, "vatNumber" FROM core_api.tenant_fiscal WHERE "tenantId" = $1',
+  [tenant.id],
+);
+
+expect(row).toEqual({ address: null, vatNumber: null });
+```
+
+This ensures:
+- Tests verify behavior through the same interface the application uses
+- Repository transformations and mappings are tested as part of the integration
+- Tests remain maintainable when database schema or repository internals change
+
+## References
+
+- Root README: `/README.md`
+- Core API README: `/packages/core-api/README.md`
+- Console README: `/packages/console/README.md`
+- Customer README: `/packages/customer/README.md`

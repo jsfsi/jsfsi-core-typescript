@@ -1,0 +1,593 @@
+---
+alwaysApply: true
+---
+
+# Frontend React
+
+This rule applies to both console and customer React applications.
+
+## Internationalization (i18n)
+
+**All user-facing text must use i18n translations** - never hardcode strings in components:
+
+```tsx
+// ✅ Good - Using i18n translations
+import { useTranslation } from 'react-i18next';
+
+export function TipPage() {
+  const { t } = useTranslation();
+
+  return (
+    <div>
+      <h1>{t('tipPage.title')}</h1>
+      <p>{t('tipPage.description')}</p>
+      {error && <p>{t('tipPage.errors.failed')}</p>}
+    </div>
+  );
+}
+
+// ❌ Bad - Hardcoded strings
+export function TipPage() {
+  return (
+    <div>
+      <h1>Payment Provider</h1> {/* ❌ Hardcoded string */}
+      <p>Loading payment provider...</p> {/* ❌ Hardcoded string */}
+    </div>
+  );
+}
+```
+
+**Translation keys should be organized hierarchically** by feature/page:
+
+```json
+{
+  "tipPage": {
+    "title": "Payment Provider",
+    "loading": "Loading payment provider...",
+    "errors": {
+      "failedToLoad": "Failed to load payment provider"
+    }
+  }
+}
+```
+
+**Toast messages must use i18n:**
+
+```tsx
+// ✅ Good - Toast with i18n
+toast.error(t('tipPage.errors.failedToLoad'));
+
+// ❌ Bad - Hardcoded toast message
+toast.error('Failed to load payment provider');
+```
+
+## Component Structure
+
+Keep UI components declarative and side-effect free; isolate side-effects in hooks or adapters:
+
+```tsx
+// ✅ Good - Focused component
+export function AddUserDialog({ tenantId, onUserAdded }: AddUserDialogProps) {
+  const tenantUsersService = useInjection(TenantUsersService);
+  const form = useForm<AddUserData>({
+    resolver: zodResolver(addUserSchema),
+  });
+
+  const handleSubmit = form.handleSubmit(async (values) => {
+    const [, failure] = await tenantUsersService.addTenantUser({
+      tenantId,
+      email: values.email,
+      roles: values.roles,
+    });
+
+    if (isFailure(Failure)(failure)) {
+      toast.error(t('tenantUsers.addUserDialog.errors.failed'));
+      return;
+    }
+
+    toast.success(t('tenantUsers.addUserDialog.success'));
+    onUserAdded();
+  });
+
+  return <form onSubmit={handleSubmit}>{/* Form fields */}</form>;
+}
+
+// ❌ Bad - Component doing too much
+export function TenantUsersPage() {
+  // Authentication logic
+  // Form validation
+  // API calls
+  // Navigation
+  // Error handling
+  // State management
+  // ...
+}
+```
+
+## Never Call Adapters Directly
+
+**Never call adapters directly from components** - always go through domain services:
+
+```tsx
+// ✅ Good - Component using domain service
+export function AddUserDialog({ tenantId, onUserAdded }: AddUserDialogProps) {
+  const tenantUsersService = useInjection(TenantUsersService);
+  // ...
+}
+
+// ❌ Bad - Component calling adapter directly
+export function AddUserDialog({ tenantId }: AddUserDialogProps) {
+  const adapter = new TenantUsersAdapter(); // ❌ Don't instantiate adapters
+  // ...
+}
+```
+
+## API Response Models
+
+Use `EmptyResponse` from your API client's models (e.g. `@/adapters/ApiClient/models/EmptyResponse`) for endpoints that return 204 No Content:
+
+```tsx
+// ✅ Good - Using EmptyResponse for 204 endpoints
+import { EmptyResponse } from '../ApiClient/models/EmptyResponse';
+
+async deleteShift(
+  shiftId: string,
+  tenantId: string,
+): Promise<Result<void, NetworkFailure | NotFoundFailure | DeleteShiftFailure>> {
+  const [, failure] = await this.apiClient.fetch<void, DeleteShiftFailure>(
+    `/tenants/${tenantId}/shifts/${shiftId}`,
+    EmptyResponse, // ✅ Use EmptyResponse for 204
+    DeleteShiftFailure,
+    {
+      method: 'DELETE',
+    },
+  );
+  // ...
+}
+
+// ❌ Bad - Using undefined or null
+async deleteShift(
+  shiftId: string,
+  tenantId: string,
+): Promise<Result<void, NetworkFailure | NotFoundFailure | DeleteShiftFailure>> {
+  const [, failure] = await this.apiClient.fetch<void, DeleteShiftFailure>(
+    `/tenants/${tenantId}/shifts/${shiftId}`,
+    undefined, // ❌ Don't use undefined
+    DeleteShiftFailure,
+    {
+      method: 'DELETE',
+    },
+  );
+  // ...
+}
+```
+
+## Form Handling
+
+Use `react-hook-form` for forms and centralize validation with `zod` schemas:
+
+```tsx
+// ✅ Good - Form with validation
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const addUserSchema = z.object({
+  email: z.string().email('Invalid email address'),
+  roles: z.array(z.string()).min(1, 'At least one role is required'),
+});
+
+type AddUserData = z.infer<typeof addUserSchema>;
+
+export function AddUserDialog({ tenantId }: AddUserDialogProps) {
+  const form = useForm<AddUserData>({
+    resolver: zodResolver(addUserSchema),
+    defaultValues: { email: '', roles: [] },
+  });
+
+  const onSubmit = form.handleSubmit(async (values) => {
+    const [, failure] = await tenantUsersService.addTenantUser({
+      tenantId,
+      email: values.email,
+      roles: values.roles,
+    });
+
+    if (isFailure(Failure)(failure)) {
+      toast.error(t('tenantUsers.addUserDialog.errors.failed'));
+      return;
+    }
+
+    toast.success(t('tenantUsers.addUserDialog.success'));
+    form.reset();
+  });
+
+  return (
+    <form onSubmit={onSubmit}>
+      <input {...form.register('email')} />
+      {form.formState.errors.email && <span>{form.formState.errors.email.message}</span>}
+      {/* More fields */}
+    </form>
+  );
+}
+
+// ❌ Bad - Manual form handling
+export function AddUserDialog({ tenantId }: AddUserDialogProps) {
+  const [email, setEmail] = useState(''); // ❌ Manual state management
+  const [errors, setErrors] = useState({}); // ❌ Manual validation
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // ❌ Manual validation
+    if (!email.includes('@')) {
+      setErrors({ email: 'Invalid email' });
+      return;
+    }
+    // ...
+  };
+  // ...
+}
+```
+
+## Custom Hooks
+
+Extract logic into custom hooks:
+
+```tsx
+// ✅ Good - Custom hook
+export function useTenantUsers(tenantId: string) {
+  const tenantUsersService = useInjection(TenantUsersService);
+  const [users, setUsers] = useState<TenantUser[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUsers = async () => {
+      const [loadedUsers, failure] = await tenantUsersService.getTenantUsers(tenantId);
+
+      if (isFailure(NetworkFailure)(failure)) {
+        toast.error(t('tenantUsers.errors.failedToLoad'));
+        return;
+      }
+
+      setUsers(loadedUsers || []);
+      setLoading(false);
+    };
+
+    loadUsers();
+  }, [tenantId, tenantUsersService]);
+
+  return { users, loading };
+}
+
+// Use in component
+export function TenantUsersPage({ tenantId }: TenantUsersPageProps) {
+  const { users, loading } = useTenantUsers(tenantId);
+  // ...
+}
+
+// ❌ Bad - Logic in component
+export function TenantUsersPage({ tenantId }: TenantUsersPageProps) {
+  const [users, setUsers] = useState<TenantUser[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // ❌ Logic should be in a hook
+    const loadUsers = async () => {
+      // ...
+    };
+    loadUsers();
+  }, [tenantId]);
+  // ...
+}
+```
+
+## Dependency Injection
+
+Use IoC container for dependencies:
+
+```tsx
+// ✅ Good - Dependency injection
+export function TenantDetailsPage() {
+  const tenantsService = useInjection(TenantsService);
+  // ...
+}
+
+// ❌ Bad - Direct instantiation
+export function TenantDetailsPage() {
+  const tenantsService = new TenantsService(new TenantsAdapter()); // ❌ Hard dependency
+  // ...
+}
+```
+
+## Testing Setup (AppProviders + AppBindingsOverrides)
+
+For UI/component tests, **render through `AppProviders`** and inject mocks using **IoC binding overrides**. This keeps tests aligned with the actual app runtime wiring.
+
+- **Prefer**: `AppProviders` + `AppBindingsOverrides({ overrides: [...] })`
+- **Avoid**: manually constructing adapters/services, or deep module mocking
+- **Tenant context**: prefer wrapping with `TenantsProvider` and mocking `TenantsService` (instead of manually setting `TenantsContext.Provider`)
+
+```tsx
+// ✅ Good - render through AppProviders and override bindings
+import { mock, Ok } from '@jsfsi-core/ts-crossplatform';
+import { render } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+
+import { AppBindingsOverrides } from '../../../../test/app-bindings-overrides';
+import { Tenant } from '../../../domain/models/Tenant';
+import { TenantsService } from '../../../domain/services/TenantsService/TenantsService';
+import { AppProviders } from '../../app/App';
+import { TenantsProvider } from '../../components/tenants-provider/TenantsProvider';
+import { MyComponent } from './MyComponent';
+
+vi.mock('react-router-dom', () => ({
+  useParams: () => ({ tenantId: '1' }),
+  useNavigate: () => vi.fn(),
+}));
+
+describe('MyComponent', () => {
+  it('renders with real app providers', async () => {
+    const { getByText } = render(
+      <AppProviders
+        bindings={AppBindingsOverrides({
+          overrides: [
+            {
+              type: TenantsService,
+              dynamicValue: () =>
+                mock<TenantsService>({
+                  getTenants: async () => Ok([mock<Tenant>({ id: '1', name: 'Tenant 1' })]),
+                }),
+            },
+          ],
+        })}
+      >
+        <TenantsProvider>
+          <MyComponent />
+        </TenantsProvider>
+      </AppProviders>,
+    );
+
+    expect(getByText('...')).toBeInTheDocument();
+  });
+});
+```
+
+```tsx
+// ❌ Bad - manual context wiring / direct instantiation makes tests brittle
+import { render } from '@testing-library/react';
+import { TenantsContext } from '../../components/tenants-provider/TenantsContext';
+import { TenantsService } from '../../../domain/services/TenantsService/TenantsService';
+import { MyComponent } from './MyComponent';
+
+it('renders', () => {
+  const tenantsService = new TenantsService(/* adapter */); // ❌ direct instantiation
+
+  render(
+    <TenantsContext.Provider
+      value={{
+        currentTenant: { id: '1' } as any,
+        setCurrentTenant: () => undefined,
+        tenants: [],
+        loadingTenants: false,
+        refetchTenants: () => undefined,
+      }}
+    >
+      <MyComponent />
+    </TenantsContext.Provider>,
+  );
+});
+```
+
+## Avoid Prop Drilling
+
+Components should check permissions and access context independently instead of receiving props from parent components. Use dependency injection via `useInjection` and context hooks like `useTenants` to access required services and data.
+
+```tsx
+// ✅ Good - Component checks permissions independently
+export function EditShiftDialog({ isOpen, onOpenChange, shiftId }: EditShiftDialogProps) {
+  const { currentTenant } = useTenants();
+  const tenantAuthorizationService = useInjection(TenantAuthorizationService);
+
+  const hasWritePermission = tenantAuthorizationService.hasPermission({
+    tenantPermissions: currentTenant?.permissions ?? [],
+    requiredPermissions: [TenantPermissions.SHIFTS_WRITE, TenantPermissions.ALL],
+  });
+
+  const readonly = !hasWritePermission;
+  // ... rest of component
+}
+
+// ❌ Bad - Prop drilling permissions from parent
+export function EditShiftDialog({
+  isOpen,
+  onOpenChange,
+  shiftId,
+  readonly, // ❌ Don't drill down permissions
+}: EditShiftDialogProps) {
+  // ...
+}
+```
+
+## Permission Validation
+
+- **Backend validation**: All permission checks must be validated in the backend API endpoints
+- **UI menu hiding**: Navigation menu items are hidden based on permissions (see `AppTenantMenu.tsx`)
+- **Write operation controls**: Frontend only needs to disable write operations (create/edit/delete) for users without write permissions
+- **No useService permission checks**: Keep `useService` hooks business-agnostic; don't add permission checks inside service functions
+
+```tsx
+// ✅ Good - Clean useService, permissions checked at component level
+const {
+  data: shifts = [],
+  fetching,
+  refetch,
+} = useService<Shift[]>(
+  {
+    service: async () => {
+      if (!currentTenant) {
+        return [];
+      }
+
+      const [shiftsData, failure] = await service.getShifts(currentTenant.id);
+
+      if (isFailure(Failure)(failure)) {
+        reportFailure(failure);
+        return [];
+      }
+
+      return shiftsData;
+    },
+  },
+  [currentTenant],
+);
+
+// Component-level permission check for write operations
+const hasWritePermission = tenantAuthorizationService.hasPermission({
+  tenantPermissions: currentTenant?.permissions ?? [],
+  requiredPermissions: [TenantPermissions.SHIFTS_WRITE, TenantPermissions.ALL],
+});
+
+// ❌ Bad - Permission checks inside useService
+const { data: shifts = [] } = useService(
+  {
+    service: async () => {
+      if (!hasReadPermission) {
+        // ❌ Don't check permissions here
+        return [];
+      }
+      // ...
+    },
+  },
+  [hasReadPermission],
+); // ❌ Don't add permission dependencies
+```
+
+## UI Component Guidelines
+
+- **Maintain immutability** when updating state; avoid mutating arrays in place
+- **Use Tailwind utility classes** for styling; prefer existing components from `src/ui/components`
+- **Co-locate styles with components** (Tailwind utility classes) and avoid global CSS except for design tokens
+- **Keep components under ~200 lines**; extract subcomponents for readability
+
+```tsx
+// ✅ Good - Immutable state updates
+const [users, setUsers] = useState<TenantUser[]>([]);
+
+const addUser = (newUser: TenantUser) => {
+  setUsers([...users, newUser]); // ✅ Spread operator
+};
+
+// ❌ Bad - Mutating state
+const [users, setUsers] = useState<TenantUser[]>([]);
+
+const addUser = (newUser: TenantUser) => {
+  users.push(newUser); // ❌ Mutating array
+  setUsers(users);
+};
+```
+
+## Non-Null Assertions
+
+**Use non-null assertions (`!`) when context guarantees a value exists.** When a component is guaranteed to have a value (e.g., when wrapped in a context provider that ensures a tenant exists, or when a component is only rendered when a value is present), using non-null assertions is acceptable and can simplify code by removing unnecessary null checks.
+
+```tsx
+// ✅ Good - Non-null assertion when context guarantees value
+export function TenantPayoutProvider({ provider, onMutation }: TenantPayoutProviderProps) {
+  const { currentTenant } = useTenants(); // Component only renders when tenant exists
+  const tenantId = currentTenant!.id; // ✅ Non-null assertion acceptable
+  const hasWritePermission = useMemo(() => {
+    return tenantAuthorizationService.hasPermission({
+      tenantPermissions: currentTenant!.permissions, // ✅ Non-null assertion acceptable
+      requiredPermissions: [TenantPermissions.PAYOUT_WRITE, TenantPermissions.ALL],
+    });
+  }, [currentTenant!.permissions, tenantAuthorizationService]);
+
+  // No need for: if (!tenantId) return null;
+}
+
+// ❌ Bad - Unnecessary null checks when context guarantees value
+export function TenantPayoutProvider({ provider, onMutation }: TenantPayoutProviderProps) {
+  const { currentTenant } = useTenants();
+  const tenantId = currentTenant?.id; // ❌ Optional chaining when value is guaranteed
+
+  if (!tenantId) {
+    return null; // ❌ Unnecessary check
+  }
+
+  // ...
+}
+```
+
+**Guidelines:**
+
+- Use non-null assertions when the component's rendering is conditional on the value existing (e.g., parent component checks before rendering)
+- Use non-null assertions when the value comes from a context provider that guarantees it exists
+- Avoid non-null assertions when the value might legitimately be undefined at runtime
+- When in doubt, prefer optional chaining and null checks for safety
+
+## Error Handling in UI
+
+Handle Result types in UI components:
+
+```tsx
+// ✅ Good - UI component handling Result types
+export function AddUserDialog({ tenantId, onUserAdded }: AddUserDialogProps) {
+  const tenantUsersService = useInjection(TenantUsersService);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (email: string, roles: string[]) => {
+    const [user, failure] = await tenantUsersService.addTenantUser({
+      tenantId,
+      email,
+      roles,
+    });
+
+    if (isFailure(DuplicatedTenantUserFailure)(failure)) {
+      setError(t('tenantUsers.addUserDialog.errors.duplicate'));
+      return;
+    }
+
+    if (isFailure(NetworkFailure)(failure)) {
+      setError(t('tenantUsers.addUserDialog.errors.network'));
+      return;
+    }
+
+    // Success - user is guaranteed to be defined
+    toast.success(t('tenantUsers.addUserDialog.success'));
+    onUserAdded();
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      {/* Form fields */}
+      {error && <div className="error">{error}</div>}
+    </form>
+  );
+}
+
+// ❌ Bad - Try-catch in UI
+export function AddUserDialog({ tenantId }: AddUserDialogProps) {
+  const handleSubmit = async (email: string, roles: string[]) => {
+    try {
+      // ❌ Don't use try-catch in UI - handle Result types instead
+      await tenantUsersService.addTenantUser({ tenantId, email, roles });
+    } catch (error) {
+      // ❌ Exceptions should be converted to Results in adapters
+      setError('Something went wrong');
+    }
+  };
+}
+```
+
+## shadcn/ui Integration
+
+1. Generate a component with `npm run add:shadcn button`.
+2. The script invokes `npx shadcn add button --yes`, then moves files from `src/ui/components/ui` into `src/ui/components`.
+3. Replace design-specific names with domain language as needed (e.g., wrap `Button` into `PrimaryActionButton`).
+4. Apply shared styles via Tailwind classes and, when necessary, colocated CSS modules.
+5. Export components from an index barrel in `ui/components` for consistent imports.
+
+## References
+
+- Root README: `/README.md`
+- Console README: `/packages/console/README.md`
+- Customer README: `/packages/customer/README.md`

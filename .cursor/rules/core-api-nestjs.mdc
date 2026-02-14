@@ -1,0 +1,374 @@
+---
+alwaysApply: true
+---
+
+# Core API NestJS
+
+## Controllers
+
+Keep controllers thin—validate requests with `SafeBody` and delegate to services immediately:
+
+```typescript
+// ✅ Good - Thin controller
+@Controller('tenant-fiscal')
+export class TenantFiscalController {
+  constructor(private readonly service: TenantFiscalService) {}
+
+  @Patch()
+  async update(
+    @SafeBody(UpdateTenantFiscalRequest) body: UpdateTenantFiscalRequest,
+  ): Promise<TenantFiscalResponse> {
+    const [fiscal, failure] = await this.service.updateTenantFiscal(body.toModel());
+
+    if (isFailure(DuplicatedTaxIdFailure)(failure)) {
+      throw new ConflictException(failure);
+    }
+
+    if (isFailure(DatabaseFailure)(failure)) {
+      throw new ServiceUnavailableException(failure);
+    }
+
+    return mapTenantFiscalToResponse(fiscal);
+  }
+}
+
+// ❌ Bad - Business logic in controller
+@Controller('tenant-fiscal')
+export class TenantFiscalController {
+  @Patch()
+  async update(@Body() body: any) {
+    // ❌ Business logic should not be here
+    if (body.taxId.length < 9) {
+      throw new BadRequestException();
+    }
+    // ❌ Direct database access
+    const fiscal = await this.dataSource.getRepository(TenantFiscalEntity).save(body);
+    return fiscal;
+  }
+}
+```
+
+## Multi-Tenant Security
+
+**CRITICAL**: All repository methods that query, update, or delete data MUST require and filter by `tenantId` to prevent cross-tenant data access.
+
+### Security Rule: Tenant Isolation at Database Level
+
+**All database queries MUST include `tenantId` in the WHERE clause** to enforce tenant isolation at the database level, not at the application level.
+
+```typescript
+// ✅ Good - Database-level tenant filtering
+public async getShift({
+  shiftId,
+  tenantId,
+}: {
+  shiftId: string;
+  tenantId: string;
+}): Promise<Result<Shift | undefined>> {
+  const entity = await this.getRepository(TenantShift).findOne({
+    where: { id: shiftId, tenantId },  // ✅ Filters by BOTH id and tenantId
+  });
+
+  if (!entity) {
+    return Ok(undefined);
+  }
+
+  return Ok(mapEntityToShift(entity));
+}
+
+// ❌ Bad - Missing tenant filtering (SECURITY VULNERABILITY!)
+public async getShift({
+  shiftId,
+}: {
+  shiftId: string;  // ❌ Missing tenantId parameter
+}): Promise<Result<Shift | undefined>> {
+  const entity = await this.getRepository(TenantShift).findOne({
+    where: { id: shiftId },  // ❌ No tenant filtering - can access other tenant's data!
+  });
+
+  return Ok(mapEntityToShift(entity));
+}
+
+// ❌ Bad - Application-level validation (NOT SUFFICIENT!)
+public async getShift({
+  shiftId,
+  tenantId,
+}: {
+  shiftId: string;
+  tenantId: string;
+}): Promise<Result<Shift | undefined>> {
+  const entity = await this.getRepository(TenantShift).findOne({
+    where: { id: shiftId },  // ❌ Database can still return data from other tenants
+  });
+
+  if (!entity) {
+    return Ok(undefined);
+  }
+
+  // ❌ Manual validation after fetch - security vulnerability window
+  if (entity.tenantId !== tenantId) {
+    return Ok(undefined);
+  }
+
+  return Ok(mapEntityToShift(entity));
+}
+```
+
+### Why Database-Level Filtering?
+
+1. **Security**: Prevents cross-tenant data leakage at the source
+2. **Performance**: Single database query instead of fetch + validate
+3. **Consistency**: No manual validation needed in service layer
+4. **Defense in Depth**: Database enforces security, not just application logic
+
+### Checklist for Multi-Tenant Repositories
+
+When creating or updating repository methods:
+
+- [ ] Method signature includes `tenantId: string` parameter
+- [ ] Database query includes `tenantId` in WHERE clause
+- [ ] UPDATE operations filter by both entity ID and `tenantId`
+- [ ] DELETE operations filter by both entity ID and `tenantId`
+- [ ] No manual tenant validation in service layer (handled by database)
+- [ ] Tests include tenant isolation test cases
+
+### Examples of Methods Requiring Tenant Filtering
+
+All methods that operate on tenant-specific data:
+
+```typescript
+// ✅ All methods require tenantId
+async getShift({ shiftId, tenantId }: { shiftId: string; tenantId: string })
+async updateShift({ shiftId, tenantId, ... }: { shiftId: string; tenantId: string; ... })
+async deleteShift({ shiftId, tenantId }: { shiftId: string; tenantId: string })
+async getShiftsBySeries({ seriesId, tenantId, ... }: { seriesId: string; tenantId: string; ... })
+async updateFutureShiftsInSeries({ seriesId, tenantId, ... }: { seriesId: string; tenantId: string; ... })
+async deleteFutureShiftsInSeries({ seriesId, tenantId, ... }: { seriesId: string; tenantId: string; ... })
+```
+
+## Repositories
+
+### TransactionalRepository Pattern
+
+- **Extend `TransactionalRepository`** from `@jsfsi-core/ts-nodejs` for transaction support
+- **Inject `DatabaseService`** in the constructor and pass `databaseService.dataSource` to the parent class
+- **Map persistence models to domain models** inside repositories; never leak ORM entities to controllers
+- **Catch TypeORM exceptions** and convert them to domain failures
+- **Use type-safe queries** and avoid raw SQL when possible
+
+```typescript
+// ✅ Good - Repository with DatabaseService injection
+import { TransactionalRepository } from '@jsfsi-core/ts-nodejs';
+import { Injectable } from '@nestjs/common';
+import { DatabaseService } from '../DatabaseService';
+
+@Injectable()
+export class TenantRepository extends TransactionalRepository {
+  constructor(databaseService: DatabaseService) {
+    super(databaseService.dataSource);
+  }
+
+  async createTenant(
+    input: CreateTenantInput,
+  ): Promise<Result<Tenant, DuplicatedTenantFailure | DatabaseFailure>> {
+    try {
+      const entity = await this.dataSource.getRepository(TenantEntity).save(mapToEntity(input));
+      return Ok(mapToModel(entity));
+    } catch (error) {
+      if (error.code === '23505') {
+        return Fail(new DuplicatedTenantFailure(input.displayName));
+      }
+      return Fail(new DatabaseFailure(error));
+    }
+  }
+}
+
+// ❌ Bad - Repository without TransactionalRepository
+@Injectable()
+export class TenantRepository {
+  constructor(private readonly dataSource: DataSource) {} // ❌ Should extend TransactionalRepository
+
+  async createTenant(input: CreateTenantInput): Promise<Tenant> {
+    // ❌ Throws exception instead of returning Result
+    const entity = await this.dataSource.getRepository(TenantEntity).save(mapToEntity(input));
+    return mapToModel(entity);
+  }
+}
+```
+
+**Important**: All repositories that need to access the database with TypeORM must:
+
+1. Extend `TransactionalRepository` from `@jsfsi-core/ts-nodejs`
+2. Inject `DatabaseService` in the constructor
+3. Call `super(databaseService.dataSource)` to pass the DataSource to the parent class
+
+### Entity Mapping
+
+Always map between ORM entities and domain models in repositories:
+
+```typescript
+// ✅ Good - Repository mapping entities to domain models
+export function mapTenantEntityToModel(entity: TenantEntity): Tenant {
+  return {
+    id: entity.id,
+    displayName: entity.displayName,
+    legalName: entity.legalName,
+    createdAt: entity.createdAt,
+  };
+}
+
+export function mapTenantToEntity(tenant: Tenant): TenantEntity {
+  return {
+    id: tenant.id,
+    displayName: tenant.displayName,
+    legalName: tenant.legalName,
+    createdAt: tenant.createdAt,
+  };
+}
+
+// ❌ Bad - Leaking entities to controllers
+@Injectable()
+export class TenantRepository {
+  async getTenant(id: string): Promise<TenantEntity> {
+    // ❌ Returning entity
+    return await this.dataSource.getRepository(TenantEntity).findOne({ where: { id } });
+  }
+}
+```
+
+## Domain Services
+
+- **Domain services cannot import NestJS or TypeORM symbols**
+- **Keep domain services pure** - no side effects, no external dependencies
+- **Return Result types** - never throw exceptions
+- **Use constructor injection** for dependencies
+
+```typescript
+// ✅ Good - Pure domain service
+export class TenantsService {
+  constructor(
+    private readonly repository: TenantRepository,
+    private readonly tenantAuthorizationService: TenantAuthorizationService,
+  ) {}
+
+  async createTenant(
+    input: CreateTenantInput,
+  ): Promise<Result<Tenant, DuplicatedTenantFailure | DatabaseFailure>> {
+    const [tenant, failure] = await this.repository.createTenant(input);
+    if (isFailure(DuplicatedTenantFailure)(failure)) {
+      return Fail(failure);
+    }
+
+    await this.tenantAuthorizationService.addUserRoleInTenant({
+      tenantId: tenant.id,
+      user: input.user,
+      role: 'admin',
+    });
+
+    return Ok(tenant);
+  }
+}
+
+// ❌ Bad - Domain service with NestJS dependencies
+import { Injectable } from '@nestjs/common'; // ❌ NestJS import in domain
+import { DataSource } from 'typeorm'; // ❌ TypeORM import in domain
+
+export class TenantsService {
+  constructor(private readonly dataSource: DataSource) {} // ❌ TypeORM dependency
+
+  async createTenant(input: CreateTenantInput): Promise<Tenant> {
+    // ❌ Direct database access in domain
+    const entity = await this.dataSource.getRepository(TenantEntity).save(input);
+    return mapToModel(entity);
+  }
+}
+```
+
+## TypeORM Entities
+
+- **Do not specify raw column types** like `varchar` in TypeORM entities
+- Allow TypeORM to infer the column type from the TypeScript field type
+
+```typescript
+// ✅ Good
+@Entity('tenants')
+export class TenantEntity {
+  @Column()
+  displayName: string; // TypeORM infers column type from TypeScript type
+
+  @Column()
+  createdAt: Date;
+}
+
+// ❌ Bad
+@Entity('tenants')
+export class TenantEntity {
+  @Column({ type: 'varchar', length: 255 }) // ❌ Explicit column type not needed
+  displayName: string;
+}
+```
+
+## Controller Error Handling
+
+Controllers inspect failures exclusively with `isFailure`/`notFailure` and throw HTTP exceptions when required:
+
+```typescript
+// ✅ Good - Controller error handling
+const [tenant, failure] = await tenantsService.createTenant({ newTenant, user });
+
+if (isFailure(DuplicatedTenantFailure)(failure)) {
+  throw new ConflictException(failure);
+}
+
+if (isFailure(DatabaseFailure)(failure)) {
+  logger.warn('Database failure while creating tenant', failure);
+  throw new ServiceUnavailableException(failure);
+}
+
+return tenant;
+
+// ❌ Bad - Generic error handling
+try {
+  const tenant = await tenantsService.createTenant({ newTenant, user });
+  return tenant;
+} catch (error) {
+  // ❌ Don't use try-catch - handle Result types instead
+  throw new InternalServerErrorException();
+}
+```
+
+## Mapping Domain to DTO
+
+Create pure helper functions to map domain models to DTOs:
+
+```typescript
+// ✅ Good - Pure helper mapping domain to DTO
+export function mapTenantToResponse(tenant: Tenant): TenantResponse {
+  return {
+    id: tenant.id,
+    displayName: tenant.displayName,
+    legalName: tenant.legalName,
+    createdAt: tenant.createdAt.toISOString(),
+  };
+}
+
+// ❌ Bad - Mapping in controller
+@Controller('tenants')
+export class TenantsController {
+  @Get(':id')
+  async getTenant(@Param('id') id: string) {
+    const [tenant] = await this.service.getTenant(id);
+    // ❌ Mapping logic in controller
+    return {
+      id: tenant.id,
+      displayName: tenant.displayName,
+      // ...
+    };
+  }
+}
+```
+
+## References
+
+- Root README: `/README.md`
+- Core API README: `/packages/core-api/README.md`

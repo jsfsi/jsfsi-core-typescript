@@ -36,10 +36,10 @@
     "@jsfsi-core/ts-crossplatform": "file:../ts-crossplatform",
     "@jsfsi-core/ts-nodejs": "file:../ts-nodejs",
     "@nestjs/cli": "11.0.16",
-    "@nestjs/common": "11.1.12",
-    "@nestjs/config": "4.0.2",
-    "@nestjs/core": "11.1.12",
-    "@nestjs/platform-express": "11.1.12",
+    "@nestjs/common": "11.1.13",
+    "@nestjs/config": "4.0.3",
+    "@nestjs/core": "11.1.13",
+    "@nestjs/platform-express": "11.1.13",
     "@nestjs/typeorm": "11.0.0",
     "body-parser": "2.2.2",
     "express": "5.2.1",
@@ -48,8 +48,8 @@
     "zod": "4.3.6"
   },
   "devDependencies": {
-    "@nestjs/testing": "11.1.12",
-    "@swc/core": "1.15.10",
+    "@nestjs/testing": "11.1.13",
+    "@swc/core": "1.15.11",
     "@types/supertest": "6.0.3",
     "@vitest/coverage-v8": "4.0.18",
     "supertest": "7.2.2",
@@ -68,7 +68,7 @@
     }
   },
   "engines": {
-    "node": "25.4.0",
-    "npm": "11.7.0"
+    "node": "25.6.1",
+    "npm": "11.9.0"
   }
 }

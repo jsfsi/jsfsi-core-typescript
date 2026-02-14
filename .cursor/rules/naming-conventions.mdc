@@ -1,0 +1,318 @@
+---
+alwaysApply: true
+---
+
+# Naming Conventions
+
+## Files and Directories
+
+### Files
+
+- **Files**: Use PascalCase for classes/interfaces (e.g., `UserService.ts`, `AuthenticationAdapter.ts`)
+- **Tests**: Use `.test.ts`, `.unit.test.ts`, `.integration.test.ts`, or `.test.tsx` suffix (e.g., `UserService.unit.test.ts`)
+
+```typescript
+// ✅ Good - File name matches class name
+// UserService.ts
+export class UserService {
+  // ...
+}
+
+// ✅ Good - Test file matches source file
+// UserService.unit.test.ts
+describe('UserService', () => {
+  // ...
+});
+
+// ❌ Bad - File name doesn't match class
+// user-service.ts
+export class UserService {
+  // ...
+}
+```
+
+### Directories
+
+- **Directories**: Use kebab-case (e.g., `tenant-fiscal-service/`, `ui/components/`)
+
+```text
+// ✅ Good
+src/
+├── domain/
+│   └── services/
+│       └── tenant-fiscal-service/
+│           └── TenantFiscalService.ts
+└── ui/
+    └── components/
+
+// ❌ Bad
+src/
+├── domain/
+│   └── services/
+│       └── TenantFiscalService/  # ❌ PascalCase for directory
+│           └── TenantFiscalService.ts
+```
+
+## Code Naming
+
+### Classes
+
+- **Classes**: PascalCase (e.g., `User`, `SignInFailure`, `AuthenticationService`)
+
+```typescript
+// ✅ Good
+export class TenantFiscalService {
+  // ...
+}
+
+export class DuplicatedTenantFailure extends Failure {
+  // ...
+}
+
+// ❌ Bad
+export class tenantFiscalService {
+  // ❌ camelCase
+  // ...
+}
+
+export class duplicated_tenant_failure {
+  // ❌ snake_case
+  // ...
+}
+```
+
+### Functions and Methods
+
+- **Functions/Methods**: camelCase (e.g., `signIn()`, `onAuthStateChanged()`)
+
+```typescript
+// ✅ Good
+export function createTenant(input: CreateTenantInput): Result<Tenant, Failure> {
+  // ...
+}
+
+export class TenantsService {
+  async getTenant(id: string): Promise<Result<Tenant, Failure>> {
+    // ...
+  }
+}
+
+// ❌ Bad
+export function CreateTenant(input: CreateTenantInput) {
+  // ❌ PascalCase
+  // ...
+}
+
+export function get_tenant(id: string) {
+  // ❌ snake_case
+  // ...
+}
+```
+
+### Constants
+
+- **Constants**: UPPER_SNAKE_CASE (e.g., `APP_CONFIG_TOKEN`, `VITE_FIREBASE_API_KEY`)
+
+```typescript
+// ✅ Good
+export const APP_CONFIG_TOKEN = 'APP_CONFIG';
+export const VITE_FIREBASE_API_KEY = 'firebase-api-key';
+
+// ❌ Bad
+export const appConfigToken = 'APP_CONFIG'; // ❌ camelCase
+export const viteFirebaseApiKey = 'firebase-api-key'; // ❌ camelCase
+```
+
+### Failures
+
+- **Failures**: Suffix with `Failure` (e.g., `SignInFailure`, `ValidationFailure`, `DuplicatedTenantFailure`)
+
+```typescript
+// ✅ Good
+export class SignInFailure extends Failure {
+  // ...
+}
+
+export class DuplicatedTenantFailure extends Failure {
+  // ...
+}
+
+// ❌ Bad
+export class SignInError extends Error {
+  // ❌ Should be Failure, not Error
+  // ...
+}
+
+export class DuplicatedTenant {
+  // ❌ Missing Failure suffix
+  // ...
+}
+```
+
+## Acronyms
+
+Three-letter acronyms (TLAs) should be in all uppercase, even when used as a prefix:
+
+```typescript
+// ✅ Good
+export class PDFProductExportProvider {}
+export class APIClient {}
+export class HTTPService {}
+
+// ❌ Bad
+export class PdfProductExportProvider {} // ❌ Mixed case
+export class ApiClient {} // ❌ Mixed case
+export class HttpService {} // ❌ Mixed case
+```
+
+### Filenames with Acronyms
+
+Filenames should match the class name exactly, including acronym casing:
+
+```text
+✅ Good
+PDFProductExportProvider.ts → export class PDFProductExportProvider
+APIClient.ts → export class APIClient
+HTTPService.ts → export class HTTPService
+
+❌ Bad
+PdfProductExportProvider.ts → export class PDFProductExportProvider  // ❌ Mismatch
+ApiClient.ts → export class APIClient  // ❌ Mismatch
+HttpService.ts → export class HTTPService  // ❌ Mismatch
+```
+
+## TypeScript Type Definitions
+
+### Prefer `type` over `interface`
+
+- Prefer **`type` aliases** over `interface` for domain models and DTOs
+- Use `interface` only when you need declaration merging or extending built-in types
+
+```typescript
+// ✅ Good - Use type for domain models
+export type Tenant = {
+  id: string;
+  displayName: string;
+  legalName: string;
+  createdAt: Date;
+};
+
+// ✅ Good - Use type for failures
+export type DuplicatedTenantFailure = Failure & {
+  readonly displayName: string;
+};
+
+// ❌ Bad - Don't use interface for domain models
+export interface Tenant {
+  id: string;
+  displayName: string;
+}
+```
+
+### Type Inference
+
+- Leverage **type inference** where it improves readability
+- Use **explicit types** for function parameters and return values
+
+```typescript
+// ✅ Good - Explicit types for function signatures
+export function createTenant(
+  input: CreateTenantInput,
+): Promise<Result<Tenant, DuplicatedTenantFailure | DatabaseFailure>> {
+  // ...
+}
+
+// ✅ Good - Type inference for local variables
+const tenant = await repository.getTenant(id); // Type inferred from return type
+
+// ❌ Bad - Missing return type
+export function createTenant(input: CreateTenantInput) {
+  // ❌ No return type
+  // ...
+}
+```
+
+## Domain Models
+
+### Entities
+
+- **Entities**: Use descriptive nouns (e.g., `User`, `Tenant`, `Order`)
+
+```typescript
+// ✅ Good
+export type Tenant = {
+  id: string;
+  displayName: string;
+};
+
+export type User = {
+  id: string;
+  email: string;
+};
+
+// ❌ Bad
+export type TenantData = {
+  // ❌ "Data" suffix unnecessary
+  id: string;
+  displayName: string;
+};
+
+export type UserInfo = {
+  // ❌ "Info" suffix unnecessary
+  id: string;
+  email: string;
+};
+```
+
+### Value Objects
+
+- **Value Objects**: Use descriptive nouns (e.g., `Email`, `Address`, `TenantType`)
+
+```typescript
+// ✅ Good
+export type Email = {
+  value: string;
+};
+
+export type Address = {
+  street: string;
+  city: string;
+  zipCode: string;
+};
+
+// ❌ Bad
+export type EmailValue = {
+  // ❌ "Value" suffix unnecessary
+  value: string;
+};
+```
+
+## TypeORM Entities
+
+- **Do not specify raw column types** like `varchar` in TypeORM entities
+- Allow TypeORM to infer the column type from the TypeScript field type
+
+```typescript
+// ✅ Good
+@Entity('tenants')
+export class TenantEntity {
+  @Column()
+  displayName: string; // TypeORM infers column type from TypeScript type
+
+  @Column()
+  createdAt: Date;
+}
+
+// ❌ Bad
+@Entity('tenants')
+export class TenantEntity {
+  @Column({ type: 'varchar', length: 255 }) // ❌ Explicit column type not needed
+  displayName: string;
+}
+```
+
+## References
+
+- Root README: `/README.md`
+- Core API README: `/packages/core-api/README.md`
+- Console README: `/packages/console/README.md`

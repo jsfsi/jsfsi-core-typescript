@@ -1,0 +1,294 @@
+---
+alwaysApply: true
+---
+
+# Error Handling
+
+## Result Type Pattern
+
+Use the **Result type** for typed returns and explicit error handling:
+
+```typescript
+import { Result, Ok, Fail } from '@jsfsi-core/ts-crossplatform';
+import { Failure } from '@jsfsi-core/ts-crossplatform';
+
+type Result<T, E extends Failure> = [T, E | undefined];
+
+// ✅ Good - Success case
+function getTenant(id: string): Result<Tenant, TenantNotFoundFailure> {
+  return Ok(tenant);
+}
+
+// ✅ Good - Failure case
+function getTenant(id: string): Result<Tenant, TenantNotFoundFailure> {
+  return Fail(new TenantNotFoundFailure(id));
+}
+
+// ❌ Bad - Throwing exceptions
+function getTenant(id: string): Tenant {
+  if (!exists(id)) {
+    throw new Error('Tenant not found'); // ❌ Don't throw in domain
+  }
+  return findTenant(id);
+}
+```
+
+## Domain Services Return Result Types
+
+**All domain services must return `Result<T, Failure>` tuples:**
+
+```typescript
+// ✅ Good - Domain service returning Result
+export class TenantsService {
+  constructor(private readonly repository: TenantRepository) {}
+
+  async createTenant(
+    input: CreateTenantInput,
+  ): Promise<Result<Tenant, DuplicatedTenantFailure | DatabaseFailure>> {
+    return this.repository.createTenant(input);
+  }
+}
+
+// ❌ Bad - Throwing exceptions in domain
+export class TenantsService {
+  async createTenant(input: CreateTenantInput): Promise<Tenant> {
+    if (await this.repository.exists(input.displayName)) {
+      throw new Error('Tenant already exists'); // ❌ Don't throw in domain
+    }
+  }
+}
+```
+
+## Try-Catch Location
+
+**Try-catch blocks ONLY in adapters/repositories (edges of architecture):**
+
+```typescript
+// ✅ Good - Try-catch in adapter (edge)
+export class FirebaseClient {
+  public async signInWithEmailAndPassword({
+    email,
+    password,
+  }: {
+    email: string;
+    password: string;
+  }): Promise<Result<User, SignInFailure>> {
+    try {
+      const firebaseUser = await this.firebaseAuth.signInWithEmailAndPassword(email, password);
+      if (!firebaseUser.user) {
+        return Fail(new SignInFailure('User not returned from Firebase'));
+      }
+      const user = await this.mapFirebaseUserToUser(firebaseUser.user);
+      return Ok(user);
+    } catch (error) {
+      // Exception caught at edge and converted to Result
+      return Fail(new SignInFailure(error));
+    }
+  }
+}
+
+// ✅ Good - Try-catch in repository (edge)
+import { TransactionalRepository } from '@jsfsi-core/ts-nodejs';
+import { Injectable } from '@nestjs/common';
+import { DatabaseService } from '../DatabaseService';
+
+@Injectable()
+export class TenantRepository extends TransactionalRepository {
+  constructor(databaseService: DatabaseService) {
+    super(databaseService.dataSource);
+  }
+
+  public async createTenant(
+    input: CreateTenantInput,
+  ): Promise<Result<Tenant, DuplicatedTenantFailure | DatabaseFailure>> {
+    try {
+      const entity = await this.dataSource.getRepository(TenantEntity).save(mapToEntity(input));
+      return Ok(mapToModel(entity));
+    } catch (error) {
+      if (error.code === '23505') {
+        // PostgreSQL unique constraint violation
+        return Fail(new DuplicatedTenantFailure(input.displayName));
+      }
+      return Fail(new DatabaseFailure(error));
+    }
+  }
+}
+
+// ✅ Good - Domain service (NO try-catch)
+export class TenantsService {
+  constructor(private readonly repository: TenantRepository) {}
+
+  async createTenant(
+    input: CreateTenantInput,
+  ): Promise<Result<Tenant, DuplicatedTenantFailure | DatabaseFailure>> {
+    // No try-catch - errors handled as Result types
+    return this.repository.createTenant(input);
+  }
+}
+
+// ❌ Bad - Try-catch in domain service
+export class TenantsService {
+  async createTenant(input: CreateTenantInput): Promise<Tenant> {
+    try {
+      // ❌ Don't catch here - repository should have already converted exceptions
+      return await this.repository.createTenant(input);
+    } catch (error) {
+      // ❌ Don't throw in domain layer - use Result types
+      throw error;
+    }
+  }
+}
+```
+
+## Failure Checking
+
+**Always use `isFailure` and `notFailure` matchers - NEVER use `instanceof`:**
+
+```typescript
+import { isFailure, notFailure } from '@jsfsi-core/ts-crossplatform';
+
+// ✅ Good
+const [tenant, failure] = await tenantsService.createTenant(input);
+
+if (isFailure(DuplicatedTenantFailure)(failure)) {
+  // Handle DuplicatedTenantFailure
+  throw new ConflictException(failure);
+}
+
+if (isFailure(DatabaseFailure)(failure)) {
+  // Handle DatabaseFailure
+  logger.warn('Database failure', failure);
+  throw new ServiceUnavailableException(failure);
+}
+
+if (notFailure(Failure)(failure)) {
+  // Not a failure (could be another failure type or undefined)
+  return tenant;
+}
+
+// ❌ Bad - Don't use instanceof
+if (failure instanceof DuplicatedTenantFailure) {
+  // Avoid this pattern
+}
+```
+
+## Failure Classes
+
+Create specific failure classes for different error scenarios:
+
+```typescript
+import { Failure } from '@jsfsi-core/ts-crossplatform';
+
+// ✅ Good - Specific failure class
+export class SignInFailure extends Failure {
+  constructor(public readonly error: unknown) {
+    super();
+  }
+}
+
+export class ValidationFailure extends Failure {
+  constructor(
+    public readonly field: string,
+    public readonly message: string,
+  ) {
+    super();
+  }
+}
+
+export class DuplicatedTenantFailure extends Failure {
+  constructor(public readonly displayName: string) {
+    super();
+  }
+}
+
+// ❌ Bad - Generic error
+export class GenericError extends Error {
+  // ❌ Too generic, doesn't convey domain meaning
+}
+```
+
+## Why Result Pattern Over Exceptions?
+
+### 1. Type Safety
+
+Exceptions are **not part of the type system** in TypeScript:
+
+```typescript
+// ❌ Bad - Exceptions not visible in type signature
+function getTenant(id: string): Tenant {
+  if (!exists(id)) {
+    throw new NotFoundError();
+  }
+  return findTenant(id);
+}
+// Caller doesn't know this can throw!
+
+// ✅ Good - Failures are part of the type signature
+function getTenant(id: string): Result<Tenant, TenantNotFoundFailure> {
+  if (!exists(id)) {
+    return Fail(new TenantNotFoundFailure(id));
+  }
+  return Ok(findTenant(id));
+}
+// Type signature explicitly shows possible failures
+```
+
+### 2. Explicit Error Handling
+
+The Result pattern **forces** you to handle errors explicitly:
+
+```typescript
+// ❌ Bad - Errors can be ignored
+const tenant = getTenant('123'); // No error handling required!
+console.log(tenant.name); // Might crash at runtime
+
+// ✅ Good - Errors must be handled
+const [tenant, failure] = getTenant('123');
+if (isFailure(TenantNotFoundFailure)(failure)) {
+  // Must handle error
+  return;
+}
+console.log(tenant.name); // TypeScript knows tenant is defined here
+```
+
+### 3. Functional Composition
+
+Results compose naturally, while exceptions break composition:
+
+```typescript
+// ❌ Bad - Exceptions break composition
+function processTenant(tenantId: string): TenantProfile {
+  const tenant = getTenant(tenantId); // Might throw
+  const profile = getProfile(tenant.id); // Might throw
+  return combineProfile(profile, fiscal); // Might throw
+}
+
+// ✅ Good - Results compose naturally
+function processTenant(
+  tenantId: string,
+): Result<TenantProfile, TenantNotFoundFailure | ProfileFailure | FiscalFailure> {
+  const [tenant, tenantFailure] = getTenant(tenantId);
+  if (isFailure(TenantNotFoundFailure)(tenantFailure)) {
+    return Fail(tenantFailure);
+  }
+
+  const [profile, profileFailure] = getProfile(tenant.id);
+  if (isFailure(ProfileFailure)(profileFailure)) {
+    return Fail(profileFailure);
+  }
+
+  return Ok(combineProfile(profile, fiscal));
+}
+```
+
+## Error Propagation
+
+- **Domain layer**: Returns `Result<T, Failure>` - no exceptions thrown
+- **Adapter/Repository layer**: Catches exceptions and converts to `Result<T, Failure>`
+- **Application layer**: Handles `Result` types and maps to appropriate responses
+
+## References
+
+- Root README: `/README.md`
+- Core API README: `/packages/core-api/README.md`
+- Console README: `/packages/console/README.md`
