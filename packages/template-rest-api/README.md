@@ -50,6 +50,7 @@ Controllers → Domain Services → Adapters → External Services
 
 - **Authentication**: Firebase-based user authentication
 - **Authorization**: Role-based access control with guards
+- **Rate limiting**: In-memory rate limit guard (from `@jsfsi-core/ts-nestjs`) with app-specific configuration
 - **Type Safety**: Full TypeScript support with strict types
 - **Error Handling**: Result types for functional error handling
 - **Testing**: Comprehensive test coverage with unit and integration tests
@@ -495,6 +496,42 @@ FIREBASE_PROJECT_ID=your-firebase-project-id
 FIREBASE_PRIVATE_KEY=your-firebase-private-key
 FIREBASE_CLIENT_EMAIL=your-firebase-client-email
 ```
+
+### Rate limiting
+
+Rate limiting uses `InMemoryRateLimitGuard` from `@jsfsi-core/ts-nestjs` and is configured per-application.
+
+**1. Environment variables** (in `configuration/.env` or `.env.test`):
+
+```env
+RATE_LIMIT_WINDOW_MS=60000   # Time window in milliseconds (default: 60000)
+RATE_LIMIT_MAX_REQUESTS=100  # Max requests per client in the window (default: 100)
+```
+
+**2. App setup**
+
+- Import `rateLimitConfigModuleSetup()` from `src/app/rate-limit-configuration.service` and add it to your root module `imports`.
+- Register `GlobalRateLimitGuard` and `RateLimitConfigurationService` in your root module `providers`.
+
+**3. Apply the guard**
+
+- **Per route:** use `@UseGuards(GlobalRateLimitGuard)` on the controller or method that should be rate-limited.
+
+```typescript
+import { GlobalRateLimitGuard } from '../../guards/global-rate-limit.guard';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+
+@Controller('health')
+export class HealthController {
+  @Get('rate-limited-sample')
+  @UseGuards(GlobalRateLimitGuard)
+  rateLimitedSample(): { ok: boolean } {
+    return { ok: true };
+  }
+}
+```
+
+- When the limit is exceeded, the API returns **429 Too Many Requests** and a **Retry-After** header. Limits are applied per client IP (from `x-forwarded-for` or `request.ip`).
 
 ### Development
 

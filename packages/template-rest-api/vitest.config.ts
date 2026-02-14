@@ -24,6 +24,7 @@ export default defineConfig({
         'src/repositories/MigrationsDataSource.ts',
         'src/repositories/migrations/**',
         'src/repositories/DatabaseService.ts',
+        'src/communication/guards/global-rate-limit.guard.ts',
       ],
       thresholds: {
         statements: 100,

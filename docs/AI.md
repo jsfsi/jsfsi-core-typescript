@@ -7,7 +7,21 @@ Use plan with the following prompt:
 ```txt
 You are a principal software engineer.
 
-<Feature>
+What
+
+<Placeholder>
+
+Why
+
+<Placeholder>
+
+How
+
+<Placeholder>
+
+Acceptance Criterias
+
+<Placeholder>
 
 ## Hard constraints
 - Do NOT create migrations. If schema changes are required, update only models and include a plain-text Migration note.

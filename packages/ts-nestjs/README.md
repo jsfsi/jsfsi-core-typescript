@@ -36,6 +36,8 @@ src/
 │   └── AppConfigurationService.ts  # Configuration setup
 ├── filters/
 │   └── AllExceptionsFilter.ts      # Exception handler (edge)
+├── guards/
+│   └── InMemoryRateLimitGuard.ts   # In-memory rate limit guard
 ├── middlewares/
 │   └── RequestMiddleware.ts       # Request logging
 └── validators/
@@ -247,6 +249,42 @@ Logs include:
 - Response time
 - Request/response headers
 - Severity level based on status code
+
+### In-Memory Rate Limit Guard
+
+`InMemoryRateLimitGuard` limits the number of requests per client (by IP) within a sliding time window. It is in-memory only (no distributed state) and suitable for single-instance APIs or per-node protection.
+
+**Options:**
+
+- `windowMs`: Time window in milliseconds (e.g. `60000` for 1 minute).
+- `maxRequests`: Maximum number of requests allowed per client within the window.
+
+**Behaviour:**
+
+- Client identity is derived from the `x-forwarded-for` header (first IP) or `request.ip`, otherwise `'unknown'`.
+- Sliding window: only requests within the last `windowMs` ms count toward the limit.
+- When the limit is exceeded, the guard throws `HttpStatus.TOO_MANY_REQUESTS` (429) and sets the `Retry-After` header (seconds until the oldest request in the window expires).
+- The constructor throws if `windowMs` or `maxRequests` is not positive.
+
+**Usage:**
+
+```typescript
+import { InMemoryRateLimitGuard, InMemoryRateLimitGuardOptions } from '@jsfsi-core/ts-nestjs';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+
+@Controller('api')
+export class ApiController {
+  @Get('limited')
+  @UseGuards(new InMemoryRateLimitGuard({ windowMs: 60_000, maxRequests: 100 }))
+  limited(): { ok: boolean } {
+    return { ok: true };
+  }
+}
+```
+
+For app-wide or config-driven limits, extend `InMemoryRateLimitGuard` in your application and pass options from your configuration (see the template-rest-api README).
+
+**Exports:** `InMemoryRateLimitGuard`, `InMemoryRateLimitGuardOptions`.
 
 ## 📝 Naming Conventions
 

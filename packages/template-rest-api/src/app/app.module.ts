@@ -6,9 +6,12 @@ import { APP_GUARD } from '@nestjs/core';
 import { AuthorizationAdapter } from '../adapters/authorization-adapter/AuthorizationAdapter';
 import { HealthController } from '../communication/controllers/health/health.controller';
 import { AuthorizeGuard } from '../communication/guards/authorize.guard';
+import { GlobalRateLimitGuard } from '../communication/guards/global-rate-limit.guard';
 import { UserGuard } from '../communication/guards/user.guard';
 import { HealthService } from '../domain/services/health-service/Health.service';
 import { UserService } from '../domain/services/user-service/UserService';
+
+import { rateLimitConfigModuleSetup } from './rate-limit-configuration.service';
 
 const controllers = [HealthController];
 const services: Provider[] = [HealthService, UserService];
@@ -23,10 +26,11 @@ const guards: Provider[] = [
     provide: APP_GUARD,
     useClass: AuthorizeGuard, // Will only run if @Auth(...roles) is present
   },
+  GlobalRateLimitGuard,
 ];
 
 @Module({
-  imports: [appConfigModuleSetup(), HttpModule],
+  imports: [appConfigModuleSetup(), rateLimitConfigModuleSetup(), HttpModule],
   controllers: [...controllers],
   providers: [...services, ...guards, ...adapters],
 })

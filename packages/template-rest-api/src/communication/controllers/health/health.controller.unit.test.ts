@@ -2,10 +2,15 @@ import { Fail, mock, Ok } from '@jsfsi-core/ts-crossplatform';
 import { createTestingApp } from '@jsfsi-core/ts-nestjs';
 import { MockLogger } from '@jsfsi-core/ts-nodejs';
 import { INestApplication } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AppModule } from '../../../app/app.module';
+import {
+  RATE_LIMIT_CONFIG_TOKEN,
+  RateLimitConfig,
+} from '../../../app/rate-limit-configuration.service';
 import { HealthCheck } from '../../../domain/models/HealthCheck.model';
 import { User } from '../../../domain/models/User.model';
 import { UserAuthorizationExpiredFailure } from '../../../domain/models/UserAuthorizationExpiredFailure';
@@ -146,6 +151,32 @@ describe('HealthController', () => {
       const response = await request(app.getHttpServer()).get('/health/test-auth');
 
       expect(response.status).toEqual(403);
+    });
+  });
+
+  describe('GET /health/rate-limited-sample', () => {
+    it('returns 200 when under the limit', async () => {
+      const response = await request(app.getHttpServer()).get('/health/rate-limited-sample');
+
+      expect(response.status).toEqual(200);
+      expect(response.body).toEqual({ ok: true });
+    });
+
+    it('returns 429 when limit from .env.test is reached', async () => {
+      const configService = app.get(ConfigService);
+      const rateLimitMaxRequests =
+        configService.get<RateLimitConfig>(RATE_LIMIT_CONFIG_TOKEN)!.RATE_LIMIT_MAX_REQUESTS;
+
+      const server = app.getHttpServer();
+
+      for (let i = 0; i < rateLimitMaxRequests; i++) {
+        await request(server).get('/health/rate-limited-sample');
+      }
+      const response = await request(server).get('/health/rate-limited-sample');
+
+      expect(response.status).toEqual(429);
+      expect(response.headers['retry-after']).toBeDefined();
+      expect(Number(response.headers['retry-after'])).toBeGreaterThan(0);
     });
   });
 });

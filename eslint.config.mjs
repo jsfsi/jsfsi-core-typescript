@@ -1,6 +1,6 @@
 import eslint from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
-import importPlugin from 'eslint-plugin-import';
+import importX from 'eslint-plugin-import-x';
 import eslintPluginPrettier from 'eslint-plugin-prettier';
 import unusedImports from 'eslint-plugin-unused-imports';
 import * as tseslint from 'typescript-eslint';
@@ -11,7 +11,7 @@ export default tseslint.config(
   {
     plugins: {
       prettier: eslintPluginPrettier,
-      import: importPlugin,
+      'import-x': importX,
       'unused-imports': unusedImports,
     },
     rules: {
@@ -27,7 +27,7 @@ export default tseslint.config(
         'warn',
         { vars: 'all', varsIgnorePattern: '^_', args: 'after-used', argsIgnorePattern: '^_' },
       ],
-      'import/order': [
+      'import-x/order': [
         'error',
         {
           groups: [
