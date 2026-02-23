@@ -27,16 +27,16 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@google/genai": "1.41.0",
+    "@google/genai": "1.42.0",
     "@jsfsi-core/ts-crossplatform": "file:../ts-crossplatform",
     "@jsfsi-core/ts-nodejs": "file:../ts-nodejs",
     "@jsfsi-core/ts-nestjs": "file:../ts-nestjs",
     "@nestjs/axios": "4.0.1",
     "@nestjs/cli": "11.0.16",
-    "@nestjs/common": "11.1.13",
+    "@nestjs/common": "11.1.14",
     "@nestjs/config": "4.0.3",
-    "@nestjs/core": "11.1.13",
-    "@nestjs/platform-express": "11.1.13",
+    "@nestjs/core": "11.1.14",
+    "@nestjs/platform-express": "11.1.14",
     "@nestjs/typeorm": "11.0.0",
     "axios": "1.13.5",
     "body-parser": "2.2.2",
@@ -48,8 +48,8 @@
     "zod": "4.3.6"
   },
   "devDependencies": {
-    "@nestjs/testing": "11.1.13",
-    "@swc/core": "1.15.11",
+    "@nestjs/testing": "11.1.14",
+    "@swc/core": "1.15.13",
     "@types/supertest": "6.0.3",
     "@vitest/coverage-v8": "4.0.18",
     "supertest": "7.2.2",
