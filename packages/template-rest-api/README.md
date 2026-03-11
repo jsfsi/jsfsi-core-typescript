@@ -474,7 +474,7 @@ async getUser(@Param('id') id: string) {
 ### Prerequisites
 
 - Node.js 25.0.0 or higher
-- npm 11.9.0 or higher
+- npm 11.11.0 or higher
 - PostgreSQL database (optional, for repositories)
 - Firebase project (for authentication)
 
