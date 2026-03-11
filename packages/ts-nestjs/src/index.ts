@@ -1,5 +1,6 @@
 export * from './app/bootstrap';
 export * from './middlewares/RequestMiddleware';
+export * from './middlewares/RequestMiddlewareLogCustomizer';
 export * from './test/testing-app';
 export * from './app/app';
 export * from './configuration/AppConfigurationService';

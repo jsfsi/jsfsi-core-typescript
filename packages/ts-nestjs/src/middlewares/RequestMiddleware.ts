@@ -1,6 +1,23 @@
 import { LogLevel } from '@jsfsi-core/ts-nodejs';
-import { Injectable, Logger, NestMiddleware } from '@nestjs/common';
+import { Inject, Injectable, NestMiddleware, Optional } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
+
+import { CustomLogger } from '../logger/CustomLogger';
+
+import {
+  REQUEST_MIDDLEWARE_LOG_CUSTOMIZER,
+  RequestMiddlewareLogCustomizer,
+} from './RequestMiddlewareLogCustomizer';
+
+type RequestBaseLogPayload = {
+  method: string;
+  url: string;
+  statusCode: number;
+  timeSpentMs: number;
+  domain: string | undefined;
+  requestHeaders: Request['headers'];
+  responseHeaders: Record<string, string | number | string[] | undefined>;
+};
 
 const MAP_STATUS_CODE_TO_SEVERITY: Record<string, LogLevel> = {
   '2XX': 'verbose',
@@ -15,7 +32,13 @@ const MAP_STATUS_CODE_TO_SEVERITY: Record<string, LogLevel> = {
 
 @Injectable()
 export class RequestMiddleware implements NestMiddleware {
-  private readonly logger = new Logger(RequestMiddleware.name);
+  private readonly logger = new CustomLogger(RequestMiddleware.name);
+
+  constructor(
+    @Optional()
+    @Inject(REQUEST_MIDDLEWARE_LOG_CUSTOMIZER)
+    private readonly customizer?: RequestMiddlewareLogCustomizer,
+  ) {}
 
   private statusCodeToSeverity(statusCode: number): LogLevel {
     const statusCodeString = statusCode.toString();
@@ -35,7 +58,7 @@ export class RequestMiddleware implements NestMiddleware {
       res.on('finish', () => {
         const timeSpent = Date.now() - startTime;
 
-        const log = {
+        const baseLog: RequestBaseLogPayload = {
           method: req.method,
           url: req.originalUrl,
           statusCode: res.statusCode,
@@ -44,6 +67,10 @@ export class RequestMiddleware implements NestMiddleware {
           requestHeaders: req.headers,
           responseHeaders: res.getHeaders(),
         };
+
+        const customPayload = this.customizer?.buildLogPayload(req, res) ?? {};
+
+        const log = { ...baseLog, ...customPayload };
 
         const severity = this.statusCodeToSeverity(res.statusCode);
 

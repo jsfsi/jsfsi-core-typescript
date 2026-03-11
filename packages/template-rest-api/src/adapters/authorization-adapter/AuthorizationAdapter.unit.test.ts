@@ -3,7 +3,7 @@ import { createTestingApp } from '@jsfsi-core/ts-nestjs';
 import { MockLogger } from '@jsfsi-core/ts-nodejs';
 import { INestApplication, Logger } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import { FirebaseAuthError } from 'firebase-admin/lib/utils/error';
+import { FirebaseAuthError } from 'firebase-admin/auth';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AppModule } from '../../app/app.module';

@@ -39,7 +39,8 @@ src/
 ├── guards/
 │   └── InMemoryRateLimitGuard.ts   # In-memory rate limit guard
 ├── middlewares/
-│   └── RequestMiddleware.ts       # Request logging
+│   ├── RequestMiddleware.ts              # Request logging
+│   └── RequestMiddlewareLogCustomizer.ts  # Optional custom log payload
 └── validators/
     └── ZodValidator.ts             # Request validators
 ```
@@ -226,7 +227,9 @@ The `CustomLogger` extends NestJS's `Logger` and provides a consistent interface
 
 ### Request Middleware
 
-Automatic request logging:
+Automatic request logging with an optional custom payload.
+
+**Basic usage:**
 
 ```typescript
 import { RequestMiddleware } from '@jsfsi-core/ts-nestjs';
@@ -242,13 +245,63 @@ export class AppModule implements NestModule {
 }
 ```
 
-Logs include:
+**Base log payload** (always included):
 
-- HTTP method and URL
-- Status code
-- Response time
-- Request/response headers
-- Severity level based on status code
+- `method` – HTTP method
+- `url` – Request URL
+- `statusCode` – Response status code
+- `timeSpentMs` – Response time in milliseconds
+- `domain` – Client IP (from request)
+- `requestHeaders` – Request headers
+- `responseHeaders` – Response headers
+
+Log severity is chosen from the status code (e.g. 2XX → verbose, 4XX → warn, 5XX → error).
+
+**Custom payload** – To add extra fields to each request log (e.g. `userId`, `tenantId`), provide a customizer:
+
+1. Implement `RequestMiddlewareLogCustomizer` with `buildLogPayload(req, res): Record<string, unknown>`.
+2. Register it under the `REQUEST_MIDDLEWARE_LOG_CUSTOMIZER` token in your module `providers`.
+
+The middleware merges the custom payload with the base payload; customizer keys override base keys if names collide.
+
+```typescript
+import {
+  REQUEST_MIDDLEWARE_LOG_CUSTOMIZER,
+  RequestMiddleware,
+  RequestMiddlewareLogCustomizer,
+} from '@jsfsi-core/ts-nestjs';
+import { Request, Response } from 'express';
+import { Module, NestModule, MiddlewareConsumer, Provider } from '@nestjs/common';
+
+// 1. Implement the customizer
+export class RequestUserLogCustomizer implements RequestMiddlewareLogCustomizer {
+  buildLogPayload(req: Request & { user?: { id: string } }, _res: Response): Record<string, unknown> {
+    return {
+      userId: req.user?.id,
+    };
+  }
+}
+
+const middlewares: Provider[] = [
+  {
+    provide: REQUEST_MIDDLEWARE_LOG_CUSTOMIZER,
+    useClass: RequestUserLogCustomizer,
+  },
+];
+
+@Module({
+  imports: [appConfigModuleSetup()],
+  controllers: [...controllers],
+  providers: [...services, ...adapters, ...middlewares],
+})
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(RequestMiddleware).forRoutes('*');
+  }
+}
+```
+
+With the customizer above, each request log will include the base fields plus `userId` when the request has an authenticated user.
 
 ### In-Memory Rate Limit Guard
 

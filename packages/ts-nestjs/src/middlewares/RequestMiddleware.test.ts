@@ -9,6 +9,7 @@ import {
   Module,
   NestModule,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -17,6 +18,10 @@ import { AllExceptionsFilter } from '../filters/AllExceptionsFilter';
 import { createTestingApp } from '../test/testing-app';
 
 import { RequestMiddleware } from './RequestMiddleware';
+import {
+  REQUEST_MIDDLEWARE_LOG_CUSTOMIZER,
+  RequestMiddlewareLogCustomizer,
+} from './RequestMiddlewareLogCustomizer';
 
 @Controller()
 class TestController {
@@ -73,6 +78,30 @@ class TestController {
   controllers: [TestController],
 })
 class TestModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer.apply(RequestMiddleware).forRoutes('*');
+  }
+}
+
+const customLogFields = { serviceName: 'test-service', environment: 'test' };
+
+class TestRequestLogCustomizer implements RequestMiddlewareLogCustomizer {
+  buildLogPayload(_req: Request, _res: Response): Record<string, unknown> {
+    return customLogFields;
+  }
+}
+
+@Module({
+  imports: [appConfigModuleSetup()],
+  controllers: [TestController],
+  providers: [
+    {
+      provide: REQUEST_MIDDLEWARE_LOG_CUSTOMIZER,
+      useClass: TestRequestLogCustomizer,
+    },
+  ],
+})
+class TestModuleWithCustomizer implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
     consumer.apply(RequestMiddleware).forRoutes('*');
   }
@@ -180,5 +209,30 @@ describe('RequestMiddleware', () => {
     await request(app.getHttpServer()).get('/success').set('host', '127.0.0.1');
 
     expect(logSpy).not.toHaveBeenCalled();
+  });
+
+  it('includes custom fields in log when REQUEST_MIDDLEWARE_LOG_CUSTOMIZER is provided via useClass', async () => {
+    const appWithCustomizer = await createTestingApp(TestModuleWithCustomizer, {
+      logger: mockLogger,
+    });
+    const logSpy = vi.spyOn(mockLogger, 'verbose');
+
+    await request(appWithCustomizer.getHttpServer()).get('/success');
+
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledWith(
+      'Request: GET /success 200',
+      expect.objectContaining({
+        ...customLogFields,
+        domain: '127.0.0.1',
+        method: 'GET',
+        statusCode: 200,
+        url: '/success',
+        timeSpentMs: expect.any(Number),
+      }),
+      RequestMiddleware.name,
+    );
+
+    await appWithCustomizer.close();
   });
 });

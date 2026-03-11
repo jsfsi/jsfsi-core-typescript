@@ -2,7 +2,7 @@ import { Fail, Ok, Result } from '@jsfsi-core/ts-crossplatform';
 import { CustomLogger } from '@jsfsi-core/ts-nestjs';
 import { Injectable, Scope } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import { FirebaseAuthError } from 'firebase-admin/lib/utils/error';
+import { FirebaseAuthError } from 'firebase-admin/auth';
 
 import { UnableToValidateUserFailure } from '../../domain/models/UnableToValidateUserFailure';
 import { User } from '../../domain/models/User.model';

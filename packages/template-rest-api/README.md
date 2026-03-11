@@ -26,6 +26,8 @@ src/
 │   ├── guards/               # Route guards
 │   │   ├── user.guard.ts     # User validation guard
 │   │   └── authorize.guard.ts # Role-based authorization guard
+│   ├── middlewares/          # Request log customizers (optional)
+│   │   └── RequestUserLogCustomizer.ts  # Adds userId to request logs
 │   └── decorators/           # Custom decorators
 │       ├── current-user.decorator.ts
 │       └── authorize.decorator.ts
@@ -50,6 +52,7 @@ Controllers → Domain Services → Adapters → External Services
 
 - **Authentication**: Firebase-based user authentication
 - **Authorization**: Role-based access control with guards
+- **Request logging**: `RequestMiddleware` from `@jsfsi-core/ts-nestjs` with optional custom payload (e.g. `RequestUserLogCustomizer` adds `userId` to logs; see ts-nestjs README)
 - **Rate limiting**: In-memory rate limit guard (from `@jsfsi-core/ts-nestjs`) with app-specific configuration
 - **Type Safety**: Full TypeScript support with strict types
 - **Error Handling**: Result types for functional error handling
