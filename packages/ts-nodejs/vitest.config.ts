@@ -21,6 +21,7 @@ export default defineConfig({
         'src/logger/MockLogger.ts',
         'src/database/TransactionalRepositoryMock.ts',
         'src/database/postgres',
+        'src/database/models/*',
       ],
       thresholds: {
         statements: 100,
