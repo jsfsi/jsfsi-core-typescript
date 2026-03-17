@@ -18,3 +18,14 @@ export type Page<T> = {
   pageSize: number;
   elements: T[];
 };
+
+export function EmptyPage<T>(): Page<T> {
+  return {
+    pages: 0,
+    nextPage: undefined,
+    totalElements: 0,
+    currentPage: 0,
+    pageSize: 0,
+    elements: [],
+  };
+}
