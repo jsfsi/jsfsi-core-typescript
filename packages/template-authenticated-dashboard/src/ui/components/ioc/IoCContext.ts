@@ -1,4 +1,4 @@
-import { Container } from 'inversify';
+import { Container, ServiceIdentifier } from 'inversify';
 import { useContext } from 'react';
 import { createContext } from 'react';
 
@@ -12,5 +12,5 @@ export const IoCContext = createContext<IoCContextType>({
 
 export function useInjection<T>(type: new (...args: never[]) => T) {
   const { container } = useContext(IoCContext);
-  return container.get<T>(type);
+  return container.get<T>(type as ServiceIdentifier<T>);
 }
