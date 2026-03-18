@@ -287,8 +287,13 @@ function processTenant(
 - **Adapter/Repository layer**: Catches exceptions and converts to `Result<T, Failure>`
 - **Application layer**: Handles `Result` types and maps to appropriate responses
 
+## HTTP adapters (HttpSafeClient)
+
+For HTTP adapters, use **HttpSafeClient** from `@jsfsi-core/ts-crossplatform` as the base client. It performs `fetch` in a try-catch and returns `Result<T, NetworkFailure | NetworkConflictFailure | NotFoundFailure | F>` instead of throwing. No extra try-catch is needed in the adapter; handle the Result in the caller with `isFailure`. For 204 No Content or empty body, use **EmptyResponse** as the response schema. See `.cursor/rules/http-client.mdc` for usage, examples, and error-handling details.
+
 ## References
 
 - Root README: `/README.md`
 - Core API README: `/packages/core-api/README.md`
 - Console README: `/packages/console/README.md`
+- HTTP client: `.cursor/rules/http-client.mdc`

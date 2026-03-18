@@ -6,3 +6,4 @@ export * from './configuration/configuration';
 export * from './datetime/datetime';
 export * from './guid/Guid';
 export * from './paging';
+export * from './http';

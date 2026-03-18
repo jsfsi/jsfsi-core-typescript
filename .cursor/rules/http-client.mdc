@@ -1,0 +1,167 @@
+---
+alwaysApply: true
+---
+
+# HTTP Client (HttpSafeClient)
+
+Use **HttpSafeClient** from `@jsfsi-core/ts-crossplatform` as the base for HTTP adapters. It returns **Result types** instead of throwing, so all possible failures are explicit in the type signature.
+
+## Extending HttpSafeClient
+
+Extend `HttpSafeClient` and implement `getHeaders()` to provide auth and content-type. Use `fetch()` for JSON and `fetchBlob()` for binary responses.
+
+```typescript
+import { z } from 'zod';
+import {
+  HttpSafeClient,
+  EmptyResponse,
+  Fail,
+  Ok,
+  Result,
+  NetworkConflictFailure,
+  NetworkFailure,
+  NotFoundFailure,
+} from '@jsfsi-core/ts-crossplatform';
+import { Failure } from '@jsfsi-core/ts-crossplatform';
+
+class ApiFailure extends Failure {
+  constructor(
+    public readonly error: unknown,
+    public readonly metadata?: unknown,
+  ) {
+    super();
+  }
+}
+
+class MyApiClient extends HttpSafeClient {
+  constructor(
+    baseUrl: string,
+    private readonly getToken: () => Promise<string>,
+  ) {
+    super(baseUrl);
+  }
+
+  protected async getHeaders(): Promise<Set<[string, string]>> {
+    const token = await this.getToken();
+    return new Set([
+      ['Authorization', `Bearer ${token}`],
+      ['Content-Type', 'application/json'],
+    ]);
+  }
+
+  async getTenant(id: string): Promise<
+    Result<Tenant, NetworkFailure | NetworkConflictFailure | NotFoundFailure | ApiFailure>
+  > {
+    return this.fetch(`/tenants/${id}`, TenantSchema, ApiFailure, { method: 'GET' });
+  }
+
+  async deleteTenant(id: string): Promise<
+    Result<void, NetworkFailure | NetworkConflictFailure | NotFoundFailure | ApiFailure>
+  > {
+    const [_, failure] = await this.fetch(`/tenants/${id}`, EmptyResponse, ApiFailure, {
+      method: 'DELETE',
+    });
+    return failure ? Fail(failure) : Ok(undefined);
+  }
+}
+```
+
+## fetch() signature
+
+- **path**: Path (appended to baseUrl).
+- **responseSchema**: Zod schema for the response body (validated on success).
+- **failure**: Constructor for your custom Failure used for non-2xx (except 404/409) and schema validation errors.
+- **options**: `RequestInit` (method, body, headers, etc.).
+
+Returns `Promise<Result<T, NetworkFailure | NetworkConflictFailure | NotFoundFailure | F>>`.
+
+## Empty responses (204 No Content)
+
+For endpoints that return **204 No Content** or an empty body, use **EmptyResponse** from `@jsfsi-core/ts-crossplatform` as the response schema. The success value is `undefined`.
+
+```typescript
+import { EmptyResponse } from '@jsfsi-core/ts-crossplatform';
+
+// ✅ Good - 204 or empty body
+const [_, failure] = await this.apiClient.fetch(
+  `/tenants/${tenantId}/shifts/${shiftId}`,
+  EmptyResponse,
+  DeleteShiftFailure,
+  { method: 'DELETE' },
+);
+```
+
+```typescript
+// ❌ Bad - Do not use undefined or a custom schema for 204
+const [_, failure] = await this.apiClient.fetch(
+  `/tenants/${tenantId}/shifts/${shiftId}`,
+  undefined, // ❌ Use EmptyResponse
+  DeleteShiftFailure,
+  { method: 'DELETE' },
+);
+```
+
+## Error handling
+
+HttpSafeClient never throws. Handle the Result with `isFailure` and the built-in failure types:
+
+| Situation | Failure type |
+|-----------|--------------|
+| 404 | `NotFoundFailure` |
+| 409 | `NetworkConflictFailure` (has status, statusText, body) |
+| Other non-2xx or invalid response body | Your custom failure `F` |
+| Network/connection error | `NetworkFailure` |
+
+**Always use `isFailure`** to narrow and handle each case; never use `instanceof`.
+
+```typescript
+import { isFailure } from '@jsfsi-core/ts-crossplatform';
+import {
+  NetworkConflictFailure,
+  NetworkFailure,
+  NotFoundFailure,
+} from '@jsfsi-core/ts-crossplatform';
+
+const [data, failure] = await apiClient.fetch(
+  '/tenants/123/shifts',
+  ShiftsSchema,
+  GetShiftsFailure,
+  { method: 'GET' },
+);
+
+if (isFailure(NotFoundFailure)(failure)) {
+  // 404
+  return;
+}
+if (isFailure(NetworkConflictFailure)(failure)) {
+  // 409 – use failure.error (status, statusText, body)
+  return;
+}
+if (isFailure(NetworkFailure)(failure)) {
+  // Network error
+  return;
+}
+if (isFailure(GetShiftsFailure)(failure)) {
+  // 4xx/5xx or schema validation failed
+  return;
+}
+// Success: data is defined
+```
+
+## fetchBlob()
+
+For binary responses (e.g. PDF, file download), use `fetchBlob(path, failure, options)`. Returns `Result<Blob, NetworkFailure | NotFoundFailure | F>`. No response schema.
+
+```typescript
+const [blob, failure] = await this.apiClient.fetchBlob(
+  `/tenants/${tenantId}/reports/${reportId}/pdf`,
+  DownloadReportFailure,
+  { method: 'GET' },
+);
+```
+
+## References
+
+- Package: `packages/ts-crossplatform/README.md` (HttpSafeClient section)
+- Error handling: `.cursor/rules/error-handling.mdc`
+- Frontend API usage: `.cursor/rules/frontend-react.mdc` (API Response Models)

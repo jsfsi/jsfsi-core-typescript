@@ -124,19 +124,19 @@ export function AddUserDialog({ tenantId }: AddUserDialogProps) {
 
 ## API Response Models
 
-Use `EmptyResponse` from your API client's models (e.g. `@/adapters/ApiClient/models/EmptyResponse`) for endpoints that return 204 No Content:
+When using **HttpSafeClient** (from `@jsfsi-core/ts-crossplatform`) in adapters, use **EmptyResponse** from the same package for endpoints that return 204 No Content or an empty body. See `.cursor/rules/http-client.mdc` for full HttpSafeClient usage and error handling.
 
 ```tsx
-// ✅ Good - Using EmptyResponse for 204 endpoints
-import { EmptyResponse } from '../ApiClient/models/EmptyResponse';
+// ✅ Good - Using EmptyResponse for 204 or empty-body endpoints
+import { EmptyResponse } from '@jsfsi-core/ts-crossplatform';
 
 async deleteShift(
   shiftId: string,
   tenantId: string,
 ): Promise<Result<void, NetworkFailure | NotFoundFailure | DeleteShiftFailure>> {
-  const [, failure] = await this.apiClient.fetch<void, DeleteShiftFailure>(
+  const [, failure] = await this.apiClient.fetch(
     `/tenants/${tenantId}/shifts/${shiftId}`,
-    EmptyResponse, // ✅ Use EmptyResponse for 204
+    EmptyResponse, // ✅ Use EmptyResponse for 204 / empty body
     DeleteShiftFailure,
     {
       method: 'DELETE',
@@ -150,9 +150,9 @@ async deleteShift(
   shiftId: string,
   tenantId: string,
 ): Promise<Result<void, NetworkFailure | NotFoundFailure | DeleteShiftFailure>> {
-  const [, failure] = await this.apiClient.fetch<void, DeleteShiftFailure>(
+  const [, failure] = await this.apiClient.fetch(
     `/tenants/${tenantId}/shifts/${shiftId}`,
-    undefined, // ❌ Don't use undefined
+    undefined, // ❌ Don't use undefined – use EmptyResponse
     DeleteShiftFailure,
     {
       method: 'DELETE',
@@ -591,3 +591,4 @@ export function AddUserDialog({ tenantId }: AddUserDialogProps) {
 - Root README: `/README.md`
 - Console README: `/packages/console/README.md`
 - Customer README: `/packages/customer/README.md`
+- HTTP client (adapters): `.cursor/rules/http-client.mdc`

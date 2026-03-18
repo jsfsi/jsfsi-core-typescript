@@ -391,6 +391,183 @@ const orderMock = mock<Order>({
 - **Recursive**: Works with deeply nested objects
 - **Simple**: No complex setup or configuration required
 
+### HttpSafeClient
+
+Abstract HTTP client for adapters that returns **Result types** instead of throwing. Use it as the base for API clients in frontend or backend adapters so all HTTP calls are typed and failure handling is explicit.
+
+#### Extending the client
+
+Implement a concrete client by extending `HttpSafeClient` and providing `getHeaders()` (e.g. auth, content-type):
+
+```typescript
+import { z } from 'zod';
+import {
+  HttpSafeClient,
+  EmptyResponse,
+  Fail,
+  NetworkConflictFailure,
+  NetworkFailure,
+  NotFoundFailure,
+  Ok,
+  Result,
+} from '@jsfsi-core/ts-crossplatform';
+import { Failure } from '@jsfsi-core/ts-crossplatform';
+
+class DeleteShiftFailure extends Failure {
+  constructor(
+    public readonly error: unknown,
+    public readonly metadata?: unknown,
+  ) {
+    super();
+  }
+}
+
+class MyApiClient extends HttpSafeClient {
+  constructor(
+    baseUrl: string,
+    private readonly getAuthToken: () => Promise<string>,
+  ) {
+    super(baseUrl);
+  }
+
+  protected async getHeaders(): Promise<Set<[string, string]>> {
+    const token = await this.getAuthToken();
+    return new Set([
+      ['Authorization', `Bearer ${token}`],
+      ['Content-Type', 'application/json'],
+    ]);
+  }
+
+  async deleteShift(
+    tenantId: string,
+    shiftId: string,
+  ): Promise<
+    Result<void, NetworkFailure | NetworkConflictFailure | NotFoundFailure | DeleteShiftFailure>
+  > {
+    const [_, failure] = await this.fetch(
+      `/tenants/${tenantId}/shifts/${shiftId}`,
+      EmptyResponse,
+      DeleteShiftFailure,
+      { method: 'DELETE' },
+    );
+    return failure ? Fail(failure) : Ok(undefined);
+  }
+}
+```
+
+#### fetch: response schema and failures
+
+- **path**: URL path (appended to `baseUrl`).
+- **responseSchema**: Zod schema to parse and validate the response body.
+- **failure**: Constructor for a custom `Failure` used when the server returns a non-2xx (other than 404/409) or when the body fails the schema.
+- **options**: Standard `RequestInit` (method, body, headers, etc.).
+
+Returns `Promise<Result<T, NetworkFailure | NetworkConflictFailure | NotFoundFailure | F>>`.
+
+#### Empty responses (204 No Content)
+
+For endpoints that return **204 No Content** or an empty body, use `EmptyResponse` from `@jsfsi-core/ts-crossplatform` as the response schema. The success value will be `undefined`.
+
+```typescript
+import { EmptyResponse } from '@jsfsi-core/ts-crossplatform';
+
+// DELETE /resource returns 204
+const [_, failure] = await this.apiClient.fetch(
+  `/tenants/${tenantId}/shifts/${shiftId}`,
+  EmptyResponse,
+  DeleteShiftFailure,
+  { method: 'DELETE' },
+);
+// Success: result is Ok(undefined)
+```
+
+Also use `EmptyResponse` when the server returns 200 with an empty body (`''` or no body).
+
+#### Error handling
+
+The client never throws; it returns a `Result` with one of these failure types:
+
+| HTTP / situation | Failure type |
+|------------------|--------------|
+| 404 Not Found | `NotFoundFailure` |
+| 409 Conflict | `NetworkConflictFailure` (includes status, statusText, body) |
+| Other non-2xx | Your custom failure `F` (error payload + metadata with status, statusText) |
+| Response body fails Zod schema | Your custom failure `F` |
+| Network error (e.g. no connection, redirect) | `NetworkFailure` |
+
+**Handling in callers:** use `isFailure` to narrow and handle each case:
+
+```typescript
+import { isFailure } from '@jsfsi-core/ts-crossplatform';
+import {
+  NetworkConflictFailure,
+  NetworkFailure,
+  NotFoundFailure,
+} from '@jsfsi-core/ts-crossplatform';
+
+const [data, failure] = await apiClient.fetch(
+  '/tenants/123/shifts',
+  ShiftsResponseSchema,
+  GetShiftsFailure,
+  { method: 'GET' },
+);
+
+if (isFailure(NotFoundFailure)(failure)) {
+  // 404 – show "not found" in UI or return
+  return;
+}
+if (isFailure(NetworkConflictFailure)(failure)) {
+  // 409 – e.g. show conflict message, use failure.error (status, statusText, body)
+  return;
+}
+if (isFailure(NetworkFailure)(failure)) {
+  // Network/connection error
+  return;
+}
+if (isFailure(GetShiftsFailure)(failure)) {
+  // 4xx/5xx or invalid response body
+  return;
+}
+// Success: data is defined
+```
+
+#### fetchBlob
+
+For binary responses (e.g. PDFs, files), use `fetchBlob`. It returns `Result<Blob, NetworkFailure | NotFoundFailure | F>` and does not use a response schema.
+
+```typescript
+const [blob, failure] = await this.apiClient.fetchBlob(
+  `/tenants/${tenantId}/reports/${reportId}/pdf`,
+  DownloadReportFailure,
+  { method: 'GET' },
+);
+if (failure) {
+  return Fail(failure);
+}
+return Ok(blob);
+```
+
+#### Typed response example
+
+Define a Zod schema for the response and pass it to `fetch`:
+
+```typescript
+const TenantSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  createdAt: z.string().transform((s) => new Date(s)),
+});
+
+type Tenant = z.infer<typeof TenantSchema>;
+
+const [tenant, failure] = await apiClient.fetch(
+  `/tenants/${tenantId}`,
+  TenantSchema,
+  GetTenantFailure,
+  { method: 'GET' },
+);
+```
+
 ## 📝 Naming Conventions
 
 - **Result type**: Use `Result<T, E>` where `T` is success type, `E` extends `Failure`
