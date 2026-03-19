@@ -124,6 +124,37 @@ const ConfigSchema = z.object({
 export const config = parseConfig(ConfigSchema);
 ```
 
+### SafeDomain
+
+Reusable Zod validator for domain fields. It enforces:
+
+- minimum length: `3`
+- maximum length: `253`
+- valid domain format (supports subdomains and `-` in labels)
+
+```typescript
+import { z } from 'zod';
+import { SafeDomain } from '@jsfsi-core/ts-crossplatform';
+
+const AddDomainSchema = z.object({
+  domain: SafeDomain({
+    message: i18n.t('tenantDomains.addDomainDialog.errors.domainRequired'),
+  }),
+});
+```
+
+When no message is provided, `SafeDomain()` defaults to:
+
+```text
+Please enter a valid domain
+```
+
+Example valid values:
+
+- `example.com`
+- `api.example.com`
+- `my-domain.example.org`
+
 ### GUID
 
 Type-safe GUID generation:
