@@ -32,6 +32,8 @@ export function AppUser() {
   };
 
   const avatarFallbackText = (user.email ?? t('app.name')).charAt(0).toLocaleUpperCase();
+  /* v8 ignore next -- @preserve */
+  const dropdownSide = isMobile ? 'bottom' : 'right';
 
   return (
     <SidebarMenu>
@@ -55,10 +57,7 @@ export function AppUser() {
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            side={
-              /* v8 ignore next -- @preserve */
-              isMobile ? 'bottom' : 'right'
-            }
+            side={dropdownSide}
             align="end"
             sideOffset={4}
           >

@@ -75,6 +75,7 @@ export class FirebaseClient {
     return this.firebaseAuth.onAuthStateChanged(async (user) => {
       this.firebaseUser = user;
 
+      /* v8 ignore next -- @preserve */
       const providerUser = this.firebaseUser
         ? /* v8 ignore next -- @preserve */
           await this.mapFirebaseUserToUser(this.firebaseUser)

@@ -5,7 +5,7 @@ export type CrashlyticsContextType = {
 };
 
 export const CrashlyticsContext = createContext<CrashlyticsContextType>({
-  /* c8 ignore next */
+  /* v8 ignore next -- @preserve */
   reportFailure: () => undefined,
 });
 

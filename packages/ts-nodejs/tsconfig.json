@@ -3,11 +3,7 @@
   "compilerOptions": {
     "outDir": "./dist",
     "module": "ESNext",
-    "moduleResolution": "bundler",
-    "baseUrl": ".",
-    "paths": {
-      "@jsfsi-core/ts-crossplatform": ["../ts-crossplatform/src/index.ts"]
-    }
+    "moduleResolution": "bundler"
   },
   "include": ["src/**/*.ts", "vite.config.ts", "vitest.config.ts"],
   "exclude": ["node_modules", "dist"]

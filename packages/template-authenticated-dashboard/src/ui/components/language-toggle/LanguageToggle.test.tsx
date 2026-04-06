@@ -1,4 +1,5 @@
 import { render } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
 import { AppProviders } from '../../app/App';
@@ -16,6 +17,26 @@ describe('LanguageToggle', () => {
       );
 
       expect(getByText(i18n.t('languageToggle.title'))).toBeInTheDocument();
+    });
+
+    it('changes language when a language option is clicked', async () => {
+      const user = userEvent.setup();
+
+      const { getByText, getByRole } = render(
+        <AppProviders>
+          <LanguageToggle />
+        </AppProviders>,
+      );
+
+      await user.click(getByRole('button'));
+      await user.click(getByText('Português'));
+
+      expect(i18n.language).toBe('pt');
+
+      await user.click(getByRole('button'));
+      await user.click(getByText('English'));
+
+      expect(i18n.language).toBe('en');
     });
   });
 });

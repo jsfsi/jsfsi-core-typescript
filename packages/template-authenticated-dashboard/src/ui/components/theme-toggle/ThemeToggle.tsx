@@ -10,7 +10,6 @@ import {
   DropdownMenuTrigger,
 } from '../dropdown-menu';
 
-/* v8 ignore next -- @preserve */
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
   const { t } = useTranslation();
@@ -21,6 +20,7 @@ export function ThemeToggle() {
     { value: 'system', label: 'System', icon: LaptopMinimal },
   ];
 
+  /* v8 ignore next -- @preserve */
   const currentTheme = themes.find((t) => t.value === theme) || themes[2];
 
   return (

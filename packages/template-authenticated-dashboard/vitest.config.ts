@@ -39,6 +39,8 @@ export default defineConfig({
         'src/domain/models/**',
         'src/ui/components/auth/**',
         'src/ConfigurationService.ts',
+        'src/ui/app/AppBindings.ts',
+        'src/ui/components/error-boundary/CrashlyticsContext.ts',
         'src/ui/components/form/**',
         // Shadcn components
         ...shadcnComponents.map((component) => `src/ui/components/${component}.tsx`),

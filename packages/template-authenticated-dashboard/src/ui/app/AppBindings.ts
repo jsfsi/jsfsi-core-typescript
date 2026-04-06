@@ -3,7 +3,7 @@ import { FirebaseClient } from '../../adapters/FirebaseClient/FirebaseClient';
 import { AuthenticationService } from '../../domain/services/AuthenticationService';
 import { BindingType } from '../components/ioc/IoCContextProvider';
 
-/* c8 ignore start */
+/* v8 ignore start -- @preserve */
 const adapters: readonly BindingType<unknown>[] = [
   {
     type: FirebaseClient,
@@ -30,4 +30,4 @@ const services: readonly BindingType<unknown>[] = [
 ];
 
 export const AppBindings: readonly BindingType<unknown>[] = [...services, ...adapters];
-/* c8 ignore end */
+/* v8 ignore end -- @preserve */

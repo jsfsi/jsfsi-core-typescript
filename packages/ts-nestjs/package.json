@@ -22,7 +22,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "npm run lint && tsc && vite build",
+    "build": "npm run lint && tsc --noEmit && vite build",
     "build:watch": "tsc && (tsc --watch & vite build --watch)",
     "clean": "rm -rf dist && rm -rf node_modules && rm -rf coverage",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
@@ -35,12 +35,12 @@
   "dependencies": {
     "@jsfsi-core/ts-crossplatform": "file:../ts-crossplatform",
     "@jsfsi-core/ts-nodejs": "file:../ts-nodejs",
-    "@nestjs/cli": "11.0.16",
-    "@nestjs/common": "11.1.17",
+    "@nestjs/cli": "11.0.17",
+    "@nestjs/common": "11.1.18",
     "@nestjs/config": "4.0.3",
-    "@nestjs/core": "11.1.17",
-    "@nestjs/platform-express": "11.1.17",
-    "@nestjs/typeorm": "11.0.0",
+    "@nestjs/core": "11.1.18",
+    "@nestjs/platform-express": "11.1.18",
+    "@nestjs/typeorm": "11.0.1",
     "body-parser": "2.2.2",
     "express": "5.2.1",
     "reflect-metadata": "0.2.2",
@@ -48,16 +48,16 @@
     "zod": "4.3.6"
   },
   "devDependencies": {
-    "@nestjs/testing": "11.1.17",
-    "@swc/core": "1.15.18",
+    "@nestjs/testing": "11.1.18",
+    "@swc/core": "1.15.24",
     "@types/supertest": "7.2.0",
-    "@vitest/coverage-v8": "4.1.0",
+    "@vitest/coverage-v8": "4.1.2",
     "supertest": "7.2.2",
     "ts-node": "10.9.2",
     "unplugin-swc": "1.5.9",
-    "vite": "7.3.1",
+    "vite": "^8.0.5",
     "vite-plugin-dts": "4.5.4",
-    "vitest": "4.1.0"
+    "vitest": "4.1.2"
   },
   "peerDependenciesMeta": {
     "body-parser": {
@@ -68,7 +68,7 @@
     }
   },
   "engines": {
-    "node": "25.8.0",
-    "npm": "11.11.0"
+    "node": "25.9.0",
+    "npm": "11.12.1"
   }
 }

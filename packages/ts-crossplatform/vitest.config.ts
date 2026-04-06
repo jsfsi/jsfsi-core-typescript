@@ -11,7 +11,12 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       include: ['src/**/*.ts'],
-      exclude: ['src/index.ts', 'src/paging/Page.ts'],
+      exclude: [
+        'src/index.ts',
+        'src/paging/Page.ts',
+        'src/**/index.ts',
+        'src/partials/RecursivePartial.ts',
+      ],
       thresholds: {
         statements: 100,
         branches: 100,

@@ -3,9 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { mock } from './mock';
 
 class SomeEntity {
-  a: string;
-  b: number;
-  c: boolean;
+  a: string = '';
+  b: number = 0;
+  c: boolean = false;
 }
 
 describe('mock', () => {

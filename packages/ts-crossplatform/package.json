@@ -23,7 +23,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "npm run lint && tsc && vite build",
+    "build": "npm run lint && tsc --noEmit && vite build",
     "build:watch": "tsc && (tsc --watch & vite build --watch)",
     "clean": "rm -rf dist && rm -rf node_modules && rm -rf coverage",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
@@ -38,10 +38,10 @@
     "zod": "4.3.6"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "4.1.0",
-    "nock": "14.0.11",
-    "vite": "7.3.1",
+    "@vitest/coverage-v8": "4.1.2",
+    "nock": "14.0.12",
+    "vite": "^8.0.5",
     "vite-plugin-dts": "4.5.4",
-    "vitest": "4.1.0"
+    "vitest": "4.1.2"
   }
 }

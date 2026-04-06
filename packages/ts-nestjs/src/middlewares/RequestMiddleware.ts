@@ -4,10 +4,9 @@ import { Request, Response, NextFunction } from 'express';
 
 import { CustomLogger } from '../logger/CustomLogger';
 
-import {
-  REQUEST_MIDDLEWARE_LOG_CUSTOMIZER,
-  RequestMiddlewareLogCustomizer,
-} from './RequestMiddlewareLogCustomizer';
+import { REQUEST_MIDDLEWARE_LOG_CUSTOMIZER } from './RequestMiddlewareLogCustomizer';
+
+import type { RequestMiddlewareLogCustomizer } from './RequestMiddlewareLogCustomizer';
 
 type RequestBaseLogPayload = {
   method: string;

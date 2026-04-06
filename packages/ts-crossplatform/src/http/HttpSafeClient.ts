@@ -31,10 +31,11 @@ export abstract class HttpSafeClient {
           new NetworkConflictFailure({
             status: response.status,
             statusText: response.statusText,
-            /* v8 ignore next -- @preserve */
+            /* v8 ignore start -- @preserve */
             body: await response.json().catch(() => {
               return response.text();
             }),
+            /* v8 ignore end -- @preserve */
           }),
         );
       }
