@@ -230,23 +230,22 @@ it('updates fiscal data', async () => {
 
 ## Package-Specific Structure
 
-### core-api (NestJS Backend)
+### template-rest-api (NestJS Backend)
 
 ```text
 src/
 ├── communication/        # Application layer (NestJS)
 │   ├── controllers/     # REST endpoints
 │   ├── decorators/       # Custom decorators (@Authorize, @CurrentUser)
-│   └── guards/           # Route guards
+│   ├── guards/           # Route guards
+│   └── middlewares/      # Request middlewares
 ├── domain/               # Domain layer (pure business logic)
 │   ├── models/          # Domain entities and value objects
-│   │   └── failures/    # Domain-specific failures
 │   └── services/        # Domain services
-├── repositories/         # Adapter layer (TypeORM persistence)
 └── adapters/            # Adapter layer (external services)
 ```
 
-### console/customer (React Frontend)
+### template-authenticated-dashboard (React Frontend)
 
 ```text
 src/
@@ -259,18 +258,6 @@ src/
     ├── components/      # React components
     ├── hooks/          # React hooks
     └── pages/          # Page components
-```
-
-### infrastructure (Pulumi)
-
-```text
-src/
-├── environments/        # Application layer (Pulumi programs)
-│   └── production/
-│       └── index.ts
-└── providers/          # Adapter layer (reusable building blocks)
-    ├── CloudSqlInstance.ts
-    └── StorageBucket.ts
 ```
 
 ## Multi-Provider Adapter Pattern
@@ -412,7 +399,5 @@ const adapters: readonly BindingType<unknown>[] = [
 ## References
 
 - Root README: `/README.md`
-- Core API README: `/packages/core-api/README.md`
-- Console README: `/packages/console/README.md`
-- Customer README: `/packages/customer/README.md`
-- Infrastructure README: `/packages/infrastructure/README.md`
+- REST API Template README: `/packages/template-rest-api/README.md`
+- Dashboard Template README: `/packages/template-authenticated-dashboard/README.md`

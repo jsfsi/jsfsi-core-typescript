@@ -1,5 +1,3 @@
-/* c8 ignore file */
-
 import { Logger } from './Logger';
 
 export class MockLogger implements Logger {

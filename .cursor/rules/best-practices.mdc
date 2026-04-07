@@ -314,9 +314,25 @@ Always run `npm run build` to automatically fix imports and lint issues. This co
 
 - Runs ESLint with `--fix` to auto-fix linting issues
 - Runs Prettier to format code
-- Compiles TypeScript to catch type errors
+- Runs `tsc --noEmit` for type-checking (no JS emitted by tsc)
+- Runs vite build (libraries) or nest build (NestJS apps) for actual output
 
 Use this instead of running lint/format/typecheck separately.
+
+### Build System
+
+- **Library packages** (`ts-crossplatform`, `ts-nodejs`, `ts-nestjs`): `tsc --noEmit` + `vite build` — vite + vite-plugin-dts handles bundling and declaration generation
+- **NestJS app** (`template-rest-api`): `tsc --noEmit` + `nest build` — nest CLI compiles to CommonJS for Node.js runtime
+- **React app** (`template-authenticated-dashboard`): `tsc` + `vite build`
+- **Never let `tsc` emit JS files alongside source** — always use `--noEmit` for type-checking in library packages
+
+### TypeScript 6 and Vite 8
+
+- TypeScript **6.0** is used — `baseUrl` and `moduleResolution: "node"` are deprecated
+- Library packages use `module: "ESNext"` and `moduleResolution: "bundler"`
+- NestJS apps that require CommonJS output use `ignoreDeprecations: "6.0"` with `module: "CommonJS"` and `moduleResolution: "node"`
+- Vite **8** with rolldown is used — use `import type` for type-only imports (rolldown is stricter about interface exports)
+- Coverage ignore comments must use `/* v8 ignore next -- @preserve */` format (not `c8 ignore`)
 
 ### Running Build
 
@@ -329,8 +345,8 @@ npm run build
 **From a specific package:**
 
 ```bash
-cd packages/core-api && npm run build
-cd packages/console && npm run build
+cd packages/template-rest-api && npm run build
+cd packages/template-authenticated-dashboard && npm run build
 ```
 
 ## Running Tests
@@ -350,8 +366,8 @@ This runs tests for all packages in the workspace.
 **From the package directory:**
 
 ```bash
-cd packages/core-api && npm run test
-cd packages/console && npm run test
+cd packages/template-rest-api && npm run test
+cd packages/template-authenticated-dashboard && npm run test
 ```
 
 ### Running a Specific Test File
@@ -359,7 +375,7 @@ cd packages/console && npm run test
 **From the package directory:**
 
 ```bash
-cd packages/core-api && npm run test -- src/domain/services/tenant-payment-service/TenantPaymentService.unit.test.ts
+cd packages/template-rest-api && npm run test -- src/domain/services/user-service/UserService.unit.test.ts
 ```
 
 ### Running Tests in Watch Mode
@@ -367,7 +383,7 @@ cd packages/core-api && npm run test -- src/domain/services/tenant-payment-servi
 **From the package directory:**
 
 ```bash
-cd packages/core-api && npm run test -- --watch
+cd packages/template-rest-api && npm run test -- --watch
 ```
 
 ### Test File Patterns
@@ -479,5 +495,8 @@ export class StripePaymentProvider {
 ## References
 
 - Root README: `/README.md`
-- Core API README: `/packages/core-api/README.md`
-- Console README: `/packages/console/README.md`
+- Cross-platform README: `/packages/ts-crossplatform/README.md`
+- Node.js README: `/packages/ts-nodejs/README.md`
+- NestJS README: `/packages/ts-nestjs/README.md`
+- REST API Template README: `/packages/template-rest-api/README.md`
+- Dashboard Template README: `/packages/template-authenticated-dashboard/README.md`

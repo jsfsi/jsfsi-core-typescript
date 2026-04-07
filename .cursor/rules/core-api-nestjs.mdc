@@ -371,4 +371,5 @@ export class TenantsController {
 ## References
 
 - Root README: `/README.md`
-- Core API README: `/packages/core-api/README.md`
+- REST API Template README: `/packages/template-rest-api/README.md`
+- NestJS README: `/packages/ts-nestjs/README.md`

@@ -879,9 +879,13 @@ expect(mockService.connectTenantPaymentProvider).toHaveBeenCalledWith('tenant-id
 
 ## Test Coverage
 
-- **High code coverage** required for domain logic and utilities
-- Use **Vitest** as the testing framework
-- Test files should be co-located with source files or mirror the source structure
+- **100% code coverage** is enforced for all packages (statements, branches, functions, lines)
+- Use **Vitest** with **v8 coverage provider**
+- Test files should be co-located with source files
+- Run `npm run test:coverage` from the root to validate all packages
+- Barrel re-export files (`index.ts`) and type-only files should be excluded from coverage in `vitest.config.ts`
+- Use `/* v8 ignore next -- @preserve */` to ignore unreachable branches (dead-code fallbacks, platform-specific ternaries)
+- Never use `/* c8 ignore */` — always use `/* v8 ignore */` with `-- @preserve` suffix
 
 ## Integration Tests
 
@@ -920,6 +924,5 @@ This ensures:
 ## References
 
 - Root README: `/README.md`
-- Core API README: `/packages/core-api/README.md`
-- Console README: `/packages/console/README.md`
-- Customer README: `/packages/customer/README.md`
+- REST API Template README: `/packages/template-rest-api/README.md`
+- Dashboard Template README: `/packages/template-authenticated-dashboard/README.md`

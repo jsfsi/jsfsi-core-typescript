@@ -1,5 +1,7 @@
 # Instructions on how to prompt AI
 
+These instructions apply to all AI tooling: Cursor, Claude Code, and other assistants.
+
 ## A new task
 
 Use plan with the following prompt:
@@ -41,7 +43,7 @@ Return a plan with exactly these sections:
 - Risks/alternatives (optional)
 - Validation
    - npm run build
-   - npm run test
+   - npm run test:coverage
 ```
 
 ## When moving from plan to implementation (agent)

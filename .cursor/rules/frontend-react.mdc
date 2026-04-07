@@ -589,6 +589,5 @@ export function AddUserDialog({ tenantId }: AddUserDialogProps) {
 ## References
 
 - Root README: `/README.md`
-- Console README: `/packages/console/README.md`
-- Customer README: `/packages/customer/README.md`
+- Dashboard Template README: `/packages/template-authenticated-dashboard/README.md`
 - HTTP client (adapters): `.cursor/rules/http-client.mdc`

@@ -314,5 +314,5 @@ export class TenantEntity {
 ## References
 
 - Root README: `/README.md`
-- Core API README: `/packages/core-api/README.md`
-- Console README: `/packages/console/README.md`
+- REST API Template README: `/packages/template-rest-api/README.md`
+- Dashboard Template README: `/packages/template-authenticated-dashboard/README.md`
