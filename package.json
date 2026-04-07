@@ -19,7 +19,7 @@
     "setup:clean": "rm -rf node_modules && npm run clean && rm -rf package-lock.json && npm install --legacy-peer-deps",
     "test": "npm run test --workspaces",
     "test:coverage": "npm run test:coverage --workspaces",
-    "update:deps": "ncu -u --workspaces --reject vite"
+    "update:deps": "ncu -u --workspaces"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
