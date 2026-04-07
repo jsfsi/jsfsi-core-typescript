@@ -36,7 +36,7 @@ describe('UserService', () => {
   describe('#decodeUser', () => {
     it.each([undefined, mock<User>({ id: 'some-user-id', email: 'some-user-email' })])(
       'returns user %s from the request',
-      async (user: User) => {
+      async (user?: User) => {
         const authorizationAdapter = app.get(AuthorizationAdapter);
 
         const decodeUserSpy = vi

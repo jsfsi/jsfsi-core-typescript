@@ -1,10 +1,6 @@
 import path from 'path';
-import { fileURLToPath } from 'url';
 
 import * as dotenv from 'dotenv';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 type LoadEnvConfigOptions = {
   env?: string;
@@ -14,7 +10,7 @@ type LoadEnvConfigOptions = {
 export const loadEnvConfig = (options: LoadEnvConfigOptions = {}) => {
   const { env, configPath } = options;
 
-  const envFilePath = path.resolve(__dirname, `${configPath ?? '.'}/.env${env ? `.${env}` : ''}`);
+  const envFilePath = path.resolve(configPath ?? process.cwd(), `.env${env ? `.${env}` : ''}`);
 
   const { parsed } = dotenv.config({ path: envFilePath });
 

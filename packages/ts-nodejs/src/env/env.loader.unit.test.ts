@@ -1,13 +1,19 @@
-import { describe, expect, it } from 'vitest';
+import path from 'path';
+
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { loadEnvConfig } from './env.loader';
 
 describe('env', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   describe('loadEnvConfig', () => {
     it('loads env config', () => {
       const envConfig = loadEnvConfig({
         env: 'test',
-        configPath: '.',
+        configPath: './src/env',
       });
 
       expect(envConfig).toEqual({
@@ -17,7 +23,7 @@ describe('env', () => {
 
     it('loads default config', () => {
       const envConfig = loadEnvConfig({
-        configPath: '.',
+        configPath: './src/env',
       });
 
       expect(envConfig).toEqual({
@@ -25,7 +31,9 @@ describe('env', () => {
       });
     });
 
-    it('loads default config', () => {
+    it('falls back to process.cwd() when no configPath is provided', () => {
+      vi.spyOn(process, 'cwd').mockReturnValue(path.resolve('./src/env'));
+
       const envConfig = loadEnvConfig();
 
       expect(envConfig).toEqual({

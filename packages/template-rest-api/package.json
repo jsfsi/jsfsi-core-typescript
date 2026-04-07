@@ -5,7 +5,7 @@
   "license": "ISC",
   "author": "",
   "scripts": {
-    "build": "npm run lint && tsc && nest build",
+    "build": "npm run lint && tsc --noEmit && nest build",
     "clean": "rm -rf dist && rm -rf node_modules && rm -rf coverage",
     "db:migrations:generate": "npm run build && export $(cat ./configuration/.env | xargs) && typeorm migration:generate -d ./dist/src/repositories/MigrationsDataSource.js",
     "db:migrations:run": "npm run build && typeorm migration:run -d ./dist/src/repositories/MigrationsDataSource.js -t each",
