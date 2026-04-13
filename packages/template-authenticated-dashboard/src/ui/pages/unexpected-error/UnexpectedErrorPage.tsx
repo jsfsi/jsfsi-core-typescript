@@ -1,5 +1,3 @@
-import { ReactNode } from 'react';
-
-export const UnexpectedErrorPage = ({ children }: { children?: ReactNode }) => {
-  return <>{children}</>;
+export const UnexpectedErrorPage = ({ error }: { error?: Error | null }) => {
+  return <>{error?.message}</>;
 };

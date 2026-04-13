@@ -2,35 +2,35 @@ import { Ok } from '@jsfsi-core/ts-crossplatform';
 import firebase from 'firebase/compat/app';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { configuration } from '../../ConfigurationService';
+import { FirebaseClient, type FirebaseConfig } from './FirebaseClient';
 
-import { FirebaseClient } from './FirebaseClient';
+const config: FirebaseConfig = {
+  apiKey: 'test-api-key',
+  authDomain: 'test-auth-domain',
+  projectId: 'test-project-id',
+  storageBucket: 'test-storage-bucket',
+  messagingSenderId: 'test-messaging-sender-id',
+  appId: 'test-app-id',
+};
 
 describe('FirebaseClient', () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  describe('constructor', () => {
-    it('instantiates authentication service with firebase', () => {
-      new FirebaseClient().initialize();
+  describe('initialize', () => {
+    it('initializes firebase with the provided config', () => {
+      new FirebaseClient(config).initialize();
 
       expect(firebase.initializeApp).toHaveBeenCalledTimes(1);
-      expect(firebase.initializeApp).toHaveBeenCalledWith({
-        apiKey: configuration.VITE_FIREBASE_API_KEY,
-        authDomain: configuration.VITE_FIREBASE_AUTH_DOMAIN,
-        projectId: configuration.VITE_FIREBASE_PROJECT_ID,
-        storageBucket: configuration.VITE_FIREBASE_STORAGE_BUCKET,
-        messagingSenderId: configuration.VITE_FIREBASE_MESSAGING_SENDER_ID,
-        appId: configuration.VITE_FIREBASE_APP_ID,
-      });
+      expect(firebase.initializeApp).toHaveBeenCalledWith(config);
     });
   });
 
   describe('signOut', () => {
     it('calls firebase.auth().signOut()', () => {
-      const authAdapter = new FirebaseClient().initialize();
-      authAdapter.signOut();
+      const client = new FirebaseClient(config).initialize();
+      client.signOut();
 
       expect(firebase.auth().signOut).toHaveBeenCalledTimes(1);
     });
@@ -38,8 +38,8 @@ describe('FirebaseClient', () => {
 
   describe('signInWithGoogle', () => {
     it('calls firebase.auth().signInWithPopup()', async () => {
-      const authAdapter = new FirebaseClient().initialize();
-      const result = await authAdapter.signInWithGoogle();
+      const client = new FirebaseClient(config).initialize();
+      const result = await client.signInWithGoogle();
 
       expect(firebase.auth().signInWithPopup).toHaveBeenCalledTimes(1);
       expect(result).toEqual(
@@ -55,8 +55,8 @@ describe('FirebaseClient', () => {
 
   describe('signInWithEmailAndPassword', () => {
     it('calls firebase.auth().signInWithEmailAndPassword()', async () => {
-      const authAdapter = new FirebaseClient().initialize();
-      const result = await authAdapter.signInWithEmailAndPassword({
+      const client = new FirebaseClient(config).initialize();
+      const result = await client.signInWithEmailAndPassword({
         email: 'test@test.com',
         password: 'password',
       });
@@ -79,8 +79,8 @@ describe('FirebaseClient', () => {
 
   describe('createUserWithEmailAndPassword', () => {
     it('calls firebase.auth().createUserWithEmailAndPassword()', async () => {
-      const authAdapter = new FirebaseClient().initialize();
-      await authAdapter.createUserWithEmailAndPassword({
+      const client = new FirebaseClient(config).initialize();
+      await client.createUserWithEmailAndPassword({
         email: 'test@test.com',
         password: 'password',
       });
@@ -95,11 +95,22 @@ describe('FirebaseClient', () => {
 
   describe('sendPasswordResetEmail', () => {
     it('calls firebase.auth().sendPasswordResetEmail()', async () => {
-      const authAdapter = new FirebaseClient().initialize();
-      await authAdapter.sendPasswordResetEmail('test@test.com');
+      const client = new FirebaseClient(config).initialize();
+      await client.sendPasswordResetEmail('test@test.com');
 
       expect(firebase.auth().sendPasswordResetEmail).toHaveBeenCalledTimes(1);
       expect(firebase.auth().sendPasswordResetEmail).toHaveBeenCalledWith('test@test.com');
+    });
+  });
+
+  describe('onAuthStateChanged', () => {
+    it('calls firebase.auth().onAuthStateChanged', () => {
+      const client = new FirebaseClient(config).initialize();
+      const callback = vi.fn();
+
+      client.onAuthStateChanged(callback);
+
+      expect(firebase.auth().onAuthStateChanged).toHaveBeenCalledTimes(1);
     });
   });
 });

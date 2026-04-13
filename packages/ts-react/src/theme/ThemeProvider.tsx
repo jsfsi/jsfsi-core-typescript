@@ -13,6 +13,7 @@ type ThemeProviderState = {
   setTheme: (theme: Theme) => void;
 };
 
+/* v8 ignore next 4 -- @preserve */
 const initialState: ThemeProviderState = {
   theme: 'system',
   setTheme: () => null,
@@ -65,6 +66,7 @@ export function ThemeProvider({
 export const useTheme = () => {
   const context = useContext(ThemeProviderContext);
 
+  /* v8 ignore next -- @preserve */
   if (context === undefined) throw new Error('useTheme must be used within a ThemeProvider');
 
   return context;

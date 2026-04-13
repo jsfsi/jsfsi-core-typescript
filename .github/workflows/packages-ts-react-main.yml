@@ -1,0 +1,72 @@
+name: Build Typescript React Main
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/actions/bump-and-push-version/action.yml"
+      - "package.json"
+      - "package-lock.json"
+      - "tsconfig.json"
+      - "packages/ts-react/**"
+      - ".github/workflows/packages-ts-react-main.yml"
+
+concurrency:
+  group: ts-react-build
+  cancel-in-progress: true
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+          registry-url: "https://registry.npmjs.org/"
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v5
+        id: npm_cache
+        with:
+          path: |
+            node_modules
+          key: ${{ runner.os }}-npm-main-${{ hashFiles('package-lock.json') }}
+
+      - if: ${{ steps.npm_cache.outputs.cache-hit != 'true' }}
+        name: Install dependencies
+        run: npm run setup
+
+      - name: Build ts-crossplatform
+        working-directory: packages/ts-crossplatform
+        run: npm run build
+
+      - name: Build ts-react
+        working-directory: packages/ts-react
+        run: npm run build
+
+      - name: Test ts-react
+        working-directory: packages/ts-react
+        run: npm run test:coverage
+
+      - name: Bump and push version
+        id: bump-version
+        uses: ./.github/actions/bump-and-push-version
+        with:
+          package-directory: packages/ts-react
+          package-name: "@jsfsi-core/ts-react"
+          branch: main
+
+      - name: Publish to npm
+        run: |
+          cd packages/ts-react
+          npm publish --access public

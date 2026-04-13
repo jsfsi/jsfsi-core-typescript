@@ -1,5 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Failure, isFailure } from '@jsfsi-core/ts-crossplatform';
+import { Form, useAuth, useCrashlytics } from '@jsfsi-core/ts-react';
+import { User } from '@jsfsi-core/ts-react';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -7,11 +9,8 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
-import { useAuth } from '../../components/auth/AuthContext';
 import { Button } from '../../components/button';
-import { useCrashlytics } from '../../components/error-boundary/CrashlyticsContext';
 import { FormInput } from '../../components/form/elements/FormInput';
-import { Form } from '../../components/form/Form';
 import { Label } from '../../components/label';
 import { cn } from '../../components/utils';
 import i18n from '../../i18n/i18n';
@@ -23,7 +22,7 @@ type PasswordReset = z.infer<typeof PasswordResetSchema>;
 
 export function PasswordResetForm({ className }: React.ComponentProps<'form'>) {
   const { t } = useTranslation();
-  const { sendPasswordResetEmail } = useAuth();
+  const { sendPasswordResetEmail } = useAuth<User>();
   const navigate = useNavigate();
   const { reportFailure } = useCrashlytics();
 

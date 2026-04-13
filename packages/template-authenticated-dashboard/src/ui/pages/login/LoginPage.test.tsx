@@ -1,11 +1,11 @@
 import { mock } from '@jsfsi-core/ts-crossplatform';
+import * as TsReact from '@jsfsi-core/ts-react';
+import { type AuthValue } from '@jsfsi-core/ts-react';
+import { User } from '@jsfsi-core/ts-react';
 import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import { User } from '../../../domain/models/User';
 import { App, AppProviders } from '../../app/App';
-import * as AuthContext from '../../components/auth/AuthContext';
-import { AuthContextType } from '../../components/auth/AuthContext';
 import i18n from '../../i18n/i18n';
 
 import { LoginPage } from './LoginPage';
@@ -33,8 +33,8 @@ describe('LoginPage', () => {
     });
 
     it('redirects to dashboard when user is already logged in', async () => {
-      vi.spyOn(AuthContext, 'useAuth').mockReturnValue(
-        mock<AuthContextType>({
+      vi.spyOn(TsReact, 'useAuth').mockReturnValue(
+        mock<AuthValue<User>>({
           currentUser: mock<User>({
             email: 'test@example.com',
           }),

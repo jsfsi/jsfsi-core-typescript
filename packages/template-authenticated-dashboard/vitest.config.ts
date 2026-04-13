@@ -34,13 +34,10 @@ export default defineConfig({
       exclude: [
         'src/ui/index.tsx',
         '**/*.d.ts',
-        'src/ui/theme/**',
         'src/ui/i18n/**',
         'src/domain/models/**',
-        'src/ui/components/auth/**',
         'src/ConfigurationService.ts',
         'src/ui/app/AppBindings.ts',
-        'src/ui/components/error-boundary/CrashlyticsContext.ts',
         'src/ui/components/form/**',
         // Shadcn components
         ...shadcnComponents.map((component) => `src/ui/components/${component}.tsx`),

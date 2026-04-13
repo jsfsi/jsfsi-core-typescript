@@ -7,9 +7,11 @@ A TypeScript monorepo containing core packages and templates built with Domain-D
 This monorepo contains the following packages:
 
 - **[`@jsfsi-core/ts-crossplatform`](./packages/ts-crossplatform)** - Cross-platform utilities including Result types, Failure handling, configuration, and common domain primitives
+- **[`@jsfsi-core/ts-react`](./packages/ts-react)** - React utilities: IoC container, `AuthProvider<TUser>` / `AuthenticationAdapter<TUser>` / `FirebaseClient`, `CrashlyticsProvider`, `ThemeProvider`, `Form`, and `createProtectedRoute`
 - **[`@jsfsi-core/ts-nestjs`](./packages/ts-nestjs)** - NestJS-specific utilities for building robust backend applications
 - **[`@jsfsi-core/ts-nodejs`](./packages/ts-nodejs)** - Node.js-specific utilities for database, logging, and environment management
-- **[`@jsfsi-core/template-authenticated-dashboard`](./packages/template-authenticated-dashboard)** - Template application demonstrating best practices with authentication
+- **[`@jsfsi-core/template-rest-api`](./packages/template-rest-api)** - Template NestJS REST API with auth/validation scaffolding
+- **[`@jsfsi-core/template-authenticated-dashboard`](./packages/template-authenticated-dashboard)** - Template React dashboard wired to `@jsfsi-core/ts-react` for auth, IoC, error boundary, theming, and forms
 
 ## ⚠️ Usage Recommendation
 

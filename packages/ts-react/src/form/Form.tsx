@@ -1,7 +1,8 @@
 import { dequal } from 'dequal';
 import { useEffect, useRef } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
-import { Resolver, DefaultValues, FieldValues } from 'react-hook-form';
+
+import type { Resolver, DefaultValues, FieldValues } from 'react-hook-form';
 
 export function Form<TFieldValues extends FieldValues = FieldValues>({
   resolver,

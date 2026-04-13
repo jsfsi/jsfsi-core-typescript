@@ -1,59 +1,38 @@
-import 'firebase/compat/auth';
+import {
+  AuthenticationAdapter,
+  type AuthService,
+  type EmailPasswordCredentials,
+  type User,
+} from '@jsfsi-core/ts-react';
 
-import { Result } from '@jsfsi-core/ts-crossplatform';
+export class AuthenticationService implements AuthService<User> {
+  constructor(private readonly authenticationAdapter: AuthenticationAdapter<User>) {}
 
-import { AuthenticationAdapter } from '../../adapters/AuthenticationAdapter/AuthenticationAdapter';
-import { PasswordResetEmailFailure } from '../../domain/models/PasswordResetEmailFailure';
-import { SignInFailure } from '../../domain/models/SignInFailure';
-import { User } from '../../domain/models/User';
-import { SignUpFailure } from '../models/SignUpFailure';
-
-export type OnAuthStateChangedCallback = (user: User | null) => void;
-
-export class AuthenticationService {
-  constructor(private readonly authAdapter: AuthenticationAdapter) {}
-
-  public async signOut() {
-    await this.authAdapter.signOut();
+  public onAuthStateChanged(callback: (user: User | null) => void) {
+    return this.authenticationAdapter.onAuthStateChanged(callback);
   }
 
-  public onAuthStateChanged(callback: OnAuthStateChangedCallback): () => void {
-    return this.authAdapter.onAuthStateChanged((user) => {
-      callback(user);
-    });
+  public signOut() {
+    return this.authenticationAdapter.signOut();
   }
 
-  public async signIn(): Promise<Result<User, SignInFailure>> {
-    return this.authAdapter.signIn();
+  public signIn() {
+    return this.authenticationAdapter.signIn();
   }
 
-  public async signInWithEmailAndPassword({
-    email,
-    password,
-  }: {
-    email: string;
-    password: string;
-  }): Promise<Result<User, SignInFailure>> {
-    return this.authAdapter.signInWithEmailAndPassword({ email, password });
+  public signInWithEmailAndPassword(credentials: EmailPasswordCredentials) {
+    return this.authenticationAdapter.signInWithEmailAndPassword(credentials);
   }
 
-  public async signUpWithEmailAndPassword({
-    email,
-    password,
-  }: {
-    email: string;
-    password: string;
-  }): Promise<Result<User, SignUpFailure>> {
-    return this.authAdapter.signUpWithEmailAndPassword({ email, password });
+  public signUp() {
+    return this.authenticationAdapter.signUp();
   }
 
-  public async signUp(): Promise<Result<User, SignUpFailure>> {
-    return this.authAdapter.signIn();
+  public signUpWithEmailAndPassword(credentials: EmailPasswordCredentials) {
+    return this.authenticationAdapter.signUpWithEmailAndPassword(credentials);
   }
 
-  public async sendPasswordResetEmail(
-    email: string,
-  ): Promise<Result<void, PasswordResetEmailFailure>> {
-    return this.authAdapter.sendPasswordResetEmail(email);
+  public sendPasswordResetEmail(email: string) {
+    return this.authenticationAdapter.sendPasswordResetEmail(email);
   }
 }

@@ -1,13 +1,13 @@
+import { useAuth } from '@jsfsi-core/ts-react';
+import { User } from '@jsfsi-core/ts-react';
 import { CreditCard } from 'lucide-react';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Outlet, useNavigate } from 'react-router-dom';
 
-import { useAuth } from '../../components/auth/AuthContext';
-
 export function LoginPage() {
   const { t } = useTranslation();
-  const { currentUser } = useAuth();
+  const { currentUser } = useAuth<User>();
   const navigate = useNavigate();
 
   useEffect(() => {

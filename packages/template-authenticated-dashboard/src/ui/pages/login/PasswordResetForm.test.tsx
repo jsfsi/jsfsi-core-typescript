@@ -1,14 +1,13 @@
 import { Fail, mock, Ok, sleep } from '@jsfsi-core/ts-crossplatform';
+import * as TsReact from '@jsfsi-core/ts-react';
+import { PasswordResetEmailFailure, type AuthValue } from '@jsfsi-core/ts-react';
+import { User } from '@jsfsi-core/ts-react';
 import { act, fireEvent, render, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { toast } from 'sonner';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { PasswordResetEmailFailure } from '../../../domain/models/PasswordResetEmailFailure';
 import { AppProviders } from '../../app/App';
-import { AuthContextType } from '../../components/auth/AuthContext';
-import * as AuthContext from '../../components/auth/AuthContext';
-import * as CrashlyticsContext from '../../components/error-boundary/CrashlyticsContext';
 import i18n from '../../i18n/i18n';
 
 import { PasswordResetForm } from './PasswordResetForm';
@@ -54,8 +53,8 @@ describe('PasswordResetForm', () => {
         await sleep(10);
         return Ok(undefined);
       });
-      vi.spyOn(AuthContext, 'useAuth').mockReturnValue(
-        mock<AuthContextType>({
+      vi.spyOn(TsReact, 'useAuth').mockReturnValue(
+        mock<AuthValue<User>>({
           currentUser: null,
           sendPasswordResetEmail: sendPasswordResetEmailMock,
         }),
@@ -96,11 +95,11 @@ describe('PasswordResetForm', () => {
     it('reports failure and shows notification when fails to send reset email', async () => {
       const toastErrorSpy = vi.spyOn(toast, 'error');
       const reportFailureMock = vi.fn();
-      vi.spyOn(CrashlyticsContext, 'useCrashlytics').mockReturnValue({
+      vi.spyOn(TsReact, 'useCrashlytics').mockReturnValue({
         reportFailure: reportFailureMock,
       });
-      vi.spyOn(AuthContext, 'useAuth').mockReturnValue(
-        mock<AuthContextType>({
+      vi.spyOn(TsReact, 'useAuth').mockReturnValue(
+        mock<AuthValue<User>>({
           currentUser: null,
           sendPasswordResetEmail: vi
             .fn()
@@ -134,8 +133,8 @@ describe('PasswordResetForm', () => {
     });
 
     it('should navigate back to login when back to login link is clicked', () => {
-      vi.spyOn(AuthContext, 'useAuth').mockReturnValue(
-        mock<AuthContextType>({
+      vi.spyOn(TsReact, 'useAuth').mockReturnValue(
+        mock<AuthValue<User>>({
           currentUser: null,
           sendPasswordResetEmail: vi.fn(),
         }),

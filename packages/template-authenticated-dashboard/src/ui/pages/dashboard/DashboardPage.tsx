@@ -1,7 +1,8 @@
-import { useAuth } from '../../components/auth/AuthContext';
+import { useAuth } from '@jsfsi-core/ts-react';
+import { User } from '@jsfsi-core/ts-react';
 
 export function DashboardPage() {
-  const { currentUser } = useAuth();
+  const { currentUser } = useAuth<User>();
 
   return (
     <div>

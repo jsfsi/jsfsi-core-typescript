@@ -1,33 +1,34 @@
-import { Fail, Ok, Result } from '@jsfsi-core/ts-crossplatform';
+import { Fail, Ok, type Result } from '@jsfsi-core/ts-crossplatform';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 
-import { configuration } from '../../ConfigurationService';
-import { OnAuthStateChangedCallback } from '../../domain/models/OnAuthStateChangedCallback';
-import { PasswordResetEmailFailure } from '../../domain/models/PasswordResetEmailFailure';
-import { SignInFailure } from '../../domain/models/SignInFailure';
-import { SignUpFailure } from '../../domain/models/SignUpFailure';
-import { User } from '../../domain/models/User';
+import { type AuthClient } from './AuthenticationAdapter';
+import { type EmailPasswordCredentials } from './AuthProvider';
+import { PasswordResetEmailFailure } from './PasswordResetEmailFailure';
+import { SignInFailure } from './SignInFailure';
+import { SignUpFailure } from './SignUpFailure';
+import { type User } from './User';
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: configuration.VITE_FIREBASE_API_KEY,
-  authDomain: configuration.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: configuration.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: configuration.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: configuration.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: configuration.VITE_FIREBASE_APP_ID,
+export type FirebaseConfig = {
+  apiKey: string;
+  authDomain: string;
+  projectId: string;
+  storageBucket: string;
+  messagingSenderId: string;
+  appId: string;
 };
 
-export class FirebaseClient {
+export class FirebaseClient implements AuthClient<User> {
   private firebaseUser: firebase.User | null = null;
   private auth?: firebase.auth.Auth;
   private googleProvider?: firebase.auth.GoogleAuthProvider;
 
+  constructor(private readonly config: FirebaseConfig) {}
+
   private get firebaseAuth() {
     /* v8 ignore if -- @preserve */
     if (!this.auth) {
-      throw new Error('Authentication adapter not initialized');
+      throw new Error('Firebase client not initialized');
     }
 
     /* v8 ignore next -- @preserve */
@@ -37,7 +38,7 @@ export class FirebaseClient {
   private get firebaseGoogleProvider() {
     /* v8 ignore if -- @preserve */
     if (!this.googleProvider) {
-      throw new Error('Authentication adapter not initialized');
+      throw new Error('Firebase client not initialized');
     }
 
     /* v8 ignore next -- @preserve */
@@ -58,7 +59,7 @@ export class FirebaseClient {
   public initialize() {
     /* v8 ignore next -- @preserve */
     if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
+      firebase.initializeApp(this.config);
     }
 
     this.auth = firebase.auth();
@@ -71,7 +72,7 @@ export class FirebaseClient {
     await this.firebaseAuth.signOut();
   }
 
-  public onAuthStateChanged(callback: OnAuthStateChangedCallback): () => void {
+  public onAuthStateChanged(callback: (user: User | null) => void): () => void {
     return this.firebaseAuth.onAuthStateChanged(async (user) => {
       this.firebaseUser = user;
 
@@ -109,10 +110,7 @@ export class FirebaseClient {
   public async signInWithEmailAndPassword({
     email,
     password,
-  }: {
-    email: string;
-    password: string;
-  }): Promise<Result<User, SignInFailure>> {
+  }: EmailPasswordCredentials): Promise<Result<User, SignInFailure>> {
     try {
       const firebaseUser = await this.firebaseAuth.signInWithEmailAndPassword(email, password);
 
@@ -135,10 +133,7 @@ export class FirebaseClient {
   public async createUserWithEmailAndPassword({
     email,
     password,
-  }: {
-    email: string;
-    password: string;
-  }): Promise<Result<User, SignUpFailure>> {
+  }: EmailPasswordCredentials): Promise<Result<User, SignUpFailure>> {
     try {
       const firebaseUser = await this.firebaseAuth.createUserWithEmailAndPassword(email, password);
 

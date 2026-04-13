@@ -1,9 +1,8 @@
 import { mock } from '@jsfsi-core/ts-crossplatform';
+import * as TsReact from '@jsfsi-core/ts-react';
+import { User } from '@jsfsi-core/ts-react';
 import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-
-import { User } from '../../../domain/models/User';
-import * as AuthContext from '../auth/AuthContext';
 
 import { ProtectedRoute } from './ProtectedRoute';
 
@@ -13,7 +12,7 @@ vi.mock('react-router-dom', () => ({
 
 describe('ProtectedRoute', () => {
   it('renders children when user is authenticated', () => {
-    vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
+    vi.spyOn(TsReact, 'useAuth').mockReturnValue({
       currentUser: mock<User>(),
       loading: false,
       signIn: vi.fn(),
@@ -34,7 +33,7 @@ describe('ProtectedRoute', () => {
   });
 
   it('renders loading when authenticating', () => {
-    vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
+    vi.spyOn(TsReact, 'useAuth').mockReturnValue({
       currentUser: null,
       loading: true,
       signIn: vi.fn(),
@@ -56,7 +55,7 @@ describe('ProtectedRoute', () => {
   });
 
   it('redirects to login when user is not authenticated', () => {
-    vi.spyOn(AuthContext, 'useAuth').mockReturnValue({
+    vi.spyOn(TsReact, 'useAuth').mockReturnValue({
       currentUser: null,
       loading: false,
       signIn: vi.fn(),

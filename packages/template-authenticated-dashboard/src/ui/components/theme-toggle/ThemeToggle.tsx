@@ -1,7 +1,7 @@
+import { useTheme } from '@jsfsi-core/ts-react';
 import { Moon, Sun, LaptopMinimal } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { useTheme } from '../../theme/ThemeProvider';
 import { Button } from '../button';
 import {
   DropdownMenu,

@@ -4,41 +4,51 @@ A React application template demonstrating best practices for building authentic
 
 ## 🏗️ Architecture
 
-This template follows **Hexagonal Architecture** (Ports and Adapters) with clear separation of concerns:
+This template follows **Hexagonal Architecture** (Ports and Adapters) with clear separation of concerns. Most of the generic plumbing — auth, IoC, error boundary, crashlytics, theme, protected-route factory, Firebase client, `User` type, and auth failures — lives in `@jsfsi-core/ts-react`. The template itself is deliberately thin:
 
-```
+```text
 src/
-├── domain/                    # Domain Layer (Pure business logic)
-│   ├── models/               # Domain entities and failures
-│   │   ├── User.ts
-│   │   ├── SignInFailure.ts
-│   │   ├── SignUpFailure.ts
-│   │   └── PasswordResetEmailFailure.ts
-│   └── services/            # Domain services
-│       └── AuthenticationService.ts
-├── adapters/                 # Adapter Layer (External integrations)
-│   ├── FirebaseClient/      # Firebase integration (edge)
-│   └── AuthenticationAdapter/ # Authentication adapter
-└── ui/                       # Application/UI Layer
-    ├── app/                 # Application setup
-    ├── components/          # React components
-    ├── pages/              # Page components
-    └── hooks/               # React hooks
+├── domain/
+│   └── services/
+│       └── AuthenticationService.ts  # domain service — implements AuthService<User>,
+│                                     # composes an injected AuthenticationAdapter<User>
+├── ConfigurationService.ts           # Vite env var parsing (Zod-validated)
+└── ui/                               # Application/UI Layer
+    ├── app/                          # App root, router, IoC bindings
+    │   ├── App.tsx                   # composes ts-react providers + AppAuthProvider
+    │   │                             # (resolves AuthenticationService via useInjection,
+    │   │                             #  forwards each method to <AuthProvider<User>> callbacks)
+    │   └── AppBindings.ts            # binds FirebaseClient, AuthenticationAdapter<User>,
+    │                                 # and AuthenticationService
+    ├── components/                   # shadcn-based UI components + app-specific wrappers
+    ├── pages/                        # Page components
+    ├── hooks/                        # React hooks
+    └── i18n/                         # Translations
 ```
+
+### What comes from `@jsfsi-core/ts-react`
+
+- `AuthProvider<TUser>` / `useAuth<TUser>()` — generic auth context with `loading`, `currentUser`, and all auth methods. **Takes callback props** (`loader`, `onAuthChanged`, `onSignIn`, `onSignOut`, `onSignInWithEmailAndPassword`, `onSignUp`, `onSignUpWithEmailAndPassword`, `onSendPasswordResetEmail`) — no IoC dependency inside the library. Renders the `loader` prop in place of children while loading.
+- `AuthenticationAdapter<TUser extends User>` — implements `AuthService<TUser>` by delegating to an injected `AuthClient<TUser>`. **The template injects it into `AuthenticationService` via composition; it is not subclassed.**
+- `FirebaseClient` — `AuthClient<User>` backed by `firebase/compat/auth`. Constructor takes the config object.
+- `User` — base user type.
+- `SignInFailure` / `SignUpFailure` / `PasswordResetEmailFailure` — auth failures.
+- `CrashlyticsProvider`, `ErrorBoundary`, `ThemeProvider`, `IoCContextProvider`, `useInjection`, `Form`, `createProtectedRoute`.
 
 ### Architecture Principles
 
-1. **Domain Layer**: Contains pure business logic with no external dependencies
-2. **Adapter Layer**: Handles external services (Firebase, APIs, etc.) and converts exceptions to Result types
-3. **UI Layer**: React components that use domain services and handle presentation logic
-4. **Dependency Injection**: Uses IoC container for dependency management
+1. **Domain Layer**: Contains pure business logic with no external dependencies. `AuthenticationService` lives here and depends on `AuthenticationAdapter<User>` through a port interface (`AuthService<User>`), not on Firebase directly. Add further business rules by editing this class.
+2. **Adapter Layer**: Handles external services (Firebase, APIs, etc.) and converts exceptions to Result types. Provided by `FirebaseClient` (edge) and `AuthenticationAdapter<User>` (port adapter), both from ts-react.
+3. **UI Layer**: React components that use domain services and handle presentation logic. `AppAuthProvider` inside `App.tsx` is the only place that knows both the IoC container and the ts-react `AuthProvider` — it calls `useInjection(AuthenticationService)` and forwards each method through `<AuthProvider<User>>`'s callback props. The library itself has no IoC dependency.
+4. **Dependency Injection**: Composition via IoC container — every collaborator is injected through the constructor. `ts-react` stays framework-level: it never reaches into the app's container.
 
 ### Example Flow
 
-```
-UI Component → Domain Service → Adapter → External Service (Firebase)
-     ↓              ↓              ↓              ↓
-  React        Business Logic   Result Type   Try-Catch (Edge)
+```text
+UI Component → AuthProvider callbacks → AuthenticationService → AuthenticationAdapter<User> → FirebaseClient → Firebase SDK
+     ↓                  ↓                        ↓                         ↓                        ↓                ↓
+   React         Wired by AppAuthProvider  Domain service         Port adapter (from ts-react)  AuthClient    Try-Catch (Edge)
+                 (useInjection + arrows)  (composes adapter)
 ```
 
 ## 📋 Features
@@ -68,6 +78,8 @@ UI Component → Domain Service → Adapter → External Service (Firebase)
 - **Functions**: camelCase (e.g., `signIn`, `handleSubmit`)
 
 ## 🧪 Testing Principles
+
+> **Note about the examples below.** The sections below illustrate patterns (TDD, Result types, failure matchers). In this template, the concrete `AuthenticationService`, `FirebaseClient`, `AuthenticationAdapter`, `User`, and auth failure classes are imported from `@jsfsi-core/ts-react`, not defined locally. Treat the examples as shape, not file paths — e.g. `new AuthenticationService(mockAdapter)` illustrates the principle, but in this template `AuthenticationService` is a zero-argument subclass of `AuthenticationAdapter<User>` and is resolved via `useInjection(AuthenticationService)`.
 
 ### Test-Driven Development (TDD)
 
@@ -274,6 +286,8 @@ const handleSignIn = async (email: string, password: string) => {
 ```
 
 ## 🎯 Domain-Driven Design
+
+> **Note.** `User`, `SignInFailure`, `SignUpFailure`, `PasswordResetEmailFailure`, and the `AuthenticationAdapter<TUser>` base class are reusable primitives and live in `@jsfsi-core/ts-react`. The template only defines `class AuthenticationService extends AuthenticationAdapter<User> {}` so the IoC container has a concrete identifier. Add new domain models and services alongside it as your app grows.
 
 ### Domain Models
 

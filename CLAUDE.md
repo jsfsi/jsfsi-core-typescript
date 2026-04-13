@@ -9,12 +9,13 @@ TypeScript monorepo (`npm workspaces`) publishing reusable packages to npm and p
 | Package | Purpose | Build |
 |---------|---------|-------|
 | `ts-crossplatform` | Cross-platform utilities (Result types, Failures, HttpSafeClient, mock, Guid, DateTime) | `tsc --noEmit` + `vite build` |
+| `ts-react` | React utilities (IoC, ErrorBoundary, Crashlytics, ThemeProvider, AuthProvider, AuthenticationAdapter, FirebaseClient, Form, ProtectedRoute factory) | `tsc --noEmit` + `vite build` |
 | `ts-nodejs` | Node.js utilities (TransactionalRepository, Logger, env loader) | `tsc --noEmit` + `vite build` |
 | `ts-nestjs` | NestJS utilities (bootstrap, middleware, guards, validators) | `tsc --noEmit` + `vite build` |
 | `template-rest-api` | NestJS REST API template | `tsc --noEmit` + `nest build` (CommonJS) |
 | `template-authenticated-dashboard` | React + Firebase dashboard template | `tsc` + `vite build` |
 
-Build order matters: `ts-crossplatform` -> `ts-nodejs` -> `ts-nestjs` -> templates.
+Build order matters: `ts-crossplatform` -> `ts-react` -> `ts-nodejs` -> `ts-nestjs` -> templates.
 
 ## Commands
 
@@ -95,6 +96,16 @@ Use `createTestingApp` from `@jsfsi-core/ts-nestjs`.
 
 ## Key patterns
 
+- `IoCContextProvider` / `useInjection` — inversify-based IoC container for React (from `@jsfsi-core/ts-react`)
+- `AuthProvider<TUser>` / `useAuth<TUser>()` — generic auth context. Decoupled from IoC: consumers pass `loader` + callback props (`onAuthChanged`, `onSignIn`, `onSignOut`, `onSignInWithEmailAndPassword`, `onSignUp`, `onSignUpWithEmailAndPassword`, `onSendPasswordResetEmail`). The app resolves its domain service via `useInjection(...)` one level up and forwards method calls through the callbacks. Each exposed method is wrapped with `loading` state via try/finally, so `loading` always resets even if the underlying call throws. Context value is memoized; callbacks are held in refs so consumers don't need to memoize them.
+- `AuthenticationAdapter<TUser extends User>` — generic adapter implementing `AuthService<TUser>`, delegating to an injected `AuthClient<TUser>`. Apps **compose** it (don't extend): the template defines a domain `AuthenticationService implements AuthService<User>` that takes an `AuthenticationAdapter<User>` through the constructor, and binds both in IoC.
+- `FirebaseClient` — `AuthClient<User>` implementation wrapping `firebase/compat/auth`. Constructor takes `FirebaseConfig`. Firebase is a peer dependency, externalized from the bundle.
+- `User` — base user type exported from ts-react; `TUser` generics are constrained with `extends User`.
+- `SignInFailure`, `SignUpFailure`, `PasswordResetEmailFailure` — auth failures, one class per file, each extending `Failure` with `error: unknown`.
+- `createProtectedRoute(useAuth)` — factory for route guards
+- `CrashlyticsProvider` — error boundary + crash reporting context
+- `ThemeProvider` / `useTheme` — localStorage-persisted theme (dark/light/system)
+- `Form` — react-hook-form wrapper with auto-reset on defaultValues change
 - `HttpSafeClient` — base class for HTTP adapters, returns `Result` not exceptions
 - `TransactionalRepository` — base class for TypeORM repositories with transaction support
 - `loadEnvConfig({ configPath, env })` — loads `.env` files, `configPath` must be absolute or relative to cwd

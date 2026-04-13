@@ -1,11 +1,11 @@
 import { mock } from '@jsfsi-core/ts-crossplatform';
+import * as TsReact from '@jsfsi-core/ts-react';
+import { type AuthValue } from '@jsfsi-core/ts-react';
+import { User } from '@jsfsi-core/ts-react';
 import { render, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 
-import { User } from '../../../domain/models/User';
-import * as AuthContext from '../../components/auth/AuthContext';
-import { AuthContextType } from '../../components/auth/AuthContext';
 import { SidebarProvider } from '../../components/sidebar';
 import i18n from '../../i18n/i18n';
 
@@ -19,8 +19,8 @@ describe('AppUser', () => {
         name: 'Test User',
       });
 
-      vi.spyOn(AuthContext, 'useAuth').mockReturnValue(
-        mock<AuthContextType>({
+      vi.spyOn(TsReact, 'useAuth').mockReturnValue(
+        mock<AuthValue<User>>({
           currentUser: user,
         }),
       );
@@ -40,8 +40,8 @@ describe('AppUser', () => {
         name: 'Test User',
       });
 
-      vi.spyOn(AuthContext, 'useAuth').mockReturnValue(
-        mock<AuthContextType>({
+      vi.spyOn(TsReact, 'useAuth').mockReturnValue(
+        mock<AuthValue<User>>({
           currentUser: user,
         }),
       );
@@ -56,8 +56,8 @@ describe('AppUser', () => {
     });
 
     it('renders app user without user', () => {
-      vi.spyOn(AuthContext, 'useAuth').mockReturnValue(
-        mock<AuthContextType>({
+      vi.spyOn(TsReact, 'useAuth').mockReturnValue(
+        mock<AuthValue<User>>({
           currentUser: undefined,
         }),
       );
@@ -82,8 +82,8 @@ describe('AppUser', () => {
         email: 'test@example.com',
       });
 
-      vi.spyOn(AuthContext, 'useAuth').mockReturnValue(
-        mock<AuthContextType>({
+      vi.spyOn(TsReact, 'useAuth').mockReturnValue(
+        mock<AuthValue<User>>({
           currentUser: user,
         }),
       );
@@ -107,8 +107,8 @@ describe('AppUser', () => {
         name: 'Test User',
       });
 
-      vi.spyOn(AuthContext, 'useAuth').mockReturnValue(
-        mock<AuthContextType>({
+      vi.spyOn(TsReact, 'useAuth').mockReturnValue(
+        mock<AuthValue<User>>({
           currentUser: userData,
           signOut: signOutMock,
         }),

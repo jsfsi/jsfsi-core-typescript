@@ -282,10 +282,12 @@ export function TenantUsersPage({ tenantId }: TenantUsersPageProps) {
 
 ## Dependency Injection
 
-Use IoC container for dependencies:
+Use IoC container from `@jsfsi-core/ts-react` for dependencies:
 
 ```tsx
 // ✅ Good - Dependency injection
+import { useInjection } from '@jsfsi-core/ts-react';
+
 export function TenantDetailsPage() {
   const tenantsService = useInjection(TenantsService);
   // ...

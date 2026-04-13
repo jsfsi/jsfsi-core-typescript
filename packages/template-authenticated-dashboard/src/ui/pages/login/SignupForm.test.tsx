@@ -1,15 +1,13 @@
 import { Fail, mock, Ok, sleep } from '@jsfsi-core/ts-crossplatform';
+import * as TsReact from '@jsfsi-core/ts-react';
+import { SignUpFailure, type AuthValue } from '@jsfsi-core/ts-react';
+import { User } from '@jsfsi-core/ts-react';
 import { act, fireEvent, render, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { toast } from 'sonner';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { SignUpFailure } from '../../../domain/models/SignUpFailure';
-import { User } from '../../../domain/models/User';
 import { AppProviders } from '../../app/App';
-import { AuthContextType } from '../../components/auth/AuthContext';
-import * as AuthContext from '../../components/auth/AuthContext';
-import * as CrashlyticsContext from '../../components/error-boundary/CrashlyticsContext';
 import i18n from '../../i18n/i18n';
 
 import { SignupForm } from './SignupForm';
@@ -59,8 +57,8 @@ describe('SignupForm', () => {
       it('should sign up with google', async () => {
         const toastSuccessSpy = vi.spyOn(toast, 'success');
         const signUpMock = vi.fn().mockResolvedValue(Ok(mock<User>({ email: 'test@example.com' })));
-        vi.spyOn(AuthContext, 'useAuth').mockReturnValue(
-          mock<AuthContextType>({ currentUser: null, signUp: signUpMock }),
+        vi.spyOn(TsReact, 'useAuth').mockReturnValue(
+          mock<AuthValue<User>>({ currentUser: null, signUp: signUpMock }),
         );
 
         const { getByText } = render(
@@ -90,11 +88,11 @@ describe('SignupForm', () => {
       it('reports failure and shows notification when fails to sign up', async () => {
         const toastErrorSpy = vi.spyOn(toast, 'error');
         const reportFailureMock = vi.fn();
-        vi.spyOn(CrashlyticsContext, 'useCrashlytics').mockReturnValue({
+        vi.spyOn(TsReact, 'useCrashlytics').mockReturnValue({
           reportFailure: reportFailureMock,
         });
-        vi.spyOn(AuthContext, 'useAuth').mockReturnValue(
-          mock<AuthContextType>({
+        vi.spyOn(TsReact, 'useAuth').mockReturnValue(
+          mock<AuthValue<User>>({
             currentUser: null,
             signUp: vi
               .fn()
@@ -134,8 +132,8 @@ describe('SignupForm', () => {
           await sleep(10);
           return Ok(mock<User>({ email: 'test@example.com' }));
         });
-        vi.spyOn(AuthContext, 'useAuth').mockReturnValue(
-          mock<AuthContextType>({
+        vi.spyOn(TsReact, 'useAuth').mockReturnValue(
+          mock<AuthValue<User>>({
             currentUser: null,
             signUpWithEmailAndPassword: signUpWithEmailAndPasswordMock,
           }),
@@ -183,11 +181,11 @@ describe('SignupForm', () => {
       it('reports failure and shows notification when fails to sign up', async () => {
         const toastErrorSpy = vi.spyOn(toast, 'error');
         const reportFailureMock = vi.fn();
-        vi.spyOn(CrashlyticsContext, 'useCrashlytics').mockReturnValue({
+        vi.spyOn(TsReact, 'useCrashlytics').mockReturnValue({
           reportFailure: reportFailureMock,
         });
-        vi.spyOn(AuthContext, 'useAuth').mockReturnValue(
-          mock<AuthContextType>({
+        vi.spyOn(TsReact, 'useAuth').mockReturnValue(
+          mock<AuthValue<User>>({
             currentUser: null,
             signUpWithEmailAndPassword: vi
               .fn()

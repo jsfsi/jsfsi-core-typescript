@@ -1,7 +1,8 @@
+import { useAuth } from '@jsfsi-core/ts-react';
+import { User } from '@jsfsi-core/ts-react';
 import { ChevronsUpDown, LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { useAuth } from '../../components/auth/AuthContext';
 import { Avatar, AvatarFallback, AvatarImage } from '../../components/avatar';
 import {
   DropdownMenu,
@@ -20,7 +21,7 @@ import {
 
 export function AppUser() {
   const { t } = useTranslation();
-  const { currentUser: user, signOut } = useAuth();
+  const { currentUser: user, signOut } = useAuth<User>();
   const { isMobile } = useSidebar();
 
   if (!user) {

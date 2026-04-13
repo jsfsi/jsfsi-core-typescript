@@ -1,13 +1,13 @@
 import React, { Component, type ReactNode } from 'react';
 
-import { UnexpectedErrorPage } from '../../pages/unexpected-error/UnexpectedErrorPage';
-
 interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
 }
-interface ErrorBoundaryProps {
+
+export interface ErrorBoundaryProps {
   children?: ReactNode;
+  fallback?: React.ComponentType<{ error: Error | null }>;
 }
 
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -41,7 +41,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   public render() {
     if (this.state.hasError) {
-      return <UnexpectedErrorPage>{this.state.error?.message}</UnexpectedErrorPage>;
+      const Fallback = this.props.fallback;
+      if (Fallback) {
+        return <Fallback error={this.state.error} />;
+      }
+      return <>{this.state.error?.message}</>;
     }
 
     return this.props.children;
