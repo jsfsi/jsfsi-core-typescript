@@ -49,7 +49,7 @@
   },
   "devDependencies": {
     "@nestjs/testing": "11.1.19",
-    "@swc/core": "1.15.24",
+    "@swc/core": "1.15.26",
     "@types/supertest": "7.2.0",
     "@vitest/coverage-v8": "4.1.4",
     "supertest": "7.2.2",
