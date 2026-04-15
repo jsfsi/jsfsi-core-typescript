@@ -3,6 +3,7 @@ import { IoCContextProvider, useAuth, type User } from '@jsfsi-core/ts-react';
 import { act, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { AppBindingsOverrides } from '../../../test/app-bindings-overrides';
 import { AuthenticationService } from '../../domain/services/AuthenticationService';
 
 import { AppAuthProvider } from './AppAuthProvider';
@@ -42,7 +43,11 @@ function createAuthServiceMock() {
 
 function renderWithService(Consumer: React.ComponentType, service: AuthenticationService) {
   return render(
-    <IoCContextProvider bindings={[{ type: AuthenticationService, instance: service }]}>
+    <IoCContextProvider
+      bindings={AppBindingsOverrides({
+        overrides: [{ type: AuthenticationService, instance: service }],
+      })}
+    >
       <AppAuthProvider>
         <Consumer />
       </AppAuthProvider>

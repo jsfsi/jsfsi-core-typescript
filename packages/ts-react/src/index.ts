@@ -3,6 +3,7 @@ export { IoCContext, useInjection } from './ioc/IoCContext';
 export type { IoCContextType } from './ioc/IoCContext';
 export { IoCContextProvider } from './ioc/IoCContextProvider';
 export type { BindingType } from './ioc/IoCContextProvider';
+export { createBindingsOverrides } from './ioc/createBindingsOverrides';
 
 // Error Boundary
 export { ErrorBoundary } from './error-boundary/ErrorBoundary';

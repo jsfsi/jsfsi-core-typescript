@@ -323,6 +323,35 @@ render(
 );
 ```
 
+For apps that register a fixed list of bindings at the root (e.g. `AppBindings`), use `createBindingsOverrides` to produce a test helper that swaps selected bindings while keeping the rest intact:
+
+```typescript
+// test/app-bindings-overrides.ts
+import { createBindingsOverrides } from '@jsfsi-core/ts-react';
+import { AppBindings } from '../src/ui/app/AppBindings';
+
+export const AppBindingsOverrides = createBindingsOverrides(AppBindings);
+```
+
+```typescript
+// MyComponent.test.tsx
+import { mock, Ok } from '@jsfsi-core/ts-crossplatform';
+import { AppBindingsOverrides } from '../../test/app-bindings-overrides';
+import { AppProviders } from './AppProviders';
+
+render(
+  <AppProviders
+    bindings={AppBindingsOverrides({
+      overrides: [
+        { type: MyService, dynamicValue: () => mock<MyService>({ getData: vi.fn() }) },
+      ],
+    })}
+  >
+    <MyComponent />
+  </AppProviders>,
+);
+```
+
 ## License
 
 ISC
