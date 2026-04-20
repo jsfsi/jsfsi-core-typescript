@@ -29,13 +29,13 @@ describe('ThemeToggle', () => {
       );
 
       await user.click(getByRole('button'));
-      await user.click(getByText('Dark'));
+      await user.click(getByText(i18n.t('themeToggle.options.dark')));
 
       await user.click(getByRole('button'));
-      await user.click(getByText('Light'));
+      await user.click(getByText(i18n.t('themeToggle.options.light')));
 
       await user.click(getByRole('button'));
-      await user.click(getByText('System'));
+      await user.click(getByText(i18n.t('themeToggle.options.system')));
     });
   });
 });

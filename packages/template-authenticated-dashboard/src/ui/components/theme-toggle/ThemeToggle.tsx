@@ -15,10 +15,10 @@ export function ThemeToggle() {
   const { t } = useTranslation();
 
   const themes = [
-    { value: 'light', label: 'Light', icon: Sun },
-    { value: 'dark', label: 'Dark', icon: Moon },
-    { value: 'system', label: 'System', icon: LaptopMinimal },
-  ];
+    { value: 'light', labelKey: 'themeToggle.options.light', icon: Sun },
+    { value: 'dark', labelKey: 'themeToggle.options.dark', icon: Moon },
+    { value: 'system', labelKey: 'themeToggle.options.system', icon: LaptopMinimal },
+  ] as const;
 
   /* v8 ignore next -- @preserve */
   const currentTheme = themes.find((t) => t.value === theme) || themes[2];
@@ -37,11 +37,11 @@ export function ThemeToggle() {
           return (
             <DropdownMenuItem
               key={themeOption.value}
-              onClick={() => setTheme(themeOption.value as 'light' | 'dark' | 'system')}
+              onClick={() => setTheme(themeOption.value)}
               className={theme === themeOption.value ? 'bg-accent' : ''}
             >
               <Icon className="mr-2 h-4 w-4" />
-              {themeOption.label}
+              {t(themeOption.labelKey)}
             </DropdownMenuItem>
           );
         })}

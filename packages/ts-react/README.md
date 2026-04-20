@@ -236,6 +236,53 @@ All auth methods return `Result<T, Failure>` from `@jsfsi-core/ts-crossplatform`
 - `SignUpFailure` — email/password sign-up failed
 - `PasswordResetEmailFailure` — password reset request failed
 
+### Authenticated HTTP client (Firebase)
+
+`FirebaseAuthenticatedHttpClient` extends `HttpSafeClient` (from `@jsfsi-core/ts-crossplatform`) and injects the signed-in user's Firebase id token as a `Bearer` token.
+
+The name is intentionally explicit: this class is coupled to `FirebaseClient`, so Firebase appears in the type name. Consumers using a different auth provider (Auth0, Supabase, etc.) should **not** use this class — extend `HttpSafeClient` directly and return your own `Authorization` header from `getHeaders()`.
+
+Bind it in your IoC container alongside `FirebaseClient`, extend it in a domain adapter, then resolve that adapter via `useInjection` inside a component. Do **not** hardcode `baseUrl` inside the class — pass it through the constructor (the constructor signature enforces this) so tests can point at a mock server.
+
+```typescript
+import { FirebaseAuthenticatedHttpClient, FirebaseClient, useInjection } from '@jsfsi-core/ts-react';
+
+// 1. Bind in AppBindings — baseUrl comes from app config via dynamicValue.
+const bindings = [
+  {
+    type: FirebaseClient,
+    instance: new FirebaseClient(firebaseConfig).initialize(),
+  },
+  {
+    type: FirebaseAuthenticatedHttpClient,
+    dynamicValue: (ctx) =>
+      new FirebaseAuthenticatedHttpClient(ctx.get(FirebaseClient), configuration.VITE_API_URL),
+  },
+  {
+    type: UsersAdapter,
+    dynamicValue: (ctx) => new UsersAdapter(ctx.get(FirebaseAuthenticatedHttpClient)),
+  },
+];
+
+// 2. Extend (or compose) it in a domain adapter. UserSchema and UserFailure are
+//    placeholders the reader supplies.
+export class UsersAdapter {
+  constructor(private readonly httpClient: FirebaseAuthenticatedHttpClient) {}
+
+  getCurrentUser() {
+    return this.httpClient.fetch('/users/me', UserSchema, UserFailure, { method: 'GET' });
+  }
+}
+
+// 3. Resolve the adapter via useInjection inside a component.
+function CurrentUser() {
+  const usersAdapter = useInjection(UsersAdapter);
+  // ...
+}
+```
+
+See `@jsfsi-core/ts-crossplatform` docs for the `HttpSafeClient` API (`fetch`, `fetchBlob`, failure types).
+
 ### Theme Provider
 
 localStorage-persisted theme with system preference detection:
@@ -278,6 +325,57 @@ function MyForm({ defaultValues }: { defaultValues: { name: string } }) {
       {/* Form fields using react-hook-form's useFormContext */}
     </Form>
   );
+}
+```
+
+### Hooks
+
+#### useService
+
+Async data-fetching hook that exposes `{ data, fetching, refetch }` and rethrows caught errors from render so they can be caught by `ErrorBoundary`.
+
+```typescript
+import { useService } from '@jsfsi-core/ts-react';
+
+function TenantsList() {
+  const tenantsService = useInjection(TenantsService);
+  const { data, fetching, refetch } = useService(
+    { service: () => tenantsService.list() },
+    [],
+  );
+
+  if (fetching) return <Spinner />;
+  return <ul>{data?.map((t) => <li key={t.id}>{t.displayName}</li>)}</ul>;
+}
+```
+
+Pass `staleData: true` to keep the previous `data` visible during a refetch instead of clearing it.
+
+#### useDebounce
+
+Returns a stable debounced function that only fires `delay` ms after the last call.
+
+```typescript
+import { useDebounce } from '@jsfsi-core/ts-react';
+
+function SearchBox() {
+  const searchService = useInjection(SearchService);
+  const debouncedSearch = useDebounce((q: string) => searchService.search(q), 300);
+
+  return <input onChange={(e) => debouncedSearch(e.target.value)} />;
+}
+```
+
+#### useIsMobile
+
+Returns `true` when the viewport is under 768 px; listens to `matchMedia('(max-width: 767px)')` and updates on resize.
+
+```typescript
+import { useIsMobile } from '@jsfsi-core/ts-react';
+
+function Nav() {
+  const isMobile = useIsMobile();
+  return isMobile ? <MobileNav /> : <DesktopNav />;
 }
 ```
 

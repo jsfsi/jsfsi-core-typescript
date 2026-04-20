@@ -153,9 +153,7 @@ export class FirebaseClient implements AuthClient<User> {
     }
   }
 
-  /* v8 ignore next -- @preserve */
   public async getIdToken(): Promise<string | undefined> {
-    /* v8 ignore next -- @preserve */
     return this.firebaseUser?.getIdToken();
   }
 

@@ -27,6 +27,7 @@ export { AuthenticationAdapter } from './auth/AuthenticationAdapter';
 export type { AuthClient } from './auth/AuthenticationAdapter';
 export { FirebaseClient } from './auth/FirebaseClient';
 export type { FirebaseConfig } from './auth/FirebaseClient';
+export { FirebaseAuthenticatedHttpClient } from './auth/FirebaseAuthenticatedHttpClient';
 export type { User } from './auth/User';
 export { PasswordResetEmailFailure } from './auth/PasswordResetEmailFailure';
 export { SignInFailure } from './auth/SignInFailure';
@@ -37,3 +38,8 @@ export { Form } from './form/Form';
 
 // Protected Route
 export { createProtectedRoute } from './protected-route/createProtectedRoute';
+
+// Hooks
+export { useService } from './hooks/useService';
+export { debounce, useDebounce } from './hooks/useDebounce';
+export { useIsMobile } from './hooks/useIsMobile';

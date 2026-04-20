@@ -65,6 +65,11 @@
     "title": "Change language"
   },
   "themeToggle": {
-    "title": "Change theme"
+    "title": "Change theme",
+    "options": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    }
   }
 }

@@ -113,4 +113,23 @@ describe('FirebaseClient', () => {
       expect(firebase.auth().onAuthStateChanged).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('getIdToken', () => {
+    it("returns the Firebase user's id token when a user is signed in", async () => {
+      const client = new FirebaseClient(config).initialize();
+      await client.signInWithGoogle();
+
+      const idToken = await client.getIdToken();
+
+      expect(idToken).toBe('mock-id-token');
+    });
+
+    it('returns undefined when no user is signed in', async () => {
+      const client = new FirebaseClient(config).initialize();
+
+      const idToken = await client.getIdToken();
+
+      expect(idToken).toBeUndefined();
+    });
+  });
 });

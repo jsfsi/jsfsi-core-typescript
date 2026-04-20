@@ -18,11 +18,10 @@ src/
     ├── app/                          # App root, router, bindings (IoC)
     ├── components/                   # Reusable UI components (shadcn/ui based) + app-specific wrappers
     ├── i18n/                         # Internationalization (i18next)
-    ├── pages/                        # Page components
-    └── hooks/                        # Custom hooks
+    └── pages/                        # Page components
 ```
 
-All generic infrastructure (auth context, error boundary, crashlytics, theme provider, IoC container, form wrapper, protected-route factory, Firebase client, `AuthenticationAdapter<TUser>`, `User` type, auth failure classes) lives in `@jsfsi-core/ts-react`. The template only defines:
+All generic infrastructure (auth context, error boundary, crashlytics, theme provider, IoC container, form wrapper, protected-route factory, Firebase client, `useIsMobile`, `AuthenticationAdapter<TUser>`, `User` type, auth failure classes) lives in `@jsfsi-core/ts-react`. The template only defines:
 
 - `AppBindings.ts` — IoC wiring. Binds `FirebaseClient` (singleton, initialized with the Vite env config), `AuthenticationAdapter<User>` (depends on `FirebaseClient`), and `AuthenticationService` (depends on `AuthenticationAdapter<User>`).
 - `App.tsx` / `AppProviders` — composes the ts-react providers in the right order. Defines a small `AppAuthProvider` inside `App.tsx` that resolves `AuthenticationService` via `useInjection` and forwards each method to the corresponding callback prop on `<AuthProvider<User>>`. This is the only place that knows both the IoC container and the ts-react `AuthProvider` — the library itself has no IoC dependency.
