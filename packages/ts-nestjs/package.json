@@ -35,7 +35,7 @@
   "dependencies": {
     "@jsfsi-core/ts-crossplatform": "file:../ts-crossplatform",
     "@jsfsi-core/ts-nodejs": "file:../ts-nodejs",
-    "@nestjs/cli": "11.0.19",
+    "@nestjs/cli": "11.0.21",
     "@nestjs/common": "11.1.19",
     "@nestjs/config": "4.0.4",
     "@nestjs/core": "11.1.19",
@@ -49,13 +49,13 @@
   },
   "devDependencies": {
     "@nestjs/testing": "11.1.19",
-    "@swc/core": "1.15.26",
+    "@swc/core": "1.15.30",
     "@types/supertest": "7.2.0",
     "@vitest/coverage-v8": "4.1.4",
     "supertest": "7.2.2",
     "ts-node": "10.9.2",
     "unplugin-swc": "1.5.9",
-    "vite": "8.0.8",
+    "vite": "8.0.9",
     "vite-plugin-dts": "4.5.4",
     "vitest": "4.1.4"
   },
