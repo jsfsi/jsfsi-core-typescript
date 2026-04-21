@@ -21,6 +21,8 @@ describe('ProtectedRoute', () => {
       signUp: vi.fn(),
       signUpWithEmailAndPassword: vi.fn(),
       sendPasswordResetEmail: vi.fn(),
+      sendEmailVerification: vi.fn(),
+      reloadUser: vi.fn(),
     });
 
     const { getByText } = render(
@@ -42,6 +44,8 @@ describe('ProtectedRoute', () => {
       signUp: vi.fn(),
       signUpWithEmailAndPassword: vi.fn(),
       sendPasswordResetEmail: vi.fn(),
+      sendEmailVerification: vi.fn(),
+      reloadUser: vi.fn(),
     });
 
     const { queryByText, getByText } = render(
@@ -64,6 +68,8 @@ describe('ProtectedRoute', () => {
       signUp: vi.fn(),
       signUpWithEmailAndPassword: vi.fn(),
       sendPasswordResetEmail: vi.fn(),
+      sendEmailVerification: vi.fn(),
+      reloadUser: vi.fn(),
     });
 
     const { getByText } = render(

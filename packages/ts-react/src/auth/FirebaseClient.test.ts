@@ -1,7 +1,8 @@
-import { Ok } from '@jsfsi-core/ts-crossplatform';
+import { Fail, Ok } from '@jsfsi-core/ts-crossplatform';
 import firebase from 'firebase/compat/app';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { EmailVerificationFailure } from './EmailVerificationFailure';
 import { FirebaseClient, type FirebaseConfig } from './FirebaseClient';
 
 const config: FirebaseConfig = {
@@ -11,6 +12,14 @@ const config: FirebaseConfig = {
   storageBucket: 'test-storage-bucket',
   messagingSenderId: 'test-messaging-sender-id',
   appId: 'test-app-id',
+};
+
+const expectedUser = {
+  id: 'some-user-uid',
+  providerId: 'mock-provider-id',
+  email: 'mock-email',
+  idToken: 'mock-id-token',
+  emailVerified: false,
 };
 
 describe('FirebaseClient', () => {
@@ -42,14 +51,7 @@ describe('FirebaseClient', () => {
       const result = await client.signInWithGoogle();
 
       expect(firebase.auth().signInWithPopup).toHaveBeenCalledTimes(1);
-      expect(result).toEqual(
-        Ok({
-          id: 'some-user-uid',
-          providerId: 'mock-provider-id',
-          email: 'mock-email',
-          idToken: 'mock-id-token',
-        }),
-      );
+      expect(result).toEqual(Ok(expectedUser));
     });
   });
 
@@ -66,14 +68,7 @@ describe('FirebaseClient', () => {
         'test@test.com',
         'password',
       );
-      expect(result).toEqual(
-        Ok({
-          id: 'some-user-uid',
-          providerId: 'mock-provider-id',
-          email: 'mock-email',
-          idToken: 'mock-id-token',
-        }),
-      );
+      expect(result).toEqual(Ok(expectedUser));
     });
   });
 
@@ -130,6 +125,46 @@ describe('FirebaseClient', () => {
       const idToken = await client.getIdToken();
 
       expect(idToken).toBeUndefined();
+    });
+  });
+
+  describe('sendEmailVerification', () => {
+    it('calls sendEmailVerification on the signed-in firebase user', async () => {
+      const client = new FirebaseClient(config).initialize();
+      const signIn = await client.signInWithGoogle();
+      const [signedInUser] = signIn;
+
+      const result = await client.sendEmailVerification();
+
+      expect(result).toEqual(Ok(undefined));
+      expect(signedInUser).not.toBeUndefined();
+    });
+
+    it('returns an EmailVerificationFailure when no user is signed in', async () => {
+      const client = new FirebaseClient(config).initialize();
+
+      const result = await client.sendEmailVerification();
+
+      expect(result).toEqual(Fail(new EmailVerificationFailure('No user signed in')));
+    });
+  });
+
+  describe('reloadUser', () => {
+    it('reloads the signed-in firebase user and returns the refreshed user', async () => {
+      const client = new FirebaseClient(config).initialize();
+      await client.signInWithGoogle();
+
+      const result = await client.reloadUser();
+
+      expect(result).toEqual(Ok(expectedUser));
+    });
+
+    it('returns Ok(null) when no user is signed in', async () => {
+      const client = new FirebaseClient(config).initialize();
+
+      const result = await client.reloadUser();
+
+      expect(result).toEqual(Ok(null));
     });
   });
 });

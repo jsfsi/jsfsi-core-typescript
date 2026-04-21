@@ -2,7 +2,9 @@ import { Fail, mock, Ok } from '@jsfsi-core/ts-crossplatform';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { AuthenticationAdapter, type AuthClient } from './AuthenticationAdapter';
+import { EmailVerificationFailure } from './EmailVerificationFailure';
 import { PasswordResetEmailFailure } from './PasswordResetEmailFailure';
+import { ReloadUserFailure } from './ReloadUserFailure';
 import { SignInFailure } from './SignInFailure';
 import { SignUpFailure } from './SignUpFailure';
 import { type User } from './User';
@@ -14,6 +16,7 @@ const testUser: User = {
   name: 'mock',
   avatar: null,
   idToken: 'mock-token',
+  emailVerified: true,
 };
 
 describe('AuthenticationAdapter', () => {
@@ -160,6 +163,54 @@ describe('AuthenticationAdapter', () => {
       const result = await new AuthenticationAdapter(client).sendPasswordResetEmail('a@b.c');
 
       expect(result).toEqual(Fail(new PasswordResetEmailFailure('nope')));
+    });
+  });
+
+  describe('sendEmailVerification', () => {
+    it('delegates to the client', async () => {
+      const client = mock<AuthClient<User>>({
+        sendEmailVerification: vi.fn().mockResolvedValue(Ok(undefined)),
+      });
+
+      const result = await new AuthenticationAdapter(client).sendEmailVerification();
+
+      expect(client.sendEmailVerification).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(Ok(undefined));
+    });
+
+    it('returns a failure when client fails', async () => {
+      const client = mock<AuthClient<User>>({
+        sendEmailVerification: vi
+          .fn()
+          .mockResolvedValue(Fail(new EmailVerificationFailure('nope'))),
+      });
+
+      const result = await new AuthenticationAdapter(client).sendEmailVerification();
+
+      expect(result).toEqual(Fail(new EmailVerificationFailure('nope')));
+    });
+  });
+
+  describe('reloadUser', () => {
+    it('delegates to the client and returns the refreshed user', async () => {
+      const client = mock<AuthClient<User>>({
+        reloadUser: vi.fn().mockResolvedValue(Ok(testUser)),
+      });
+
+      const result = await new AuthenticationAdapter(client).reloadUser();
+
+      expect(client.reloadUser).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(Ok(testUser));
+    });
+
+    it('returns a failure when client fails', async () => {
+      const client = mock<AuthClient<User>>({
+        reloadUser: vi.fn().mockResolvedValue(Fail(new ReloadUserFailure('nope'))),
+      });
+
+      const result = await new AuthenticationAdapter(client).reloadUser();
+
+      expect(result).toEqual(Fail(new ReloadUserFailure('nope')));
     });
   });
 });

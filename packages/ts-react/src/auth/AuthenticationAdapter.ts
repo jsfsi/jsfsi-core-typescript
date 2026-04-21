@@ -1,7 +1,9 @@
 import { type Result } from '@jsfsi-core/ts-crossplatform';
 
 import { type EmailPasswordCredentials, type AuthService } from './AuthProvider';
+import { EmailVerificationFailure } from './EmailVerificationFailure';
 import { PasswordResetEmailFailure } from './PasswordResetEmailFailure';
+import { ReloadUserFailure } from './ReloadUserFailure';
 import { SignInFailure } from './SignInFailure';
 import { SignUpFailure } from './SignUpFailure';
 import { type User } from './User';
@@ -17,6 +19,8 @@ export type AuthClient<TUser extends User> = {
     credentials: EmailPasswordCredentials,
   ): Promise<Result<TUser, SignUpFailure>>;
   sendPasswordResetEmail(email: string): Promise<Result<void, PasswordResetEmailFailure>>;
+  sendEmailVerification(): Promise<Result<void, EmailVerificationFailure>>;
+  reloadUser(): Promise<Result<TUser | null, ReloadUserFailure>>;
 };
 
 export class AuthenticationAdapter<TUser extends User> implements AuthService<TUser> {
@@ -48,5 +52,13 @@ export class AuthenticationAdapter<TUser extends User> implements AuthService<TU
 
   public async sendPasswordResetEmail(email: string) {
     return this.client.sendPasswordResetEmail(email);
+  }
+
+  public async sendEmailVerification() {
+    return this.client.sendEmailVerification();
+  }
+
+  public async reloadUser() {
+    return this.client.reloadUser();
   }
 }

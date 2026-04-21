@@ -35,4 +35,12 @@ export class AuthenticationService implements AuthService<User> {
   public sendPasswordResetEmail(email: string) {
     return this.authenticationAdapter.sendPasswordResetEmail(email);
   }
+
+  public sendEmailVerification() {
+    return this.authenticationAdapter.sendEmailVerification();
+  }
+
+  public reloadUser() {
+    return this.authenticationAdapter.reloadUser();
+  }
 }

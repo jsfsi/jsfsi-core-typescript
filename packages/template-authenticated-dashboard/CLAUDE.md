@@ -32,7 +32,7 @@ All generic infrastructure (auth context, error boundary, crashlytics, theme pro
 
 - **IoC container**: `AppBindings.ts` registers `FirebaseClient`, `AuthenticationAdapter<User>`, and `AuthenticationService`. Tests override via `AppBindingsOverrides`.
 - **All text via i18n**: `useTranslation()` — never hardcode strings.
-- **Auth**: `FirebaseClient` → `AuthenticationAdapter<User>` → `AuthenticationService` (composition, no inheritance) → `AppAuthProvider` (uses `useInjection`, forwards methods to `<AuthProvider<User>>` callbacks) → `AuthProvider`. `useAuth<User>()` exposes `{ currentUser, loading, signIn, signOut, signInWithEmailAndPassword, signUp, signUpWithEmailAndPassword, sendPasswordResetEmail }`. While `loading` is `true`, `AuthProvider` renders the `loader` prop in place of children.
+- **Auth**: `FirebaseClient` → `AuthenticationAdapter<User>` → `AuthenticationService` (composition, no inheritance) → `AppAuthProvider` (uses `useInjection`, forwards methods to `<AuthProvider<User>>` callbacks) → `AuthProvider`. `useAuth<User>()` exposes `{ currentUser, loading, signIn, signOut, signInWithEmailAndPassword, signUp, signUpWithEmailAndPassword, sendPasswordResetEmail, sendEmailVerification, reloadUser }`. `reloadUser` refreshes `currentUser.emailVerified` after the user clicks the verification link. While `loading` is `true`, `AuthProvider` renders the `loader` prop in place of children.
 - **Protected routes**: `createProtectedRoute(useAuth)` (from ts-react).
 - **Crashlytics**: `CrashlyticsProvider` + `useCrashlytics()` (from ts-react) for error reporting.
 - **Forms**: `react-hook-form` + `zod` schemas; shared wrapper is `Form` from ts-react.

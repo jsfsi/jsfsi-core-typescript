@@ -15,6 +15,7 @@ const testUser: User = {
   name: 'mock',
   avatar: null,
   idToken: 'token',
+  emailVerified: false,
 };
 
 function createAuthServiceMock() {
@@ -32,6 +33,8 @@ function createAuthServiceMock() {
     signUp: vi.fn().mockResolvedValue(Ok(testUser)),
     signUpWithEmailAndPassword: vi.fn().mockResolvedValue(Ok(testUser)),
     sendPasswordResetEmail: vi.fn().mockResolvedValue(Ok(undefined)),
+    sendEmailVerification: vi.fn().mockResolvedValue(Ok(undefined)),
+    reloadUser: vi.fn().mockResolvedValue(Ok({ ...testUser, emailVerified: true })),
   });
 
   return {
@@ -75,6 +78,8 @@ describe('AppAuthProvider', () => {
             signUpEmail
           </button>
           <button onClick={() => auth.sendPasswordResetEmail('e')}>reset</button>
+          <button onClick={() => auth.sendEmailVerification()}>sendVerification</button>
+          <button onClick={() => auth.reloadUser()}>reload</button>
         </div>
       );
     }
@@ -88,6 +93,8 @@ describe('AppAuthProvider', () => {
     await act(async () => screen.getByText('signUp').click());
     await act(async () => screen.getByText('signUpEmail').click());
     await act(async () => screen.getByText('reset').click());
+    await act(async () => screen.getByText('sendVerification').click());
+    await act(async () => screen.getByText('reload').click());
 
     expect(service.signIn).toHaveBeenCalledTimes(1);
     expect(service.signOut).toHaveBeenCalledTimes(1);
@@ -95,5 +102,7 @@ describe('AppAuthProvider', () => {
     expect(service.signUp).toHaveBeenCalledTimes(1);
     expect(service.signUpWithEmailAndPassword).toHaveBeenCalledWith({ email: 'e', password: 'p' });
     expect(service.sendPasswordResetEmail).toHaveBeenCalledWith('e');
+    expect(service.sendEmailVerification).toHaveBeenCalledTimes(1);
+    expect(service.reloadUser).toHaveBeenCalledTimes(1);
   });
 });

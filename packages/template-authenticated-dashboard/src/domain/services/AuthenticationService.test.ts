@@ -1,7 +1,9 @@
 import { Fail, mock, Ok } from '@jsfsi-core/ts-crossplatform';
 import {
   AuthenticationAdapter,
+  EmailVerificationFailure,
   PasswordResetEmailFailure,
+  ReloadUserFailure,
   SignInFailure,
   SignUpFailure,
   type User,
@@ -17,6 +19,7 @@ const testUser: User = {
   name: 'mock',
   avatar: null,
   idToken: 'mock-token',
+  emailVerified: true,
 };
 
 describe('AuthenticationService', () => {
@@ -98,5 +101,27 @@ describe('AuthenticationService', () => {
 
     expect(adapter.sendPasswordResetEmail).toHaveBeenCalledWith('a@b.c');
     expect(result).toEqual(Fail(new PasswordResetEmailFailure('nope')));
+  });
+
+  it('delegates sendEmailVerification to the adapter', async () => {
+    const adapter = mock<AuthenticationAdapter<User>>({
+      sendEmailVerification: vi.fn().mockResolvedValue(Fail(new EmailVerificationFailure('nope'))),
+    });
+
+    const result = await new AuthenticationService(adapter).sendEmailVerification();
+
+    expect(adapter.sendEmailVerification).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(Fail(new EmailVerificationFailure('nope')));
+  });
+
+  it('delegates reloadUser to the adapter', async () => {
+    const adapter = mock<AuthenticationAdapter<User>>({
+      reloadUser: vi.fn().mockResolvedValue(Fail(new ReloadUserFailure('nope'))),
+    });
+
+    const result = await new AuthenticationService(adapter).reloadUser();
+
+    expect(adapter.reloadUser).toHaveBeenCalledTimes(1);
+    expect(result).toEqual(Fail(new ReloadUserFailure('nope')));
   });
 });

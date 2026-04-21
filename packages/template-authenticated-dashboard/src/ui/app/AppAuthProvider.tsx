@@ -20,6 +20,8 @@ export function AppAuthProvider({ children }: { children: React.ReactNode }) {
         authenticationService.signUpWithEmailAndPassword(credentials)
       }
       onSendPasswordResetEmail={(email) => authenticationService.sendPasswordResetEmail(email)}
+      onSendEmailVerification={() => authenticationService.sendEmailVerification()}
+      onReloadUser={() => authenticationService.reloadUser()}
     >
       {children}
     </AuthProvider>

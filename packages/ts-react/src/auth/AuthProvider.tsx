@@ -1,4 +1,4 @@
-import { type Result } from '@jsfsi-core/ts-crossplatform';
+import { isFailure, type Result } from '@jsfsi-core/ts-crossplatform';
 import React, {
   createContext,
   useCallback,
@@ -10,7 +10,9 @@ import React, {
   type ReactNode,
 } from 'react';
 
+import { EmailVerificationFailure } from './EmailVerificationFailure';
 import { PasswordResetEmailFailure } from './PasswordResetEmailFailure';
+import { ReloadUserFailure } from './ReloadUserFailure';
 import { SignInFailure } from './SignInFailure';
 import { SignUpFailure } from './SignUpFailure';
 
@@ -30,6 +32,8 @@ export type AuthMethods<TUser> = {
     credentials: EmailPasswordCredentials,
   ) => Promise<Result<TUser, SignUpFailure>>;
   sendPasswordResetEmail: (email: string) => Promise<Result<void, PasswordResetEmailFailure>>;
+  sendEmailVerification: () => Promise<Result<void, EmailVerificationFailure>>;
+  reloadUser: () => Promise<Result<TUser | null, ReloadUserFailure>>;
 };
 
 export type AuthService<TUser> = AuthMethods<TUser> & {
@@ -53,6 +57,8 @@ type AuthProviderProps<TUser> = {
   onSignUp: AuthMethods<TUser>['signUp'];
   onSignUpWithEmailAndPassword: AuthMethods<TUser>['signUpWithEmailAndPassword'];
   onSendPasswordResetEmail: AuthMethods<TUser>['sendPasswordResetEmail'];
+  onSendEmailVerification: AuthMethods<TUser>['sendEmailVerification'];
+  onReloadUser: AuthMethods<TUser>['reloadUser'];
 };
 
 export function AuthProvider<TUser>({
@@ -65,6 +71,8 @@ export function AuthProvider<TUser>({
   onSignUp,
   onSignUpWithEmailAndPassword,
   onSendPasswordResetEmail,
+  onSendEmailVerification,
+  onReloadUser,
 }: AuthProviderProps<TUser>) {
   const [currentUser, setCurrentUser] = useState<TUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -79,6 +87,8 @@ export function AuthProvider<TUser>({
     onSignUp,
     onSignUpWithEmailAndPassword,
     onSendPasswordResetEmail,
+    onSendEmailVerification,
+    onReloadUser,
   });
   methodsRef.current = {
     onSignIn,
@@ -87,6 +97,8 @@ export function AuthProvider<TUser>({
     onSignUp,
     onSignUpWithEmailAndPassword,
     onSendPasswordResetEmail,
+    onSendEmailVerification,
+    onReloadUser,
   };
 
   useEffect(() => {
@@ -105,6 +117,19 @@ export function AuthProvider<TUser>({
     }
   }, []);
 
+  const reloadUser = useCallback(
+    () =>
+      withLoading(async () => {
+        const result = await methodsRef.current.onReloadUser();
+        const [user, failure] = result;
+        if (!isFailure(ReloadUserFailure)(failure) && user) {
+          setCurrentUser(user);
+        }
+        return result;
+      }),
+    [withLoading],
+  );
+
   const value = useMemo<AuthValue<TUser>>(
     () => ({
       currentUser,
@@ -118,8 +143,10 @@ export function AuthProvider<TUser>({
         withLoading(() => methodsRef.current.onSignUpWithEmailAndPassword(credentials)),
       sendPasswordResetEmail: (email) =>
         withLoading(() => methodsRef.current.onSendPasswordResetEmail(email)),
+      sendEmailVerification: () => withLoading(() => methodsRef.current.onSendEmailVerification()),
+      reloadUser,
     }),
-    [currentUser, loading, withLoading],
+    [currentUser, loading, withLoading, reloadUser],
   );
 
   return (

@@ -4,38 +4,32 @@ import { vi } from 'vitest';
 
 class GoogleAuthProviderMock {}
 
-const signInWithPopupMock = vi.fn().mockResolvedValue(
-  mock<firebase.auth.UserCredential>({
-    user: {
-      uid: 'some-user-uid',
-      providerId: 'mock-provider-id',
-      email: 'mock-email',
-      getIdToken: vi.fn().mockResolvedValue('mock-id-token'),
-    },
-  }),
-);
+const sendEmailVerificationMock = vi.fn().mockResolvedValue(undefined);
+const reloadMock = vi.fn().mockResolvedValue(undefined);
 
-const signInWithEmailAndPasswordMock = vi.fn().mockResolvedValue(
-  mock<firebase.auth.UserCredential>({
-    user: {
-      uid: 'some-user-uid',
-      providerId: 'mock-provider-id',
-      email: 'mock-email',
-      getIdToken: vi.fn().mockResolvedValue('mock-id-token'),
-    },
-  }),
-);
+function userMock(): firebase.User {
+  return mock<firebase.User>({
+    uid: 'some-user-uid',
+    providerId: 'mock-provider-id',
+    email: 'mock-email',
+    emailVerified: false,
+    getIdToken: vi.fn().mockResolvedValue('mock-id-token'),
+    sendEmailVerification: sendEmailVerificationMock,
+    reload: reloadMock,
+  });
+}
 
-const createUserWithEmailAndPasswordMock = vi.fn().mockResolvedValue(
-  mock<firebase.auth.UserCredential>({
-    user: {
-      uid: 'some-user-uid',
-      providerId: 'mock-provider-id',
-      email: 'mock-email',
-      getIdToken: vi.fn().mockResolvedValue('mock-id-token'),
-    },
-  }),
-);
+const signInWithPopupMock = vi
+  .fn()
+  .mockResolvedValue(mock<firebase.auth.UserCredential>({ user: userMock() }));
+
+const signInWithEmailAndPasswordMock = vi
+  .fn()
+  .mockResolvedValue(mock<firebase.auth.UserCredential>({ user: userMock() }));
+
+const createUserWithEmailAndPasswordMock = vi
+  .fn()
+  .mockResolvedValue(mock<firebase.auth.UserCredential>({ user: userMock() }));
 
 const signOutMock = vi.fn().mockResolvedValue(undefined);
 const onAuthStateChangedMock = (callback: (user: unknown) => void) => {

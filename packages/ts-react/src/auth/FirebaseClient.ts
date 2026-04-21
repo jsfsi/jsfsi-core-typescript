@@ -4,7 +4,9 @@ import 'firebase/compat/auth';
 
 import { type AuthClient } from './AuthenticationAdapter';
 import { type EmailPasswordCredentials } from './AuthProvider';
+import { EmailVerificationFailure } from './EmailVerificationFailure';
 import { PasswordResetEmailFailure } from './PasswordResetEmailFailure';
+import { ReloadUserFailure } from './ReloadUserFailure';
 import { SignInFailure } from './SignInFailure';
 import { SignUpFailure } from './SignUpFailure';
 import { type User } from './User';
@@ -53,6 +55,7 @@ export class FirebaseClient implements AuthClient<User> {
       name: firebaseUser.displayName,
       avatar: firebaseUser.photoURL,
       idToken: await firebaseUser.getIdToken(),
+      emailVerified: firebaseUser.emailVerified,
     };
   }
 
@@ -166,6 +169,35 @@ export class FirebaseClient implements AuthClient<User> {
     } catch (error) {
       /* v8 ignore next -- @preserve */
       return Fail(new PasswordResetEmailFailure(error));
+    }
+  }
+
+  public async sendEmailVerification(): Promise<Result<void, EmailVerificationFailure>> {
+    if (!this.firebaseUser) {
+      return Fail(new EmailVerificationFailure('No user signed in'));
+    }
+
+    try {
+      await this.firebaseUser.sendEmailVerification();
+      return Ok(undefined);
+    } catch (error) {
+      /* v8 ignore next -- @preserve */
+      return Fail(new EmailVerificationFailure(error));
+    }
+  }
+
+  public async reloadUser(): Promise<Result<User | null, ReloadUserFailure>> {
+    if (!this.firebaseUser) {
+      return Ok(null);
+    }
+
+    try {
+      await this.firebaseUser.reload();
+      const user = await this.mapFirebaseUserToUser(this.firebaseUser);
+      return Ok(user);
+    } catch (error) {
+      /* v8 ignore next -- @preserve */
+      return Fail(new ReloadUserFailure(error));
     }
   }
 }

@@ -5,4 +5,5 @@ export type User = {
   name: string | null;
   avatar: string | null;
   idToken: string;
+  emailVerified: boolean;
 };

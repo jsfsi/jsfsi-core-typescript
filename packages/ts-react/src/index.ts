@@ -29,7 +29,9 @@ export { FirebaseClient } from './auth/FirebaseClient';
 export type { FirebaseConfig } from './auth/FirebaseClient';
 export { FirebaseAuthenticatedHttpClient } from './auth/FirebaseAuthenticatedHttpClient';
 export type { User } from './auth/User';
+export { EmailVerificationFailure } from './auth/EmailVerificationFailure';
 export { PasswordResetEmailFailure } from './auth/PasswordResetEmailFailure';
+export { ReloadUserFailure } from './auth/ReloadUserFailure';
 export { SignInFailure } from './auth/SignInFailure';
 export { SignUpFailure } from './auth/SignUpFailure';
 
