@@ -1,5 +1,5 @@
-import { InputHTMLAttributes } from 'react';
-import { FieldError, FieldValues, Path, useFormContext } from 'react-hook-form';
+import type { InputHTMLAttributes } from 'react';
+import { type FieldError, type FieldValues, type Path, useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import { Input } from '../../input';

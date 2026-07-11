@@ -1,6 +1,6 @@
 import { applyDecorators, UseGuards } from '@nestjs/common';
 
-import { AuthorizeGuard, HandlerFunction, setRequiredRoles } from '../guards/authorize.guard';
+import { AuthorizeGuard, type HandlerFunction, setRequiredRoles } from '../guards/authorize.guard';
 import { UserGuard } from '../guards/user.guard';
 
 export function Authorize(...roles: string[]) {

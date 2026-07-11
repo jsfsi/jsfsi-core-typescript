@@ -1,5 +1,4 @@
-import { useAuth } from '@jsfsi-core/ts-react';
-import { User } from '@jsfsi-core/ts-react';
+import { type User, useAuth } from '@jsfsi-core/ts-react';
 import { Navigate } from 'react-router-dom';
 
 interface ProtectedRouteProps {

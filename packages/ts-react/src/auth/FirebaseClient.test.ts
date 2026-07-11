@@ -64,10 +64,7 @@ describe('FirebaseClient', () => {
       });
 
       expect(firebase.auth().signInWithEmailAndPassword).toHaveBeenCalledTimes(1);
-      expect(firebase.auth().signInWithEmailAndPassword).toHaveBeenCalledWith(
-        'test@test.com',
-        'password',
-      );
+      expect(firebase.auth().signInWithEmailAndPassword).toHaveBeenCalledWith('test@test.com', 'password');
       expect(result).toEqual(Ok(expectedUser));
     });
   });
@@ -81,10 +78,7 @@ describe('FirebaseClient', () => {
       });
 
       expect(firebase.auth().createUserWithEmailAndPassword).toHaveBeenCalledTimes(1);
-      expect(firebase.auth().createUserWithEmailAndPassword).toHaveBeenCalledWith(
-        'test@test.com',
-        'password',
-      );
+      expect(firebase.auth().createUserWithEmailAndPassword).toHaveBeenCalledWith('test@test.com', 'password');
     });
   });
 

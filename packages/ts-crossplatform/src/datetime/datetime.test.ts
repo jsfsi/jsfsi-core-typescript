@@ -1,12 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  convertDateInfoToDateRange,
-  formatDate,
-  formatDateTime,
-  formatTime,
-  sleep,
-} from './datetime';
+import { convertDateInfoToDateRange, formatDate, formatDateTime, formatTime, sleep } from './datetime';
 
 describe('datetime', () => {
   describe('#sleep', () => {
@@ -40,9 +34,7 @@ describe('datetime', () => {
 
   describe('#formatDateTime', () => {
     it('formats a date and time', () => {
-      expect(formatDateTime(new Date('2025-01-01T00:00:00').getTime())).toEqual(
-        '01/01/2025 00:00:00',
-      );
+      expect(formatDateTime(new Date('2025-01-01T00:00:00').getTime())).toEqual('01/01/2025 00:00:00');
     });
   });
 
@@ -55,14 +47,11 @@ describe('datetime', () => {
       ${new Date('2025-01-15T12:30:45')} | ${false} | ${new Date('2025-01-15T09:30:45')} | ${new Date('2025-01-15T12:30:45')} | ${new Date('2025-01-15T09:30:45')} | ${new Date('2025-01-15T12:30:45')}
       ${new Date('2025-01-16T12:30:45')} | ${false} | ${new Date('2025-01-15T09:30:45')} | ${new Date('2025-01-15T12:30:45')} | ${new Date('2025-01-16T09:30:45')} | ${new Date('2025-01-16T12:30:45')}
       ${new Date('2025-01-15T12:30:45')} | ${false} | ${undefined}                       | ${new Date('2025-01-15T12:30:45')} | ${new Date('2025-01-15T00:00:00')} | ${new Date('2025-01-15T12:30:45')}
-    `(
-      'converts date info to date range',
-      ({ startDate, allDay, startTime, endTime, expectedStart, expectedEnd }) => {
-        const result = convertDateInfoToDateRange({ startDate, allDay, startTime, endTime });
+    `('converts date info to date range', ({ startDate, allDay, startTime, endTime, expectedStart, expectedEnd }) => {
+      const result = convertDateInfoToDateRange({ startDate, allDay, startTime, endTime });
 
-        expect(result.startDate).toEqual(expectedStart);
-        expect(result.endDate).toEqual(expectedEnd);
-      },
-    );
+      expect(result.startDate).toEqual(expectedStart);
+      expect(result.endDate).toEqual(expectedEnd);
+    });
   });
 });

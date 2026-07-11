@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, HttpException, HttpStatus } from '@nestjs/common';
+import { type CanActivate, type ExecutionContext, HttpException, HttpStatus } from '@nestjs/common';
 
 export type InMemoryRateLimitGuardOptions = {
   windowMs: number;
@@ -43,10 +43,7 @@ export class InMemoryRateLimitGuard implements CanActivate {
     return true;
   }
 
-  private extractIp(request: {
-    ip?: string;
-    headers?: Record<string, string | string[] | undefined>;
-  }): string {
+  private extractIp(request: { ip?: string; headers?: Record<string, string | string[] | undefined> }): string {
     const xForwardedFor = request.headers?.['x-forwarded-for'];
     if (xForwardedFor) {
       const ips = Array.isArray(xForwardedFor) ? xForwardedFor[0] : xForwardedFor;

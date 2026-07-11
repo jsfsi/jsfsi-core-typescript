@@ -1,9 +1,8 @@
 import { Fail, mock, Ok } from '@jsfsi-core/ts-crossplatform';
 import { createTestingApp } from '@jsfsi-core/ts-nestjs';
 import { MockLogger } from '@jsfsi-core/ts-nodejs';
-import { INestApplication, Logger } from '@nestjs/common';
-import * as admin from 'firebase-admin';
-import { FirebaseAuthError } from 'firebase-admin/auth';
+import { type INestApplication, Logger } from '@nestjs/common';
+import { type FirebaseAuthError, getAuth } from 'firebase-admin/auth';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { AppModule } from '../../app/app.module';
@@ -72,7 +71,7 @@ describe('AuthorizationAdapter', () => {
 
   it('returns error when firebase token is invalid', async () => {
     const errorMock = new Error('some-error');
-    vi.spyOn(admin.auth(), 'verifyIdToken').mockRejectedValue(errorMock);
+    vi.spyOn(getAuth(), 'verifyIdToken').mockRejectedValue(errorMock);
 
     const warnSpy = vi.spyOn(mockLogger, 'warn');
 
@@ -84,18 +83,14 @@ describe('AuthorizationAdapter', () => {
 
     expect(decodedUser).toEqual(Fail(new UnableToValidateUserFailure(errorMock)));
     expect(warnSpy).toHaveBeenCalledTimes(1);
-    expect(warnSpy).toHaveBeenCalledWith(
-      'Unable to decode firebase token',
-      errorMock,
-      AuthorizationAdapter.name,
-    );
+    expect(warnSpy).toHaveBeenCalledWith('Unable to decode firebase token', errorMock, AuthorizationAdapter.name);
   });
 
   it('returns error when firebase token is expired', async () => {
     const errorMock = mock<FirebaseAuthError>({
       code: 'auth/id-token-expired',
     });
-    vi.spyOn(admin.auth(), 'verifyIdToken').mockRejectedValue(errorMock);
+    vi.spyOn(getAuth(), 'verifyIdToken').mockRejectedValue(errorMock);
 
     const authorizationAdapter = app.get(AuthorizationAdapter);
 

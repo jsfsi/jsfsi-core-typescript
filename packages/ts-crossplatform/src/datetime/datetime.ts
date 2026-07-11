@@ -35,12 +35,7 @@ export type DateRange = {
   endDate: Date;
 };
 
-export function convertDateInfoToDateRange({
-  allDay,
-  startDate,
-  startTime,
-  endTime,
-}: DateInfo): DateRange {
+export function convertDateInfoToDateRange({ allDay, startDate, startTime, endTime }: DateInfo): DateRange {
   const result: DateRange = {
     startDate: new Date(new Date(startDate).setHours(0, 0, 0, 0)),
     endDate: new Date(new Date(startDate).setHours(23, 59, 59, 999)),
@@ -63,12 +58,7 @@ export function convertDateInfoToDateRange({
 
   if (endTime) {
     const endTimeDate = new Date(startDate);
-    endTimeDate.setHours(
-      endTime.getHours(),
-      endTime.getMinutes(),
-      endTime.getSeconds(),
-      endTime.getMilliseconds(),
-    );
+    endTimeDate.setHours(endTime.getHours(), endTime.getMinutes(), endTime.getSeconds(), endTime.getMilliseconds());
     result.endDate = endTimeDate;
   }
 

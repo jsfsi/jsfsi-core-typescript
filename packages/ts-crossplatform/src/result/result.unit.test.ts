@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { Failure, isFailure } from '../failures';
 
-import { Fail, Ok, Result } from './result';
+import { Fail, Ok, type Result } from './result';
 
 describe('ResultTuple', () => {
   describe('result with value', () => {
@@ -54,9 +54,7 @@ describe('ResultTuple', () => {
       class CustomFailure extends Failure {}
       class AnotherCustomFailure extends Failure {}
 
-      const doSomething = (
-        failureType: 'custom' | 'another',
-      ): Result<number, CustomFailure | AnotherCustomFailure> =>
+      const doSomething = (failureType: 'custom' | 'another'): Result<number, CustomFailure | AnotherCustomFailure> =>
         failureType === 'custom' ? Fail(new CustomFailure()) : Fail(new AnotherCustomFailure());
 
       const [customValue, customFailure] = doSomething('custom');

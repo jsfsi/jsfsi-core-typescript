@@ -1,7 +1,7 @@
-import { RequestMiddlewareLogCustomizer } from '@jsfsi-core/ts-nestjs';
-import { Request, Response } from 'express';
+import type { RequestMiddlewareLogCustomizer } from '@jsfsi-core/ts-nestjs';
+import type { Request, Response } from 'express';
 
-import { User } from '../../domain/models/User.model';
+import type { User } from '../../domain/models/User.model';
 
 type AuthenticatedRequest = {
   user?: User;

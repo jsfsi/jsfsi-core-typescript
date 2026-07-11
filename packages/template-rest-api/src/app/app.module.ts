@@ -1,7 +1,6 @@
-import { appConfigModuleSetup, RequestMiddleware } from '@jsfsi-core/ts-nestjs';
-import { REQUEST_MIDDLEWARE_LOG_CUSTOMIZER } from '@jsfsi-core/ts-nestjs';
+import { appConfigModuleSetup, REQUEST_MIDDLEWARE_LOG_CUSTOMIZER, RequestMiddleware } from '@jsfsi-core/ts-nestjs';
 import { HttpModule } from '@nestjs/axios';
-import { MiddlewareConsumer, Module, NestModule, Provider } from '@nestjs/common';
+import { type MiddlewareConsumer, Module, type NestModule, type Provider } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 
 import { AuthorizationAdapter } from '../adapters/authorization-adapter/AuthorizationAdapter';

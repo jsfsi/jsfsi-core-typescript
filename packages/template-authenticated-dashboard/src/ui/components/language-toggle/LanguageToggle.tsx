@@ -1,12 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '../button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '../dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../dropdown-menu';
 
 export function LanguageToggle() {
   const { i18n, t } = useTranslation();

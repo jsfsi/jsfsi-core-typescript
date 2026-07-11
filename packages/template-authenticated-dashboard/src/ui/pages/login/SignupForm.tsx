@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Failure, isFailure } from '@jsfsi-core/ts-crossplatform';
-import { Form, useAuth, useCrashlytics } from '@jsfsi-core/ts-react';
-import { User } from '@jsfsi-core/ts-react';
+import { Form, type User, useAuth, useCrashlytics } from '@jsfsi-core/ts-react';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -75,18 +74,10 @@ function UserNamePasswordForm() {
           <div className="flex items-center">
             <Label htmlFor="confirmPassword">{t('signup.confirmPassword')}</Label>
           </div>
-          <FormInput
-            name="confirmPassword"
-            type="password"
-            placeholder={t('signup.confirmPassword')}
-          />
+          <FormInput name="confirmPassword" type="password" placeholder={t('signup.confirmPassword')} />
         </div>
         <Button type="submit" className="w-full" disabled={isSigningUp}>
-          {isSigningUp ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            t('signup.submitWithUsernameAndPassword')
-          )}
+          {isSigningUp ? <Loader2 className="size-4 animate-spin" /> : t('signup.submitWithUsernameAndPassword')}
         </Button>
       </div>
     </Form>
@@ -139,18 +130,13 @@ export function SignupForm({ className }: React.ComponentProps<'form'>) {
       <div className="grid gap-6">
         <UserNamePasswordForm />
         <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-          <span className="bg-background text-muted-foreground relative z-10 px-2">
-            {t('signup.orContinueWith')}
-          </span>
+          <span className="bg-background text-muted-foreground relative z-10 px-2">{t('signup.orContinueWith')}</span>
         </div>
         <SignUpWithGoogle />
       </div>
       <div className="text-center text-sm">
         {t('signup.alreadyHaveAccount')}{' '}
-        <a
-          className="cursor-pointer underline underline-offset-4"
-          onClick={() => navigate('/login')}
-        >
+        <a className="cursor-pointer underline underline-offset-4" onClick={() => navigate('/login')}>
           {t('signup.signIn')}
         </a>
       </div>

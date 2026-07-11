@@ -1,5 +1,5 @@
 import { mock, Ok } from '@jsfsi-core/ts-crossplatform';
-import { IoCContextProvider, useAuth, type User } from '@jsfsi-core/ts-react';
+import { IoCContextProvider, type User, useAuth } from '@jsfsi-core/ts-react';
 import { act, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -70,13 +70,9 @@ describe('AppAuthProvider', () => {
         <div>
           <button onClick={() => auth.signIn()}>signIn</button>
           <button onClick={() => auth.signOut()}>signOut</button>
-          <button onClick={() => auth.signInWithEmailAndPassword({ email: 'e', password: 'p' })}>
-            signInEmail
-          </button>
+          <button onClick={() => auth.signInWithEmailAndPassword({ email: 'e', password: 'p' })}>signInEmail</button>
           <button onClick={() => auth.signUp()}>signUp</button>
-          <button onClick={() => auth.signUpWithEmailAndPassword({ email: 'e', password: 'p' })}>
-            signUpEmail
-          </button>
+          <button onClick={() => auth.signUpWithEmailAndPassword({ email: 'e', password: 'p' })}>signUpEmail</button>
           <button onClick={() => auth.sendPasswordResetEmail('e')}>reset</button>
           <button onClick={() => auth.sendEmailVerification()}>sendVerification</button>
           <button onClick={() => auth.reloadUser()}>reload</button>

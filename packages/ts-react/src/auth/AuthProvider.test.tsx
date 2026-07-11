@@ -1,8 +1,8 @@
 import { Fail, Ok } from '@jsfsi-core/ts-crossplatform';
 import { act, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi, type Mock } from 'vitest';
+import { describe, expect, it, type Mock, vi } from 'vitest';
 
-import { AuthProvider, useAuth, type AuthMethods } from './AuthProvider';
+import { type AuthMethods, AuthProvider, useAuth } from './AuthProvider';
 import { EmailVerificationFailure } from './EmailVerificationFailure';
 import { PasswordResetEmailFailure } from './PasswordResetEmailFailure';
 import { ReloadUserFailure } from './ReloadUserFailure';
@@ -50,12 +50,8 @@ function createCallbacks(): TestCallbacks {
     onSignUpWithEmailAndPassword: vi
       .fn<AuthMethods<TestUser>['signUpWithEmailAndPassword']>()
       .mockResolvedValue(Ok({ id: '1', name: 'Signed Up', emailVerified: false })),
-    onSendPasswordResetEmail: vi
-      .fn<AuthMethods<TestUser>['sendPasswordResetEmail']>()
-      .mockResolvedValue(Ok(undefined)),
-    onSendEmailVerification: vi
-      .fn<AuthMethods<TestUser>['sendEmailVerification']>()
-      .mockResolvedValue(Ok(undefined)),
+    onSendPasswordResetEmail: vi.fn<AuthMethods<TestUser>['sendPasswordResetEmail']>().mockResolvedValue(Ok(undefined)),
+    onSendEmailVerification: vi.fn<AuthMethods<TestUser>['sendEmailVerification']>().mockResolvedValue(Ok(undefined)),
     onReloadUser: vi
       .fn<AuthMethods<TestUser>['reloadUser']>()
       .mockResolvedValue(Ok({ id: '1', name: 'Reloaded', emailVerified: true })),
@@ -134,13 +130,9 @@ describe('AuthProvider', () => {
           <div>
             <button onClick={() => auth.signIn()}>signIn</button>
             <button onClick={() => auth.signOut()}>signOut</button>
-            <button onClick={() => auth.signInWithEmailAndPassword({ email: 'e', password: 'p' })}>
-              signInEmail
-            </button>
+            <button onClick={() => auth.signInWithEmailAndPassword({ email: 'e', password: 'p' })}>signInEmail</button>
             <button onClick={() => auth.signUp()}>signUp</button>
-            <button onClick={() => auth.signUpWithEmailAndPassword({ email: 'e', password: 'p' })}>
-              signUpEmail
-            </button>
+            <button onClick={() => auth.signUpWithEmailAndPassword({ email: 'e', password: 'p' })}>signUpEmail</button>
             <button onClick={() => auth.sendPasswordResetEmail('e')}>reset</button>
             <button onClick={() => auth.sendEmailVerification()}>sendVerification</button>
             <button onClick={() => auth.reloadUser()}>reload</button>

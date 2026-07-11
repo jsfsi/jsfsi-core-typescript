@@ -1,4 +1,4 @@
-import { type TransactionalEntity } from './TransactionalEntity';
+import type { TransactionalEntity } from './TransactionalEntity';
 
 export const buildTransactionalRepositoryMock = <T extends TransactionalEntity>(instance: T): T => {
   return {

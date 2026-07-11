@@ -2,14 +2,14 @@ import { Fail, Ok, type Result } from '@jsfsi-core/ts-crossplatform';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 
-import { type AuthClient } from './AuthenticationAdapter';
-import { type EmailPasswordCredentials } from './AuthProvider';
+import type { AuthClient } from './AuthenticationAdapter';
+import type { EmailPasswordCredentials } from './AuthProvider';
 import { EmailVerificationFailure } from './EmailVerificationFailure';
 import { PasswordResetEmailFailure } from './PasswordResetEmailFailure';
 import { ReloadUserFailure } from './ReloadUserFailure';
 import { SignInFailure } from './SignInFailure';
 import { SignUpFailure } from './SignUpFailure';
-import { type User } from './User';
+import type { User } from './User';
 
 export type FirebaseConfig = {
   apiKey: string;
@@ -160,9 +160,7 @@ export class FirebaseClient implements AuthClient<User> {
     return this.firebaseUser?.getIdToken();
   }
 
-  public async sendPasswordResetEmail(
-    email: string,
-  ): Promise<Result<void, PasswordResetEmailFailure>> {
+  public async sendPasswordResetEmail(email: string): Promise<Result<void, PasswordResetEmailFailure>> {
     try {
       await this.firebaseAuth.sendPasswordResetEmail(email);
       return Ok(undefined);

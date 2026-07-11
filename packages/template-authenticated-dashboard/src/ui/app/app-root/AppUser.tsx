@@ -1,5 +1,4 @@
-import { useAuth } from '@jsfsi-core/ts-react';
-import { User } from '@jsfsi-core/ts-react';
+import { type User, useAuth } from '@jsfsi-core/ts-react';
 import { ChevronsUpDown, LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -12,12 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../../components/dropdown-menu';
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from '../../components/sidebar';
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '../../components/sidebar';
 
 export function AppUser() {
   const { t } = useTranslation();

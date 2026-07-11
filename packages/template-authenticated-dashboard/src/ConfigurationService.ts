@@ -1,4 +1,4 @@
-import { z, ZodType } from 'zod';
+import { type ZodType, z } from 'zod';
 
 export const ConfigurationSchema = z.object({
   VITE_FIREBASE_API_KEY: z.string(),

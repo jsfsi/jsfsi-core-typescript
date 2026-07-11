@@ -1,4 +1,4 @@
-import { z, ZodTypeAny } from 'zod';
+import { type ZodTypeAny, z } from 'zod';
 
 export const createPageSchema = <T extends ZodTypeAny>(elementSchema: T) =>
   z.object({

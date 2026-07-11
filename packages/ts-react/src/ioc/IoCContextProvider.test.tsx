@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react';
-import { ResolutionContext } from 'inversify';
+import type { ResolutionContext } from 'inversify';
 import { describe, expect, it } from 'vitest';
 
 import { useInjection } from './IoCContext';
-import { BindingType, IoCContextProvider } from './IoCContextProvider';
+import { type BindingType, IoCContextProvider } from './IoCContextProvider';
 
 class TestService {
   getValue() {
@@ -97,9 +97,7 @@ describe('IoCContextProvider', () => {
     });
 
     it('provides container to children via context', () => {
-      const bindings: readonly BindingType<unknown>[] = [
-        { type: TestService, instance: new TestService() },
-      ];
+      const bindings: readonly BindingType<unknown>[] = [{ type: TestService, instance: new TestService() }];
 
       function ContainerConsumer() {
         const service = useInjection(TestService);

@@ -1,6 +1,6 @@
 import { mock } from '@jsfsi-core/ts-crossplatform';
+import type { User } from '@jsfsi-core/ts-react';
 import * as TsReact from '@jsfsi-core/ts-react';
-import { User } from '@jsfsi-core/ts-react';
 import { render } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 

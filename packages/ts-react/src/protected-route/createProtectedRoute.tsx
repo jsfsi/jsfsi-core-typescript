@@ -6,14 +6,8 @@ type ProtectedRouteProps = {
   loader?: React.ComponentType;
 };
 
-export function createProtectedRoute<TUser>(
-  useAuth: () => { currentUser: TUser | null; loading: boolean },
-) {
-  return function ProtectedRoute({
-    children,
-    redirectTo = '/login',
-    loader: Loader,
-  }: ProtectedRouteProps) {
+export function createProtectedRoute<TUser>(useAuth: () => { currentUser: TUser | null; loading: boolean }) {
+  return function ProtectedRoute({ children, redirectTo = '/login', loader: Loader }: ProtectedRouteProps) {
     const { currentUser, loading } = useAuth();
 
     if (loading) {

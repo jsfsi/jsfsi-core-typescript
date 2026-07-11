@@ -1,4 +1,4 @@
-import { Logger } from './Logger';
+import type { Logger } from './Logger';
 
 export class MockLogger implements Logger {
   debug = () => undefined;

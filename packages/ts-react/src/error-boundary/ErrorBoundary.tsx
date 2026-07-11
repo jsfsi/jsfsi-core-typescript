@@ -23,7 +23,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   public componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // eslint-disable-next-line no-console
+    // biome-ignore lint/suspicious/noConsole: error boundary needs console.error
     console.error(error, errorInfo);
   }
 
@@ -33,7 +33,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   /* v8 ignore next -- @preserve */
   private unhandledRejectionHandler(event: PromiseRejectionEvent): void {
-    // eslint-disable-next-line no-console
+    // biome-ignore lint/suspicious/noConsole: error boundary needs console.error
     console.error(event.reason);
 
     this.setState({ hasError: true, error: event.reason });

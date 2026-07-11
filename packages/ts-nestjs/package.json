@@ -1,6 +1,6 @@
 {
   "name": "@jsfsi-core/ts-nestjs",
-  "version": "1.1.53",
+  "version": "2.0.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/jsfsi/jsfsi-core-typescript.git"
@@ -25,9 +25,9 @@
     "build": "npm run lint && tsc --noEmit && vite build",
     "build:watch": "tsc && (tsc --watch & vite build --watch)",
     "clean": "rm -rf dist && rm -rf node_modules && rm -rf coverage",
-    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "lint": "npm run lint:fix && npm run format",
-    "lint:fix": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0 --fix",
+    "format": "biome format --write src",
+    "lint": "biome check --write src",
+    "lint:fix": "biome check --write src",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest"
@@ -35,29 +35,29 @@
   "dependencies": {
     "@jsfsi-core/ts-crossplatform": "file:../ts-crossplatform",
     "@jsfsi-core/ts-nodejs": "file:../ts-nodejs",
-    "@nestjs/cli": "11.0.21",
-    "@nestjs/common": "11.1.19",
+    "@nestjs/cli": "11.0.24",
+    "@nestjs/common": "11.1.28",
     "@nestjs/config": "4.0.4",
-    "@nestjs/core": "11.1.19",
-    "@nestjs/platform-express": "11.1.19",
-    "@nestjs/typeorm": "11.0.1",
-    "body-parser": "2.2.2",
+    "@nestjs/core": "11.1.28",
+    "@nestjs/platform-express": "11.1.28",
+    "@nestjs/typeorm": "11.0.3",
+    "body-parser": "2.3.0",
     "express": "5.2.1",
     "reflect-metadata": "0.2.2",
-    "typeorm": "0.3.28",
-    "zod": "4.3.6"
+    "typeorm": "1.0.0",
+    "zod": "4.4.3"
   },
   "devDependencies": {
-    "@nestjs/testing": "11.1.19",
-    "@swc/core": "1.15.30",
+    "@nestjs/testing": "11.1.28",
+    "@swc/core": "1.15.43",
     "@types/supertest": "7.2.0",
-    "@vitest/coverage-v8": "4.1.4",
+    "@vitest/coverage-v8": "4.1.10",
     "supertest": "7.2.2",
     "ts-node": "10.9.2",
     "unplugin-swc": "1.5.9",
-    "vite": "8.0.9",
-    "vite-plugin-dts": "4.5.4",
-    "vitest": "4.1.4"
+    "vite": "8.1.4",
+    "vite-plugin-dts": "5.0.3",
+    "vitest": "4.1.10"
   },
   "peerDependenciesMeta": {
     "body-parser": {
@@ -68,7 +68,7 @@
     }
   },
   "engines": {
-    "node": "25.9.0",
-    "npm": "11.12.1"
+    "node": "26.5.0",
+    "npm": "11.17.0"
   }
 }

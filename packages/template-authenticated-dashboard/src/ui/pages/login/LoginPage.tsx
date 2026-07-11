@@ -1,5 +1,4 @@
-import { useAuth } from '@jsfsi-core/ts-react';
-import { User } from '@jsfsi-core/ts-react';
+import { type User, useAuth } from '@jsfsi-core/ts-react';
 import { CreditCard } from 'lucide-react';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';

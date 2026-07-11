@@ -1,20 +1,20 @@
 import { isFailure, type Result } from '@jsfsi-core/ts-crossplatform';
 import React, {
   createContext,
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
-  type ReactNode,
 } from 'react';
 
-import { EmailVerificationFailure } from './EmailVerificationFailure';
-import { PasswordResetEmailFailure } from './PasswordResetEmailFailure';
+import type { EmailVerificationFailure } from './EmailVerificationFailure';
+import type { PasswordResetEmailFailure } from './PasswordResetEmailFailure';
 import { ReloadUserFailure } from './ReloadUserFailure';
-import { SignInFailure } from './SignInFailure';
-import { SignUpFailure } from './SignUpFailure';
+import type { SignInFailure } from './SignInFailure';
+import type { SignUpFailure } from './SignUpFailure';
 
 export type EmailPasswordCredentials = {
   email: string;
@@ -24,13 +24,9 @@ export type EmailPasswordCredentials = {
 export type AuthMethods<TUser> = {
   signIn: () => Promise<Result<TUser, SignInFailure>>;
   signOut: () => Promise<void>;
-  signInWithEmailAndPassword: (
-    credentials: EmailPasswordCredentials,
-  ) => Promise<Result<TUser, SignInFailure>>;
+  signInWithEmailAndPassword: (credentials: EmailPasswordCredentials) => Promise<Result<TUser, SignInFailure>>;
   signUp: () => Promise<Result<TUser, SignUpFailure>>;
-  signUpWithEmailAndPassword: (
-    credentials: EmailPasswordCredentials,
-  ) => Promise<Result<TUser, SignUpFailure>>;
+  signUpWithEmailAndPassword: (credentials: EmailPasswordCredentials) => Promise<Result<TUser, SignUpFailure>>;
   sendPasswordResetEmail: (email: string) => Promise<Result<void, PasswordResetEmailFailure>>;
   sendEmailVerification: () => Promise<Result<void, EmailVerificationFailure>>;
   reloadUser: () => Promise<Result<TUser | null, ReloadUserFailure>>;
@@ -141,17 +137,14 @@ export function AuthProvider<TUser>({
       signUp: () => withLoading(() => methodsRef.current.onSignUp()),
       signUpWithEmailAndPassword: (credentials) =>
         withLoading(() => methodsRef.current.onSignUpWithEmailAndPassword(credentials)),
-      sendPasswordResetEmail: (email) =>
-        withLoading(() => methodsRef.current.onSendPasswordResetEmail(email)),
+      sendPasswordResetEmail: (email) => withLoading(() => methodsRef.current.onSendPasswordResetEmail(email)),
       sendEmailVerification: () => withLoading(() => methodsRef.current.onSendEmailVerification()),
       reloadUser,
     }),
     [currentUser, loading, withLoading, reloadUser],
   );
 
-  return (
-    <AuthContext.Provider value={value}>{loading ? <Loader /> : children}</AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{loading ? <Loader /> : children}</AuthContext.Provider>;
 }
 
 export function useAuth<TUser>(): AuthValue<TUser> {

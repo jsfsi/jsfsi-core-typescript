@@ -1,4 +1,4 @@
-import { BindingType } from './IoCContextProvider';
+import type { BindingType } from './IoCContextProvider';
 
 export function createBindingsOverrides(bindings: readonly BindingType<unknown>[]) {
   return ({ overrides }: { overrides: readonly BindingType<unknown>[] }) =>

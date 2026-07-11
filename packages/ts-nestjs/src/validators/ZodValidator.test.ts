@@ -99,9 +99,7 @@ describe('ZodValidator', () => {
         logger: new MockLogger(),
       });
 
-      const response = await request(app.getHttpServer())
-        .post('/test')
-        .send({ url: 'invalid-url' });
+      const response = await request(app.getHttpServer()).post('/test').send({ url: 'invalid-url' });
 
       expect(response.status).toBe(400);
       expect(response.body).toEqual({

@@ -1,9 +1,6 @@
-import { z, ZodType } from 'zod';
+import type { ZodType, z } from 'zod';
 
-export const parseConfig = <T extends ZodType>(
-  configSchema: T,
-  env: unknown = process.env,
-): z.infer<T> => {
+export const parseConfig = <T extends ZodType>(configSchema: T, env: unknown = process.env): z.infer<T> => {
   const result = configSchema.safeParse(env);
 
   if (!result.success) {

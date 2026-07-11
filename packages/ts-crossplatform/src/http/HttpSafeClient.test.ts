@@ -308,9 +308,7 @@ describe('HttpSafeClient', () => {
           method: 'GET',
         });
 
-        expect(result).toEqual(
-          Fail(new TestFailure(new Error('Invalid response body'), invalidResponse)),
-        );
+        expect(result).toEqual(Fail(new TestFailure(new Error('Invalid response body'), invalidResponse)));
       });
 
       it('returns a network failure when it is unable to connect', async () => {

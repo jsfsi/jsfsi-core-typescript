@@ -1,7 +1,6 @@
 import { Fail, mock, Ok, sleep } from '@jsfsi-core/ts-crossplatform';
 import * as TsReact from '@jsfsi-core/ts-react';
-import { SignUpFailure, type AuthValue } from '@jsfsi-core/ts-react';
-import { User } from '@jsfsi-core/ts-react';
+import { type AuthValue, SignUpFailure, type User } from '@jsfsi-core/ts-react';
 import { act, fireEvent, render, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -57,9 +56,7 @@ describe('SignupForm', () => {
       it('should sign up with google', async () => {
         const toastSuccessSpy = vi.spyOn(toast, 'success');
         const signUpMock = vi.fn().mockResolvedValue(Ok(mock<User>({ email: 'test@example.com' })));
-        vi.spyOn(TsReact, 'useAuth').mockReturnValue(
-          mock<AuthValue<User>>({ currentUser: null, signUp: signUpMock }),
-        );
+        vi.spyOn(TsReact, 'useAuth').mockReturnValue(mock<AuthValue<User>>({ currentUser: null, signUp: signUpMock }));
 
         const { getByText } = render(
           <MemoryRouter>
@@ -94,9 +91,7 @@ describe('SignupForm', () => {
         vi.spyOn(TsReact, 'useAuth').mockReturnValue(
           mock<AuthValue<User>>({
             currentUser: null,
-            signUp: vi
-              .fn()
-              .mockResolvedValue(Fail(new SignUpFailure(new Error('some sign up error')))),
+            signUp: vi.fn().mockResolvedValue(Fail(new SignUpFailure(new Error('some sign up error')))),
           }),
         );
 

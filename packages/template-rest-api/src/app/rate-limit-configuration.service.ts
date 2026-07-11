@@ -1,6 +1,5 @@
 import { parseConfig } from '@jsfsi-core/ts-crossplatform';
-import { ConfigModule } from '@nestjs/config';
-import { registerAs } from '@nestjs/config';
+import { ConfigModule, registerAs } from '@nestjs/config';
 import { z } from 'zod';
 
 export const RATE_LIMIT_CONFIG_TOKEN = 'rate-limit-config';

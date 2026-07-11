@@ -1,13 +1,10 @@
 import { parseConfig } from '@jsfsi-core/ts-crossplatform';
-import { registerAs } from '@nestjs/config';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, registerAs } from '@nestjs/config';
 import { z } from 'zod';
 
 export const APP_CONFIG_TOKEN = 'nestjs-app-config';
 
-const LogLevels = z
-  .array(z.enum(['verbose', 'debug', 'log', 'warn', 'error', 'fatal']))
-  .default(['log']);
+const LogLevels = z.array(z.enum(['verbose', 'debug', 'log', 'warn', 'error', 'fatal'])).default(['log']);
 
 export const AppConfigSchema = z.object({
   APP_PORT: z

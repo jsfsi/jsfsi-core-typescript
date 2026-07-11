@@ -1,6 +1,6 @@
 import { HttpSafeClient } from '@jsfsi-core/ts-crossplatform';
 
-import { FirebaseClient } from './FirebaseClient';
+import type { FirebaseClient } from './FirebaseClient';
 
 export class FirebaseAuthenticatedHttpClient extends HttpSafeClient {
   constructor(

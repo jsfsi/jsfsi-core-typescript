@@ -2,10 +2,10 @@ import * as path from 'path';
 import 'reflect-metadata';
 
 import { loadEnvConfig } from '@jsfsi-core/ts-nodejs';
-import { INestApplication, LoggerService, Type } from '@nestjs/common';
+import type { INestApplication, LoggerService, Type } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { APP_CONFIG_TOKEN, AppConfig } from '../configuration/AppConfigurationService';
+import { APP_CONFIG_TOKEN, type AppConfig } from '../configuration/AppConfigurationService';
 
 import { createApp } from './app';
 

@@ -1,5 +1,5 @@
 import { mock, Ok } from '@jsfsi-core/ts-crossplatform';
-import { User } from '@jsfsi-core/ts-react';
+import type { User } from '@jsfsi-core/ts-react';
 import { render, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';

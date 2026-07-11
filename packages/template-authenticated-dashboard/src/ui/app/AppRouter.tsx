@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 
 import { ProtectedRoute } from '../components/protected-route/ProtectedRoute';
 import { DashboardPage } from '../pages/dashboard/DashboardPage';

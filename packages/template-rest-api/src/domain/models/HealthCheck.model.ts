@@ -1,4 +1,4 @@
-import { User } from './User.model';
+import type { User } from './User.model';
 
 export type HealthCheck = {
   status: 'OK';

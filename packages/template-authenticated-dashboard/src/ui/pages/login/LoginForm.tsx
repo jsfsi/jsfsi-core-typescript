@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Failure, isFailure } from '@jsfsi-core/ts-crossplatform';
-import { Form, useAuth, useCrashlytics } from '@jsfsi-core/ts-react';
-import { User } from '@jsfsi-core/ts-react';
+import { Form, type User, useAuth, useCrashlytics } from '@jsfsi-core/ts-react';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -69,11 +68,7 @@ function UserNamePasswordForm() {
           <FormInput name="password" type="password" placeholder={t('login.password')} />
         </div>
         <Button type="submit" className="w-full" disabled={isSigningIn}>
-          {isSigningIn ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            t('login.submitWithUsernameAndPassword')
-          )}
+          {isSigningIn ? <Loader2 className="size-4 animate-spin" /> : t('login.submitWithUsernameAndPassword')}
         </Button>
       </div>
     </Form>
@@ -126,18 +121,13 @@ export function LoginForm({ className }: React.ComponentProps<'form'>) {
       <div className="grid gap-6">
         <UserNamePasswordForm />
         <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-          <span className="bg-background text-muted-foreground relative z-10 px-2">
-            {t('login.orContinueWith')}
-          </span>
+          <span className="bg-background text-muted-foreground relative z-10 px-2">{t('login.orContinueWith')}</span>
         </div>
         <SignInWithGoogle />
       </div>
       <div className="text-center text-sm">
         {t('login.noAccount')}{' '}
-        <a
-          className="cursor-pointer underline underline-offset-4"
-          onClick={() => navigate('/login/signup')}
-        >
+        <a className="cursor-pointer underline underline-offset-4" onClick={() => navigate('/login/signup')}>
           {t('login.signUp')}
         </a>
       </div>

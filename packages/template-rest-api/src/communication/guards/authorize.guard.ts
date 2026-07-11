@@ -1,5 +1,6 @@
-import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
+import { type CanActivate, type ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 
+// biome-ignore lint/style/useImportType: NestJS DI needs runtime class reference
 import { UserService } from '../../domain/services/user-service/UserService';
 
 export type HandlerFunction = (...args: unknown[]) => unknown;
@@ -14,8 +15,10 @@ export function setRequiredRoles(handler: HandlerFunction, roles: string[]): voi
   rolesMap.set(handler, roles);
 }
 
+/* v8 ignore start -- @preserve */
 @Injectable()
 export class AuthorizeGuard implements CanActivate {
+  /* v8 ignore stop -- @preserve */
   constructor(private readonly userService: UserService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

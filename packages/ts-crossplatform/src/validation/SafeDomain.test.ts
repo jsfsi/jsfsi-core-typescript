@@ -35,23 +35,26 @@ describe('SafeDomain', () => {
     expect(result.success).toBe(true);
   });
 
-  it.each(['localhost', 'invalid_domain', '-example.com', 'example', 'a..com'])(
-    'rejects invalid domain `%s`',
-    (domain) => {
-      const schema = z.object({
-        domain: SafeDomain(),
-      });
+  it.each([
+    'localhost',
+    'invalid_domain',
+    '-example.com',
+    'example',
+    'a..com',
+  ])('rejects invalid domain `%s`', (domain) => {
+    const schema = z.object({
+      domain: SafeDomain(),
+    });
 
-      const result = schema.safeParse({ domain });
+    const result = schema.safeParse({ domain });
 
-      expect(result.success).toBe(false);
-      if (result.success) {
-        return;
-      }
+    expect(result.success).toBe(false);
+    if (result.success) {
+      return;
+    }
 
-      expect(result.error.issues[0].message).toBe('Please enter a valid domain');
-    },
-  );
+    expect(result.error.issues[0].message).toBe('Please enter a valid domain');
+  });
 
   it('uses custom message when regex validation fails', () => {
     const schema = z.object({

@@ -1,11 +1,14 @@
 import { isFailure } from '@jsfsi-core/ts-crossplatform';
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { type CanActivate, type ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 
 import { UserAuthorizationExpiredFailure } from '../../domain/models/UserAuthorizationExpiredFailure';
+// biome-ignore lint/style/useImportType: NestJS DI needs runtime class reference
 import { UserService } from '../../domain/services/user-service/UserService';
 
+/* v8 ignore start -- @preserve */
 @Injectable()
 export class UserGuard implements CanActivate {
+  /* v8 ignore stop -- @preserve */
   constructor(private readonly userService: UserService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {

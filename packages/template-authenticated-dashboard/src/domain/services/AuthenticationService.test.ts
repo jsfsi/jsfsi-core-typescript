@@ -1,6 +1,6 @@
 import { Fail, mock, Ok } from '@jsfsi-core/ts-crossplatform';
 import {
-  AuthenticationAdapter,
+  type AuthenticationAdapter,
   EmailVerificationFailure,
   PasswordResetEmailFailure,
   ReloadUserFailure,
@@ -92,9 +92,7 @@ describe('AuthenticationService', () => {
 
   it('delegates sendPasswordResetEmail to the adapter', async () => {
     const adapter = mock<AuthenticationAdapter<User>>({
-      sendPasswordResetEmail: vi
-        .fn()
-        .mockResolvedValue(Fail(new PasswordResetEmailFailure('nope'))),
+      sendPasswordResetEmail: vi.fn().mockResolvedValue(Fail(new PasswordResetEmailFailure('nope'))),
     });
 
     const result = await new AuthenticationService(adapter).sendPasswordResetEmail('a@b.c');

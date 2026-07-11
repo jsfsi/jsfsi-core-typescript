@@ -118,9 +118,7 @@ describe('useService', () => {
       </ErrorBoundary>,
     );
 
-    await waitFor(() =>
-      expect(screen.getByText('boundary caught: service exploded')).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText('boundary caught: service exploded')).toBeInTheDocument());
 
     consoleErrorSpy.mockRestore();
   });

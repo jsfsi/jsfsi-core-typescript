@@ -1,4 +1,4 @@
-import { AuthProvider, User, useInjection } from '@jsfsi-core/ts-react';
+import { AuthProvider, type User, useInjection } from '@jsfsi-core/ts-react';
 
 import { AuthenticationService } from '../../domain/services/AuthenticationService';
 import { FullscreenLoader } from '../components/fullscreen-loader';
@@ -12,13 +12,9 @@ export function AppAuthProvider({ children }: { children: React.ReactNode }) {
       onAuthChanged={(callback) => authenticationService.onAuthStateChanged(callback)}
       onSignIn={() => authenticationService.signIn()}
       onSignOut={() => authenticationService.signOut()}
-      onSignInWithEmailAndPassword={(credentials) =>
-        authenticationService.signInWithEmailAndPassword(credentials)
-      }
+      onSignInWithEmailAndPassword={(credentials) => authenticationService.signInWithEmailAndPassword(credentials)}
       onSignUp={() => authenticationService.signUp()}
-      onSignUpWithEmailAndPassword={(credentials) =>
-        authenticationService.signUpWithEmailAndPassword(credentials)
-      }
+      onSignUpWithEmailAndPassword={(credentials) => authenticationService.signUpWithEmailAndPassword(credentials)}
       onSendPasswordResetEmail={(email) => authenticationService.sendPasswordResetEmail(email)}
       onSendEmailVerification={() => authenticationService.sendEmailVerification()}
       onReloadUser={() => authenticationService.reloadUser()}

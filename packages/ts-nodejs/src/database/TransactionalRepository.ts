@@ -1,6 +1,6 @@
-import { DataSource, EntityManager, EntityTarget, ObjectLiteral, Repository } from 'typeorm';
+import type { DataSource, EntityManager, EntityTarget, ObjectLiteral, Repository } from 'typeorm';
 
-import { TransactionalEntity } from './TransactionalEntity';
+import type { TransactionalEntity } from './TransactionalEntity';
 
 type LockMode =
   | 'pessimistic_read'
@@ -25,9 +25,7 @@ export abstract class TransactionalRepository implements TransactionalEntity<Tra
   }
 
   public withRepositoryManager(repositoryManager: TransactionalRepository): this {
-    return TransactionalRepository.newInstance(this).withEntityManager(
-      repositoryManager.em,
-    ) as this;
+    return TransactionalRepository.newInstance(this).withEntityManager(repositoryManager.em) as this;
   }
 
   public lockInTransaction(mode: LockMode = 'pessimistic_write'): { mode: LockMode } | undefined {
@@ -46,9 +44,7 @@ export abstract class TransactionalRepository implements TransactionalEntity<Tra
     let result: T;
 
     await this.dataSource.transaction(async (em) => {
-      result = await executer(
-        TransactionalRepository.newInstance(this).withEntityManager(em) as this,
-      );
+      result = await executer(TransactionalRepository.newInstance(this).withEntityManager(em) as this);
     });
 
     return result!;

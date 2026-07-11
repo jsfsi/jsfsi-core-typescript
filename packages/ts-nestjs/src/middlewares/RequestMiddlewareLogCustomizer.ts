@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 
 export const REQUEST_MIDDLEWARE_LOG_CUSTOMIZER = 'REQUEST_MIDDLEWARE_LOG_CUSTOMIZER';
 

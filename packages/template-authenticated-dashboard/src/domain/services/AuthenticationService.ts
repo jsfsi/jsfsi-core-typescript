@@ -1,9 +1,4 @@
-import {
-  AuthenticationAdapter,
-  type AuthService,
-  type EmailPasswordCredentials,
-  type User,
-} from '@jsfsi-core/ts-react';
+import type { AuthenticationAdapter, AuthService, EmailPasswordCredentials, User } from '@jsfsi-core/ts-react';
 
 export class AuthenticationService implements AuthService<User> {
   constructor(private readonly authenticationAdapter: AuthenticationAdapter<User>) {}

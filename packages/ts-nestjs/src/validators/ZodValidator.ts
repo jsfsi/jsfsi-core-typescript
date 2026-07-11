@@ -1,5 +1,5 @@
-import { BadRequestException, createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { ZodType } from 'zod';
+import { BadRequestException, createParamDecorator, type ExecutionContext } from '@nestjs/common';
+import type { ZodType } from 'zod';
 
 export function ZodValidator<T>(schema: ZodType<T>, source: 'body' | 'query' | 'params' = 'body') {
   return createParamDecorator((_: unknown, ctx: ExecutionContext): T => {

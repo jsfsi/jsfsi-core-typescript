@@ -1,11 +1,9 @@
 import { InMemoryRateLimitGuard } from '@jsfsi-core/ts-nestjs';
 import { Injectable } from '@nestjs/common';
+// biome-ignore lint/style/useImportType: NestJS DI needs runtime class reference
 import { ConfigService } from '@nestjs/config';
 
-import {
-  RATE_LIMIT_CONFIG_TOKEN,
-  RateLimitConfig,
-} from '../../app/rate-limit-configuration.service';
+import { RATE_LIMIT_CONFIG_TOKEN, type RateLimitConfig } from '../../app/rate-limit-configuration.service';
 
 @Injectable()
 export class GlobalRateLimitGuard extends InMemoryRateLimitGuard {

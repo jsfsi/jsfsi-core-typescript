@@ -1,6 +1,6 @@
 import { mock } from '@jsfsi-core/ts-crossplatform';
-import { type DataSource, type EntityManager } from 'typeorm';
-import { afterEach, beforeEach, describe, expect, it, Mock, vi } from 'vitest';
+import type { DataSource, EntityManager } from 'typeorm';
+import { afterEach, beforeEach, describe, expect, it, type Mock, vi } from 'vitest';
 
 import { TransactionalRepository } from './TransactionalRepository';
 

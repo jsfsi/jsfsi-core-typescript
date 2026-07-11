@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 
 import { FirebaseAuthenticatedHttpClient } from './FirebaseAuthenticatedHttpClient';
-import { FirebaseClient } from './FirebaseClient';
+import type { FirebaseClient } from './FirebaseClient';
 
 class TestableFirebaseAuthenticatedHttpClient extends FirebaseAuthenticatedHttpClient {
   public testGetHeaders() {
@@ -22,10 +22,7 @@ describe('FirebaseAuthenticatedHttpClient', () => {
       const firebaseClient = mock<FirebaseClient>({
         getIdToken: async () => 'test-id-token',
       });
-      const client = new TestableFirebaseAuthenticatedHttpClient(
-        firebaseClient,
-        'https://api.example.test',
-      );
+      const client = new TestableFirebaseAuthenticatedHttpClient(firebaseClient, 'https://api.example.test');
 
       const headers = await client.testGetHeaders();
 
@@ -41,10 +38,7 @@ describe('FirebaseAuthenticatedHttpClient', () => {
       const firebaseClient = mock<FirebaseClient>({
         getIdToken: async () => undefined,
       });
-      const client = new TestableFirebaseAuthenticatedHttpClient(
-        firebaseClient,
-        'https://api.example.test',
-      );
+      const client = new TestableFirebaseAuthenticatedHttpClient(firebaseClient, 'https://api.example.test');
 
       const headers = await client.testGetHeaders();
 
@@ -59,10 +53,7 @@ describe('FirebaseAuthenticatedHttpClient', () => {
       const firebaseClient = mock<FirebaseClient>({
         getIdToken: async () => 'test-id-token',
       });
-      const client = new FirebaseAuthenticatedHttpClient(
-        firebaseClient,
-        'https://api.example.test',
-      );
+      const client = new FirebaseAuthenticatedHttpClient(firebaseClient, 'https://api.example.test');
 
       await client.fetch('/users', z.object({ ok: z.boolean() }), NetworkFailure);
 

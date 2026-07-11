@@ -1,23 +1,19 @@
-import { type Result } from '@jsfsi-core/ts-crossplatform';
+import type { Result } from '@jsfsi-core/ts-crossplatform';
 
-import { type EmailPasswordCredentials, type AuthService } from './AuthProvider';
-import { EmailVerificationFailure } from './EmailVerificationFailure';
-import { PasswordResetEmailFailure } from './PasswordResetEmailFailure';
-import { ReloadUserFailure } from './ReloadUserFailure';
-import { SignInFailure } from './SignInFailure';
-import { SignUpFailure } from './SignUpFailure';
-import { type User } from './User';
+import type { AuthService, EmailPasswordCredentials } from './AuthProvider';
+import type { EmailVerificationFailure } from './EmailVerificationFailure';
+import type { PasswordResetEmailFailure } from './PasswordResetEmailFailure';
+import type { ReloadUserFailure } from './ReloadUserFailure';
+import type { SignInFailure } from './SignInFailure';
+import type { SignUpFailure } from './SignUpFailure';
+import type { User } from './User';
 
 export type AuthClient<TUser extends User> = {
   onAuthStateChanged(callback: (user: TUser | null) => void): () => void;
   signOut(): Promise<void>;
   signInWithGoogle(): Promise<Result<TUser, SignInFailure>>;
-  signInWithEmailAndPassword(
-    credentials: EmailPasswordCredentials,
-  ): Promise<Result<TUser, SignInFailure>>;
-  createUserWithEmailAndPassword(
-    credentials: EmailPasswordCredentials,
-  ): Promise<Result<TUser, SignUpFailure>>;
+  signInWithEmailAndPassword(credentials: EmailPasswordCredentials): Promise<Result<TUser, SignInFailure>>;
+  createUserWithEmailAndPassword(credentials: EmailPasswordCredentials): Promise<Result<TUser, SignUpFailure>>;
   sendPasswordResetEmail(email: string): Promise<Result<void, PasswordResetEmailFailure>>;
   sendEmailVerification(): Promise<Result<void, EmailVerificationFailure>>;
   reloadUser(): Promise<Result<TUser | null, ReloadUserFailure>>;

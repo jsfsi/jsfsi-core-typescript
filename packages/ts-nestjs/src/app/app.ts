@@ -1,9 +1,9 @@
-import { INestApplication, Logger, LoggerService, Type } from '@nestjs/common';
+import { type INestApplication, Logger, type LoggerService, type Type } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
-import { NestExpressApplication } from '@nestjs/platform-express';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 
-import { APP_CONFIG_TOKEN, AppConfig } from '../configuration/AppConfigurationService';
+import { APP_CONFIG_TOKEN, type AppConfig } from '../configuration/AppConfigurationService';
 import { AllExceptionsFilter } from '../filters/AllExceptionsFilter';
 
 export type AppOptions = {

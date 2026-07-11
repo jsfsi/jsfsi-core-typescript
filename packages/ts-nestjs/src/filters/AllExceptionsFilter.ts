@@ -1,6 +1,6 @@
-import { LogLevel } from '@jsfsi-core/ts-nodejs';
-import { ArgumentsHost, Catch, ExceptionFilter, HttpStatus, Logger } from '@nestjs/common';
-import { HttpAdapterHost } from '@nestjs/core';
+import type { LogLevel } from '@jsfsi-core/ts-nodejs';
+import { type ArgumentsHost, Catch, type ExceptionFilter, HttpStatus, Logger } from '@nestjs/common';
+import type { HttpAdapterHost } from '@nestjs/core';
 
 const MAP_STATUS_CODE_TO_SEVERITY: Record<string, LogLevel> = {
   '400': 'log',

@@ -1,13 +1,13 @@
 import { Fail, mock, Ok } from '@jsfsi-core/ts-crossplatform';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { AuthenticationAdapter, type AuthClient } from './AuthenticationAdapter';
+import { type AuthClient, AuthenticationAdapter } from './AuthenticationAdapter';
 import { EmailVerificationFailure } from './EmailVerificationFailure';
 import { PasswordResetEmailFailure } from './PasswordResetEmailFailure';
 import { ReloadUserFailure } from './ReloadUserFailure';
 import { SignInFailure } from './SignInFailure';
 import { SignUpFailure } from './SignUpFailure';
-import { type User } from './User';
+import type { User } from './User';
 
 const testUser: User = {
   id: 'mock-id',
@@ -78,9 +78,7 @@ describe('AuthenticationAdapter', () => {
       });
       const credentials = { email: 'a@b.c', password: 'p' };
 
-      const result = await new AuthenticationAdapter(client).signInWithEmailAndPassword(
-        credentials,
-      );
+      const result = await new AuthenticationAdapter(client).signInWithEmailAndPassword(credentials);
 
       expect(client.signInWithEmailAndPassword).toHaveBeenCalledWith(credentials);
       expect(result).toEqual(Ok(testUser));
@@ -120,9 +118,7 @@ describe('AuthenticationAdapter', () => {
       });
       const credentials = { email: 'a@b.c', password: 'p' };
 
-      const result = await new AuthenticationAdapter(client).signUpWithEmailAndPassword(
-        credentials,
-      );
+      const result = await new AuthenticationAdapter(client).signUpWithEmailAndPassword(credentials);
 
       expect(client.createUserWithEmailAndPassword).toHaveBeenCalledWith(credentials);
       expect(result).toEqual(Ok(testUser));
@@ -155,9 +151,7 @@ describe('AuthenticationAdapter', () => {
 
     it('returns a failure when client fails', async () => {
       const client = mock<AuthClient<User>>({
-        sendPasswordResetEmail: vi
-          .fn()
-          .mockResolvedValue(Fail(new PasswordResetEmailFailure('nope'))),
+        sendPasswordResetEmail: vi.fn().mockResolvedValue(Fail(new PasswordResetEmailFailure('nope'))),
       });
 
       const result = await new AuthenticationAdapter(client).sendPasswordResetEmail('a@b.c');
@@ -180,9 +174,7 @@ describe('AuthenticationAdapter', () => {
 
     it('returns a failure when client fails', async () => {
       const client = mock<AuthClient<User>>({
-        sendEmailVerification: vi
-          .fn()
-          .mockResolvedValue(Fail(new EmailVerificationFailure('nope'))),
+        sendEmailVerification: vi.fn().mockResolvedValue(Fail(new EmailVerificationFailure('nope'))),
       });
 
       const result = await new AuthenticationAdapter(client).sendEmailVerification();

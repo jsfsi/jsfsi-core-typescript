@@ -1,14 +1,9 @@
 import { useTheme } from '@jsfsi-core/ts-react';
-import { Moon, Sun, LaptopMinimal } from 'lucide-react';
+import { LaptopMinimal, Moon, Sun } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '../button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '../dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../dropdown-menu';
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();

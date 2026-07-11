@@ -1,6 +1,6 @@
 {
   "name": "@jsfsi-core/ts-nodejs",
-  "version": "1.1.49",
+  "version": "2.0.0",
   "description": "",
   "repository": {
     "type": "git",
@@ -26,9 +26,9 @@
     "build": "npm run lint && tsc --noEmit && vite build",
     "build:watch": "tsc && (tsc --watch & vite build --watch)",
     "clean": "rm -rf dist && rm -rf node_modules && rm -rf coverage",
-    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "lint": "npm run lint:fix && npm run format",
-    "lint:fix": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0 --fix",
+    "format": "biome format --write src",
+    "lint": "biome check --write src",
+    "lint:fix": "biome check --write src",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest"
@@ -37,12 +37,12 @@
     "@jsfsi-core/ts-crossplatform": "file:../ts-crossplatform",
     "dotenv": "17.4.2",
     "fast-safe-stringify": "2.1.1",
-    "typeorm": "0.3.28"
+    "typeorm": "1.0.0"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "4.1.4",
-    "vite": "8.0.9",
-    "vite-plugin-dts": "4.5.4",
-    "vitest": "4.1.4"
+    "@vitest/coverage-v8": "4.1.10",
+    "vite": "8.1.4",
+    "vite-plugin-dts": "5.0.3",
+    "vitest": "4.1.10"
   }
 }

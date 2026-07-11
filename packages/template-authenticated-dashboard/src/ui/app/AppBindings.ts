@@ -1,6 +1,6 @@
 import {
   AuthenticationAdapter,
-  BindingType,
+  type BindingType,
   FirebaseClient,
   type FirebaseConfig,
   type User,

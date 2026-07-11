@@ -1,13 +1,13 @@
 import { mock } from '@jsfsi-core/ts-crossplatform';
 import { MockLogger } from '@jsfsi-core/ts-nodejs';
-import { Controller, ExecutionContext, Get, Injectable, Module, UseGuards } from '@nestjs/common';
+import { Controller, type ExecutionContext, Get, Injectable, Module, UseGuards } from '@nestjs/common';
 import request from 'supertest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { appConfigModuleSetup } from '../configuration/AppConfigurationService';
 import { createTestingApp } from '../test/testing-app';
 
-import { InMemoryRateLimitGuard, InMemoryRateLimitGuardOptions } from './InMemoryRateLimitGuard';
+import { InMemoryRateLimitGuard, type InMemoryRateLimitGuardOptions } from './InMemoryRateLimitGuard';
 
 function createMockContext(req: {
   ip?: string;

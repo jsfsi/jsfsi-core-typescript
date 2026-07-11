@@ -1,13 +1,7 @@
-import * as React from 'react';
+import type * as React from 'react';
 
 import { LanguageToggle } from '../../components/language-toggle/LanguageToggle';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarRail,
-} from '../../components/sidebar';
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from '../../components/sidebar';
 import { ThemeToggle } from '../../components/theme-toggle/ThemeToggle';
 
 import { AppUser } from './AppUser';

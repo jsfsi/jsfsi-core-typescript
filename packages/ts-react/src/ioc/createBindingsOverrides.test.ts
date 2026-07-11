@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { createBindingsOverrides } from './createBindingsOverrides';
-import { BindingType } from './IoCContextProvider';
+import type { BindingType } from './IoCContextProvider';
 
 class ServiceA {
   getValue() {

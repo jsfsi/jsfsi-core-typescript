@@ -1,6 +1,5 @@
-import { Container, ServiceIdentifier } from 'inversify';
-import { useContext } from 'react';
-import { createContext } from 'react';
+import { Container, type ServiceIdentifier } from 'inversify';
+import { createContext, useContext } from 'react';
 
 export type IoCContextType = {
   container: Container;

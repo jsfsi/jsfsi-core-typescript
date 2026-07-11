@@ -1,15 +1,18 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 
-import { User } from '../../../domain/models/User.model';
+import type { User } from '../../../domain/models/User.model';
+// biome-ignore lint/style/useImportType: NestJS DI needs runtime class reference
 import { HealthService } from '../../../domain/services/health-service/Health.service';
 import { Authorize } from '../../decorators/authorize.decorator';
 import { CurrentUser } from '../../decorators/current-user.decorator';
 import { GlobalRateLimitGuard } from '../../guards/global-rate-limit.guard';
 
-import { HealthResponse } from './models/health-response.model';
+import type { HealthResponse } from './models/health-response.model';
 
+/* v8 ignore start -- @preserve */
 @Controller('health')
 export class HealthController {
+  /* v8 ignore stop -- @preserve */
   constructor(private readonly healthService: HealthService) {}
 
   @Get()

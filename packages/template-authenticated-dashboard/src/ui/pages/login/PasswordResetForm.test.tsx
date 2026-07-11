@@ -1,7 +1,6 @@
 import { Fail, mock, Ok, sleep } from '@jsfsi-core/ts-crossplatform';
 import * as TsReact from '@jsfsi-core/ts-react';
-import { PasswordResetEmailFailure, type AuthValue } from '@jsfsi-core/ts-react';
-import { User } from '@jsfsi-core/ts-react';
+import { type AuthValue, PasswordResetEmailFailure, type User } from '@jsfsi-core/ts-react';
 import { act, fireEvent, render, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { toast } from 'sonner';

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type DependencyList } from 'react';
+import { type DependencyList, useCallback, useEffect, useState } from 'react';
 
 type UseServiceResult<T> = {
   data?: T;

@@ -1,7 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Failure, isFailure } from '@jsfsi-core/ts-crossplatform';
-import { Form, useAuth, useCrashlytics } from '@jsfsi-core/ts-react';
-import { User } from '@jsfsi-core/ts-react';
+import { Form, type User, useAuth, useCrashlytics } from '@jsfsi-core/ts-react';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -48,19 +47,13 @@ export function PasswordResetForm({ className }: React.ComponentProps<'form'>) {
     <div className={cn('flex flex-col gap-6', className)}>
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">{t('passwordReset.title')}</h1>
-        <p className="text-muted-foreground text-sm text-balance">
-          {t('passwordReset.description')}
-        </p>
+        <p className="text-muted-foreground text-sm text-balance">{t('passwordReset.description')}</p>
       </div>
       <Form onSubmit={onSendResetEmail} resolver={zodResolver(PasswordResetSchema)}>
         <div className="grid gap-6">
           <div className="grid gap-3">
             <Label htmlFor="email">{t('passwordReset.email')}</Label>
-            <FormInput
-              name="email"
-              placeholder={t('passwordReset.emailPlaceholder')}
-              type="email"
-            />
+            <FormInput name="email" placeholder={t('passwordReset.emailPlaceholder')} type="email" />
           </div>
           <Button type="submit" className="w-full" disabled={isSending}>
             {isSending ? <Loader2 className="size-4 animate-spin" /> : t('passwordReset.submit')}
@@ -68,10 +61,7 @@ export function PasswordResetForm({ className }: React.ComponentProps<'form'>) {
         </div>
       </Form>
       <div className="text-center text-sm">
-        <a
-          className="cursor-pointer underline underline-offset-4"
-          onClick={() => navigate('/login')}
-        >
+        <a className="cursor-pointer underline underline-offset-4" onClick={() => navigate('/login')}>
           {t('passwordReset.backToLogin')}
         </a>
       </div>

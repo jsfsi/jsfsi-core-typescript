@@ -1,6 +1,6 @@
 import safeStringify from 'fast-safe-stringify';
 
-import { ConsoleLogMethod, Logger, LogLevel, LogLevelToConsoleMethodMap } from './Logger';
+import { type ConsoleLogMethod, type Logger, type LogLevel, LogLevelToConsoleMethodMap } from './Logger';
 
 type GCPLogSeverity =
   | 'DEFAULT'
@@ -91,7 +91,7 @@ export class GCPLogger implements Logger {
 
     const consoleMethod = this.mapLogLevelToConsoleMethod(level);
 
-    // eslint-disable-next-line no-console
+    // biome-ignore lint/suspicious/noConsole: logger intentionally writes to console
     console[consoleMethod](safeLog);
   }
 
@@ -141,11 +141,7 @@ export class GCPLogger implements Logger {
     } as GCPLog<T>;
   }
 
-  private sanitizeLog<T extends object, E extends Error>(
-    context?: string,
-    metadata?: T | string,
-    error?: E | string,
-  ) {
+  private sanitizeLog<T extends object, E extends Error>(context?: string, metadata?: T | string, error?: E | string) {
     if (metadata instanceof Error && (!error || typeof error === 'string')) {
       return {
         writeMetadata: undefined,

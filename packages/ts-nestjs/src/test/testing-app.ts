@@ -1,5 +1,5 @@
-import { INestApplication, LoggerService, Type } from '@nestjs/common';
-import { Test, TestingModule, TestingModuleBuilder } from '@nestjs/testing';
+import type { INestApplication, LoggerService, Type } from '@nestjs/common';
+import { Test, type TestingModule, type TestingModuleBuilder } from '@nestjs/testing';
 
 import { createApp } from '../app/app';
 

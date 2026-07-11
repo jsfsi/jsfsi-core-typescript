@@ -3,13 +3,13 @@ import {
   Controller,
   Get,
   HttpCode,
-  INestApplication,
-  LoggerService,
-  MiddlewareConsumer,
+  type INestApplication,
+  type LoggerService,
+  type MiddlewareConsumer,
   Module,
-  NestModule,
+  type NestModule,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import request from 'supertest';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -20,7 +20,7 @@ import { createTestingApp } from '../test/testing-app';
 import { RequestMiddleware } from './RequestMiddleware';
 import {
   REQUEST_MIDDLEWARE_LOG_CUSTOMIZER,
-  RequestMiddlewareLogCustomizer,
+  type RequestMiddlewareLogCustomizer,
 } from './RequestMiddlewareLogCustomizer';
 
 @Controller()
@@ -131,38 +131,35 @@ describe('RequestMiddleware', () => {
     ${403}     | ${'log'}     | ${'/forbidden'}
     ${404}     | ${'log'}     | ${'/not-found'}
     ${406}     | ${'warn'}    | ${'/not-acceptable'}
-  `(
-    'logs the request with status code $statusCode and severity $severity',
-    async ({ statusCode, severity, path }) => {
-      const logSpy = vi.spyOn(mockLogger, severity);
+  `('logs the request with status code $statusCode and severity $severity', async ({ statusCode, severity, path }) => {
+    const logSpy = vi.spyOn(mockLogger, severity);
 
-      await request(app.getHttpServer()).get(path);
+    await request(app.getHttpServer()).get(path);
 
-      expect(logSpy).toHaveBeenCalledTimes(1);
-      expect(logSpy).toHaveBeenCalledWith(
-        `Request: GET ${path} ${statusCode}`,
-        expect.objectContaining({
-          domain: '127.0.0.1',
-          method: 'GET',
-          requestHeaders: expect.objectContaining({
-            'accept-encoding': 'gzip, deflate',
-            connection: 'close',
-            host: expect.stringMatching(/127\.0\.0\.1:\d+/),
-          }),
-          responseHeaders: expect.objectContaining({
-            'content-length': '2',
-            'content-type': 'text/html; charset=utf-8',
-            etag: expect.any(String),
-            'x-powered-by': 'Express',
-          }),
-          statusCode,
-          timeSpentMs: expect.any(Number),
-          url: path,
+    expect(logSpy).toHaveBeenCalledTimes(1);
+    expect(logSpy).toHaveBeenCalledWith(
+      `Request: GET ${path} ${statusCode}`,
+      expect.objectContaining({
+        domain: '127.0.0.1',
+        method: 'GET',
+        requestHeaders: expect.objectContaining({
+          'accept-encoding': 'gzip, deflate',
+          connection: 'close',
+          host: expect.stringMatching(/127\.0\.0\.1:\d+/),
         }),
-        RequestMiddleware.name,
-      );
-    },
-  );
+        responseHeaders: expect.objectContaining({
+          'content-length': '2',
+          'content-type': 'text/html; charset=utf-8',
+          etag: expect.any(String),
+          'x-powered-by': 'Express',
+        }),
+        statusCode,
+        timeSpentMs: expect.any(Number),
+        url: path,
+      }),
+      RequestMiddleware.name,
+    );
+  });
 
   it('logs the request with status code 500 and severity error', async () => {
     const logSpy = vi.spyOn(mockLogger, 'error');
@@ -170,12 +167,7 @@ describe('RequestMiddleware', () => {
     await request(app.getHttpServer()).get('/error');
 
     expect(logSpy).toHaveBeenCalledTimes(2);
-    expect(logSpy).toHaveBeenNthCalledWith(
-      1,
-      'Unhandled exception',
-      new Error('test'),
-      AllExceptionsFilter.name,
-    );
+    expect(logSpy).toHaveBeenNthCalledWith(1, 'Unhandled exception', new Error('test'), AllExceptionsFilter.name);
     expect(logSpy).toHaveBeenNthCalledWith(
       2,
       'Request: GET /error 500',

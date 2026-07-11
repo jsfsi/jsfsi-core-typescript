@@ -1,7 +1,6 @@
-import * as path from 'path';
-
 import { bootstrap } from '@jsfsi-core/ts-nestjs';
 import { GCPLogger } from '@jsfsi-core/ts-nodejs';
+import * as path from 'path';
 
 import { AppModule } from './app/app.module';
 

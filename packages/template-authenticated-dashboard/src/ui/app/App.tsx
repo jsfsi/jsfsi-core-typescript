@@ -1,9 +1,4 @@
-import {
-  BindingType,
-  CrashlyticsProvider,
-  IoCContextProvider,
-  ThemeProvider,
-} from '@jsfsi-core/ts-react';
+import { type BindingType, CrashlyticsProvider, IoCContextProvider, ThemeProvider } from '@jsfsi-core/ts-react';
 import { I18nextProvider } from 'react-i18next';
 
 import { Toaster } from '../components/sonner';

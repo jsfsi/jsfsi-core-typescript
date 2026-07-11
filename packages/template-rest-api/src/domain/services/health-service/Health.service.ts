@@ -1,8 +1,8 @@
 import { CustomLogger } from '@jsfsi-core/ts-nestjs';
 import { Injectable } from '@nestjs/common';
 
-import { HealthCheck } from '../../models/HealthCheck.model';
-import { User } from '../../models/User.model';
+import type { HealthCheck } from '../../models/HealthCheck.model';
+import type { User } from '../../models/User.model';
 
 @Injectable()
 export class HealthService {

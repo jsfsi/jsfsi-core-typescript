@@ -33,12 +33,9 @@ describe('#Guid', () => {
     ${''}                                     | ${undefined}
     ${'invalid guid'}                         | ${undefined}
     ${'9474c66b-4516-48d9-915b-be006d86fc4d'} | ${new Guid('9474c66b-4516-48d9-915b-be006d86fc4d')}
-  `(
-    'parses string `$value` to guid `$result`',
-    ({ value, result }: { value: string; result: Guid }) => {
-      const parsedGuid = Guid.parse(value);
+  `('parses string `$value` to guid `$result`', ({ value, result }: { value: string; result: Guid }) => {
+    const parsedGuid = Guid.parse(value);
 
-      expect(parsedGuid).toEqual(result);
-    },
-  );
+    expect(parsedGuid).toEqual(result);
+  });
 });

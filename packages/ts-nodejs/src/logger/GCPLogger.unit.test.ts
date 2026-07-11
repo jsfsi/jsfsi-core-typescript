@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { ConsoleLogMethod, LogLevel, GCPLogger } from '.';
+import { type ConsoleLogMethod, GCPLogger, type LogLevel } from '.';
 
 type LoggerMethod = (...args: unknown[]) => void;
 type LoggerMethodKeys = Extract<keyof Omit<GCPLogger, 'setLogLevels'>, string>;

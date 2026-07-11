@@ -1,11 +1,13 @@
-import { Container, ResolutionContext } from 'inversify';
-import { ReactNode } from 'react';
+import { Container, type ResolutionContext } from 'inversify';
+import type { ReactNode } from 'react';
 
 import { IoCContext } from './IoCContext';
 
 export interface BindingType<T> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  type: new (...args: any[]) => T;
+  type: new (
+    // biome-ignore lint/suspicious/noExplicitAny: required for constructor type constraint
+    ...args: any[]
+  ) => T;
   instance?: T;
   dynamicValue?: (context: ResolutionContext) => T;
 }

@@ -1061,8 +1061,8 @@ export const config = parseConfig(ConfigSchema);
 
 ### Prerequisites
 
-- Node.js 25.9.0
-- npm 11.12.1
+- Node.js 26.5.0
+- npm 11.17.0
 
 ### Installation
 

@@ -1,12 +1,10 @@
-import { LogLevel } from '@jsfsi-core/ts-nodejs';
-import { Inject, Injectable, NestMiddleware, Optional } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
+import type { LogLevel } from '@jsfsi-core/ts-nodejs';
+import { Inject, Injectable, type NestMiddleware, Optional } from '@nestjs/common';
+import type { NextFunction, Request, Response } from 'express';
 
 import { CustomLogger } from '../logger/CustomLogger';
-
-import { REQUEST_MIDDLEWARE_LOG_CUSTOMIZER } from './RequestMiddlewareLogCustomizer';
-
 import type { RequestMiddlewareLogCustomizer } from './RequestMiddlewareLogCustomizer';
+import { REQUEST_MIDDLEWARE_LOG_CUSTOMIZER } from './RequestMiddlewareLogCustomizer';
 
 type RequestBaseLogPayload = {
   method: string;

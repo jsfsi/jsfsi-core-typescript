@@ -1,7 +1,7 @@
-import { z } from 'zod';
+import type { z } from 'zod';
 
-import { Failure } from '../failures/failure';
-import { Fail, Ok, Result } from '../result/result';
+import type { Failure } from '../failures/failure';
+import { Fail, Ok, type Result } from '../result/result';
 
 import { NetworkConflictFailure } from './failures/NetworkConflictFailure';
 import { NetworkFailure } from './failures/NetworkFailure';
@@ -59,8 +59,7 @@ export abstract class HttpSafeClient {
 
       const responseText = (await response.text()).trim();
 
-      const responseBody =
-        response.status === 204 ? undefined : responseText ? JSON.parse(responseText) : undefined;
+      const responseBody = response.status === 204 ? undefined : responseText ? JSON.parse(responseText) : undefined;
 
       const parsedResponse = responseSchema.safeParse(responseBody);
 
@@ -111,7 +110,9 @@ export abstract class HttpSafeClient {
   private async mergeHeaders(optionsHeaders?: HeadersInit): Promise<Headers> {
     const headers = new Headers([...(await this.getHeaders())]);
     const options = new Headers(optionsHeaders);
-    options.forEach((value, key) => headers.set(key, value));
+    options.forEach((value, key) => {
+      headers.set(key, value);
+    });
     return headers;
   }
 }

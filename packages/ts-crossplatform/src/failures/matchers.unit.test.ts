@@ -52,9 +52,7 @@ describe('matchers', () => {
   });
 
   it('matches when is a failure with multiple properties', () => {
-    const result = isFailure(FailureWithMultipleProperties)(
-      new FailureWithMultipleProperties('test1', 'test2'),
-    );
+    const result = isFailure(FailureWithMultipleProperties)(new FailureWithMultipleProperties('test1', 'test2'));
 
     expect(result).toBe(true);
   });
