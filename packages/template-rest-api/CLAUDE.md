@@ -4,7 +4,7 @@ NestJS REST API template with Firebase auth, TypeORM, and hexagonal architecture
 
 ## Build
 
-`tsc --noEmit` + `nest build` — compiles to **CommonJS** in `dist/`. Uses `ignoreDeprecations: "6.0"` for `moduleResolution: "node"`.
+`tsc` — compiles to **CommonJS** in `dist/`. Configuration files are copied with `cp -r configuration dist/configuration`.
 
 Single `tsconfig.json` (no tsconfig.build.json). Tests are excluded from compilation via `exclude` but included for IDE type-checking.
 
@@ -17,7 +17,7 @@ src/
 ├── communication/         # Controllers, decorators, guards, middlewares
 ├── domain/                # Models, services (pure business logic)
 └── main.ts                # Entry point
-configuration/             # .env files (copied to dist/ by nest build)
+configuration/             # .env files (copied to dist/ during build)
 test/                      # Test setup files
 ```
 

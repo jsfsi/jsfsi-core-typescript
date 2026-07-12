@@ -4,7 +4,7 @@ import { Form, type User, useAuth, useCrashlytics } from '@jsfsi-core/ts-react';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -56,14 +56,9 @@ function UserNamePasswordForm() {
         <div className="grid gap-3">
           <div className="flex items-center">
             <Label htmlFor="password">{t('login.password')}</Label>
-            <a
-              className="cursor-pointer ml-auto text-sm underline-offset-4 hover:underline"
-              onClick={() => {
-                navigate('/login/reset-password');
-              }}
-            >
+            <Link to="/login/reset-password" className="ml-auto text-sm underline-offset-4 hover:underline">
               {t('login.forgotPassword')}
-            </a>
+            </Link>
           </div>
           <FormInput name="password" type="password" placeholder={t('login.password')} />
         </div>
@@ -110,7 +105,6 @@ function SignInWithGoogle() {
 
 export function LoginForm({ className }: React.ComponentProps<'form'>) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
   return (
     <div className={cn('flex flex-col gap-6', className)}>
@@ -127,9 +121,9 @@ export function LoginForm({ className }: React.ComponentProps<'form'>) {
       </div>
       <div className="text-center text-sm">
         {t('login.noAccount')}{' '}
-        <a className="cursor-pointer underline underline-offset-4" onClick={() => navigate('/login/signup')}>
+        <Link to="/login/signup" className="underline underline-offset-4">
           {t('login.signUp')}
-        </a>
+        </Link>
       </div>
     </div>
   );

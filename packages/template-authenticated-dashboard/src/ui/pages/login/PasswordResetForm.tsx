@@ -4,7 +4,7 @@ import { Form, type User, useAuth, useCrashlytics } from '@jsfsi-core/ts-react';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -61,9 +61,9 @@ export function PasswordResetForm({ className }: React.ComponentProps<'form'>) {
         </div>
       </Form>
       <div className="text-center text-sm">
-        <a className="cursor-pointer underline underline-offset-4" onClick={() => navigate('/login')}>
+        <Link to="/login" className="underline underline-offset-4">
           {t('passwordReset.backToLogin')}
-        </a>
+        </Link>
       </div>
     </div>
   );

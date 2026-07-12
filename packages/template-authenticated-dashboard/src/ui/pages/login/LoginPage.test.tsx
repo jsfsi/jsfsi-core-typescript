@@ -2,6 +2,7 @@ import { mock } from '@jsfsi-core/ts-crossplatform';
 import type { AuthValue, User } from '@jsfsi-core/ts-react';
 import * as TsReact from '@jsfsi-core/ts-react';
 import { render } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
 import { App, AppProviders } from '../../app/App';
@@ -41,9 +42,11 @@ describe('LoginPage', () => {
       );
 
       render(
-        <AppProviders>
-          <LoginPage />
-        </AppProviders>,
+        <MemoryRouter>
+          <AppProviders>
+            <LoginPage />
+          </AppProviders>
+        </MemoryRouter>,
       );
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);

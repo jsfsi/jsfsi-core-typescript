@@ -68,8 +68,21 @@ Create a `biome.json` at your project root. Use the monorepo root config as a re
     "rules": {
       "preset": "recommended",
       "suspicious": { "noExplicitAny": "warn", "noConsole": "error" },
-      "correctness": { "noUnusedImports": "error", "noUnusedVariables": "warn" },
-      "style": { "useImportType": "error" }
+      "correctness": {
+        "noUnusedImports": { "level": "error", "fix": "safe" },
+        "noUnusedVariables": "warn",
+        "noUnusedFunctionParameters": "warn"
+      },
+      "style": { "useImportType": "error" },
+      "a11y": {
+        "useButtonType": "warn",
+        "noStaticElementInteractions": "off",
+        "useKeyWithClickEvents": "warn",
+        "useValidAnchor": "warn",
+        "noRedundantAlt": "warn",
+        "noSvgWithoutTitle": "off",
+        "noLabelWithoutControl": "off"
+      }
     }
   },
   "css": { "parser": { "tailwindDirectives": true } },
@@ -81,6 +94,9 @@ Key options:
 
 - **`unsafeParameterDecoratorsEnabled`** — required for NestJS parameter decorators (`@Body()`, `@Inject()`, etc.)
 - **`tailwindDirectives`** — required if using Tailwind CSS (`@apply`, `@theme`, etc.)
+- **`noUnusedImports` with `"fix": "safe"`** — auto-removes unused imports when running `biome check --write`
+- **`noUnusedFunctionParameters: "warn"`** — catches dead parameters without blocking builds
+- **a11y rules** — `useButtonType`, `useKeyWithClickEvents`, `useValidAnchor`, `noRedundantAlt` at `"warn"` for JSX projects; `noSvgWithoutTitle` and `noLabelWithoutControl` explicitly `"off"`
 
 ### Update `package.json` scripts
 
@@ -122,12 +138,15 @@ And replace with Biome settings:
   "editor.defaultFormatter": "biomejs.biome",
   "editor.formatOnSave": true,
   "editor.codeActionsOnSave": {
-    "source.organizeImports.biome": "explicit",
-    "quickfix.biome": "explicit"
+    "source.fixAll.biome": "always",
+    "source.fixAll.biome.unsafe": "always",
+    "source.organizeImports.biome": "always"
   },
   "[typescript]": { "editor.defaultFormatter": "biomejs.biome" },
   "[typescriptreact]": { "editor.defaultFormatter": "biomejs.biome" },
-  "[json]": { "editor.defaultFormatter": "biomejs.biome" }
+  "[json]": { "editor.defaultFormatter": "biomejs.biome" },
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "vitest.disableWorkspaceWarning": true
 }
 ```
 
@@ -201,6 +220,20 @@ Replace NestJS CLI compiler commands with direct alternatives:
 
 The `nest-cli.json` can remain for `nest generate` (schematics), which still works.
 
+### Dropping `moduleResolution: "node"` and `ignoreDeprecations`
+
+With TypeScript 7, when `module: "CommonJS"`, the default `moduleResolution` already maps to the equivalent of the old `"node"` setting. You can remove both:
+
+```diff
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": ".",
+    "module": "CommonJS",
+-   "moduleResolution": "node",
+-   "ignoreDeprecations": "6.0"
+  }
+```
+
 ### `import type` and NestJS dependency injection
 
 Biome's `useImportType` rule will convert imports that appear type-only to `import type`. This **breaks NestJS constructor injection** because `emitDecoratorMetadata` needs the runtime class reference.
@@ -229,6 +262,34 @@ export default defineConfig({
   // ...
 });
 ```
+
+### Vitest configs: `import.meta.dirname`
+
+Node 26.x provides `import.meta.dirname` natively. Replace the manual polyfill:
+
+```diff
+  import path from 'path';
+- import { fileURLToPath } from 'url';
+-
+- const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+  // In aliases, replace __dirname:
+- '@jsfsi-core/ts-crossplatform': path.resolve(__dirname, '../ts-crossplatform/src/index.ts'),
++ '@jsfsi-core/ts-crossplatform': path.resolve(import.meta.dirname, '../ts-crossplatform/src/index.ts'),
+```
+
+### NestJS test cleanup: `app.close()` in `afterEach`
+
+When using `createTestingApp()` in tests, always close the app in `afterEach` to release connections and allow parallel test execution:
+
+```typescript
+afterEach(async () => {
+  await app.close();
+  vi.clearAllMocks();
+});
+```
+
+Without `app.close()`, database connections and other resources leak across tests, causing flaky failures in parallel mode and port/connection exhaustion.
 
 ## 4. `firebase-admin` v14 migration (NestJS template)
 

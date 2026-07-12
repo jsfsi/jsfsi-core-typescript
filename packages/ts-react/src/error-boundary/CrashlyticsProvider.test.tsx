@@ -7,7 +7,11 @@ import { CrashlyticsProvider } from './CrashlyticsProvider';
 
 function CrashlyticsConsumer() {
   const { reportFailure } = useCrashlytics();
-  return <button onClick={() => reportFailure('test failure')}>Report</button>;
+  return (
+    <button type="button" onClick={() => reportFailure('test failure')}>
+      Report
+    </button>
+  );
 }
 
 function FallbackComponent({ error }: { error: Error | null }) {

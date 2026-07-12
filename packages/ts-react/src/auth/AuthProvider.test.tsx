@@ -128,14 +128,30 @@ describe('AuthProvider', () => {
         const auth = useAuth<TestUser>();
         return (
           <div>
-            <button onClick={() => auth.signIn()}>signIn</button>
-            <button onClick={() => auth.signOut()}>signOut</button>
-            <button onClick={() => auth.signInWithEmailAndPassword({ email: 'e', password: 'p' })}>signInEmail</button>
-            <button onClick={() => auth.signUp()}>signUp</button>
-            <button onClick={() => auth.signUpWithEmailAndPassword({ email: 'e', password: 'p' })}>signUpEmail</button>
-            <button onClick={() => auth.sendPasswordResetEmail('e')}>reset</button>
-            <button onClick={() => auth.sendEmailVerification()}>sendVerification</button>
-            <button onClick={() => auth.reloadUser()}>reload</button>
+            <button type="button" onClick={() => auth.signIn()}>
+              signIn
+            </button>
+            <button type="button" onClick={() => auth.signOut()}>
+              signOut
+            </button>
+            <button type="button" onClick={() => auth.signInWithEmailAndPassword({ email: 'e', password: 'p' })}>
+              signInEmail
+            </button>
+            <button type="button" onClick={() => auth.signUp()}>
+              signUp
+            </button>
+            <button type="button" onClick={() => auth.signUpWithEmailAndPassword({ email: 'e', password: 'p' })}>
+              signUpEmail
+            </button>
+            <button type="button" onClick={() => auth.sendPasswordResetEmail('e')}>
+              reset
+            </button>
+            <button type="button" onClick={() => auth.sendEmailVerification()}>
+              sendVerification
+            </button>
+            <button type="button" onClick={() => auth.reloadUser()}>
+              reload
+            </button>
           </div>
         );
       }
@@ -178,7 +194,9 @@ describe('AuthProvider', () => {
           <div>
             <div>name: {currentUser?.name ?? 'none'}</div>
             <div>verified: {String(currentUser?.emailVerified ?? false)}</div>
-            <button onClick={() => reloadUser()}>reload</button>
+            <button type="button" onClick={() => reloadUser()}>
+              reload
+            </button>
           </div>
         );
       }
@@ -204,7 +222,9 @@ describe('AuthProvider', () => {
         return (
           <div>
             <div>name: {currentUser?.name ?? 'none'}</div>
-            <button onClick={() => reloadUser()}>reload</button>
+            <button type="button" onClick={() => reloadUser()}>
+              reload
+            </button>
           </div>
         );
       }
@@ -226,7 +246,9 @@ describe('AuthProvider', () => {
         return (
           <div>
             <div>name: {currentUser?.name ?? 'none'}</div>
-            <button onClick={() => reloadUser()}>reload</button>
+            <button type="button" onClick={() => reloadUser()}>
+              reload
+            </button>
           </div>
         );
       }
@@ -247,7 +269,9 @@ describe('AuthProvider', () => {
         const { loading, signIn } = useAuth<TestUser>();
         return (
           <div>
-            <button onClick={() => signIn()}>signIn</button>
+            <button type="button" onClick={() => signIn()}>
+              signIn
+            </button>
             <div>loading: {String(loading)}</div>
           </div>
         );
@@ -268,7 +292,11 @@ describe('AuthProvider', () => {
 
       function Consumer() {
         const { signIn } = useAuth<TestUser>();
-        return <button onClick={() => signIn()}>signIn</button>;
+        return (
+          <button type="button" onClick={() => signIn()}>
+            signIn
+          </button>
+        );
       }
 
       const { rerender } = renderWithCallbacks(Consumer, callbacks);

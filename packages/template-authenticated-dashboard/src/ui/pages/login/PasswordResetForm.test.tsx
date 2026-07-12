@@ -149,12 +149,7 @@ describe('PasswordResetForm', () => {
 
       const backToLoginLink = getByText(i18n.t('passwordReset.backToLogin'));
 
-      act(() => {
-        backToLoginLink.click();
-      });
-
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith('/login');
+      expect(backToLoginLink.closest('a')).toHaveAttribute('href', '/login');
     });
   });
 });

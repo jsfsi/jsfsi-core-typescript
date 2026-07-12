@@ -4,7 +4,7 @@ import { Form, type User, useAuth, useCrashlytics } from '@jsfsi-core/ts-react';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -119,7 +119,6 @@ function SignUpWithGoogle() {
 
 export function SignupForm({ className }: React.ComponentProps<'form'>) {
   const { t } = useTranslation();
-  const navigate = useNavigate();
 
   return (
     <div className={cn('flex flex-col gap-6', className)}>
@@ -136,9 +135,9 @@ export function SignupForm({ className }: React.ComponentProps<'form'>) {
       </div>
       <div className="text-center text-sm">
         {t('signup.alreadyHaveAccount')}{' '}
-        <a className="cursor-pointer underline underline-offset-4" onClick={() => navigate('/login')}>
+        <Link to="/login" className="underline underline-offset-4">
           {t('signup.signIn')}
-        </a>
+        </Link>
       </div>
     </div>
   );

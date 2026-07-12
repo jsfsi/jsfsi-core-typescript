@@ -216,7 +216,7 @@ describe('LoginForm', () => {
         expect(mockNavigate).not.toHaveBeenCalled();
       });
 
-      it('navigates to signup page when user presses sign up link', async () => {
+      it('navigates to signup page when user presses sign up link', () => {
         const { getByText } = render(
           <MemoryRouter>
             <AppProviders>
@@ -227,15 +227,10 @@ describe('LoginForm', () => {
 
         const signUpLink = getByText(i18n.t('login.signUp'));
 
-        await act(async () => {
-          signUpLink.click();
-        });
-
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenCalledWith('/login/signup');
+        expect(signUpLink.closest('a')).toHaveAttribute('href', '/login/signup');
       });
 
-      it('navigates to reset password page when user presses reset password link', async () => {
+      it('navigates to reset password page when user presses reset password link', () => {
         const { getByText } = render(
           <MemoryRouter>
             <AppProviders>
@@ -246,12 +241,7 @@ describe('LoginForm', () => {
 
         const resetPasswordLink = getByText(i18n.t('login.forgotPassword'));
 
-        await act(async () => {
-          resetPasswordLink.click();
-        });
-
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenCalledWith('/login/reset-password');
+        expect(resetPasswordLink.closest('a')).toHaveAttribute('href', '/login/reset-password');
       });
     });
   });

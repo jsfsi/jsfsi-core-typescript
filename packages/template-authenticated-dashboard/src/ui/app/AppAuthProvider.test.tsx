@@ -68,14 +68,30 @@ describe('AppAuthProvider', () => {
       const auth = useAuth<User>();
       return (
         <div>
-          <button onClick={() => auth.signIn()}>signIn</button>
-          <button onClick={() => auth.signOut()}>signOut</button>
-          <button onClick={() => auth.signInWithEmailAndPassword({ email: 'e', password: 'p' })}>signInEmail</button>
-          <button onClick={() => auth.signUp()}>signUp</button>
-          <button onClick={() => auth.signUpWithEmailAndPassword({ email: 'e', password: 'p' })}>signUpEmail</button>
-          <button onClick={() => auth.sendPasswordResetEmail('e')}>reset</button>
-          <button onClick={() => auth.sendEmailVerification()}>sendVerification</button>
-          <button onClick={() => auth.reloadUser()}>reload</button>
+          <button type="button" onClick={() => auth.signIn()}>
+            signIn
+          </button>
+          <button type="button" onClick={() => auth.signOut()}>
+            signOut
+          </button>
+          <button type="button" onClick={() => auth.signInWithEmailAndPassword({ email: 'e', password: 'p' })}>
+            signInEmail
+          </button>
+          <button type="button" onClick={() => auth.signUp()}>
+            signUp
+          </button>
+          <button type="button" onClick={() => auth.signUpWithEmailAndPassword({ email: 'e', password: 'p' })}>
+            signUpEmail
+          </button>
+          <button type="button" onClick={() => auth.sendPasswordResetEmail('e')}>
+            reset
+          </button>
+          <button type="button" onClick={() => auth.sendEmailVerification()}>
+            sendVerification
+          </button>
+          <button type="button" onClick={() => auth.reloadUser()}>
+            reload
+          </button>
         </div>
       );
     }

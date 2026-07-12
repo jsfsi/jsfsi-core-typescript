@@ -53,7 +53,7 @@ if (isFailure(DuplicatedTenantFailure)(failure)) {
 
 ## Code style
 
-- **TypeScript 6** — strict, no `any`, no double casts (`as unknown as T`)
+- **TypeScript 7** — strict, no `any`, no double casts (`as unknown as T`)
 - **Vite 8** with rolldown — use `import type` for type-only imports
 - `type` over `interface` for domain models
 - PascalCase files matching class names, kebab-case directories
@@ -89,10 +89,10 @@ Use `createTestingApp` from `@jsfsi-core/ts-nestjs`.
 ## Build system details
 
 - Library packages: `tsc --noEmit` (type-check only) + `vite build` (bundles to dist/)
-- NestJS apps: `tsc --noEmit` + `nest build` (compiles to CommonJS in dist/)
+- NestJS apps: `tsc` (compiles to CommonJS in dist/) + `cp configuration`
 - Never let `tsc` emit JS alongside source files
 - Library tsconfigs: `module: "ESNext"`, `moduleResolution: "bundler"`
-- NestJS app tsconfig: `module: "CommonJS"`, `moduleResolution: "node"`, `ignoreDeprecations: "6.0"`
+- NestJS app tsconfig: `module: "CommonJS"`
 
 ## Key patterns
 

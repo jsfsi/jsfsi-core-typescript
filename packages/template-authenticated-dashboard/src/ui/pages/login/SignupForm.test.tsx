@@ -276,7 +276,7 @@ describe('SignupForm', () => {
         expect(getByText(i18n.t('signup.errors.confirmPasswordRequired'))).toBeInTheDocument();
       });
 
-      it('navigates to login page when user presses sign in link', async () => {
+      it('navigates to login page when user presses sign in link', () => {
         const { getByText } = render(
           <MemoryRouter>
             <AppProviders>
@@ -287,12 +287,7 @@ describe('SignupForm', () => {
 
         const signInLink = getByText(i18n.t('signup.signIn'));
 
-        await act(async () => {
-          signInLink.click();
-        });
-
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenCalledWith('/login');
+        expect(signInLink.closest('a')).toHaveAttribute('href', '/login');
       });
     });
   });

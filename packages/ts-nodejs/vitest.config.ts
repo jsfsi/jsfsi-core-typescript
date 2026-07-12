@@ -1,9 +1,6 @@
 import path from 'path';
-import { fileURLToPath } from 'url';
 
 import { defineConfig } from 'vitest/config';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [],
@@ -34,7 +31,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': '/src',
-      '@jsfsi-core/ts-crossplatform': path.resolve(__dirname, '../ts-crossplatform/src/index.ts'),
+      '@jsfsi-core/ts-crossplatform': path.resolve(import.meta.dirname, '../ts-crossplatform/src/index.ts'),
     },
   },
 });

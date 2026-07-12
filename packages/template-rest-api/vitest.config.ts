@@ -1,10 +1,7 @@
 import path from 'path';
-import { fileURLToPath } from 'url';
 
 import swc from 'unplugin-swc';
 import { defineConfig } from 'vitest/config';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   esbuild: false,
@@ -39,9 +36,9 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': '/src',
-      '@jsfsi-core/ts-crossplatform': path.resolve(__dirname, '../ts-crossplatform/src/index.ts'),
-      '@jsfsi-core/ts-nodejs': path.resolve(__dirname, '../ts-nodejs/src/index.ts'),
-      '@jsfsi-core/ts-nestjs': path.resolve(__dirname, '../ts-nestjs/src/index.ts'),
+      '@jsfsi-core/ts-crossplatform': path.resolve(import.meta.dirname, '../ts-crossplatform/src/index.ts'),
+      '@jsfsi-core/ts-nodejs': path.resolve(import.meta.dirname, '../ts-nodejs/src/index.ts'),
+      '@jsfsi-core/ts-nestjs': path.resolve(import.meta.dirname, '../ts-nestjs/src/index.ts'),
     },
   },
 });

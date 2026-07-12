@@ -28,10 +28,10 @@
         "noDocumentCookie": "off"
       },
       "correctness": {
-        "noUnusedImports": "error",
+        "noUnusedImports": { "level": "error", "fix": "safe" },
         "noUnusedVariables": "warn",
         "useExhaustiveDependencies": "off",
-        "noUnusedFunctionParameters": "off"
+        "noUnusedFunctionParameters": "warn"
       },
       "style": {
         "useImportType": "error",
@@ -43,11 +43,13 @@
         "useLiteralKeys": "off"
       },
       "a11y": {
-        "useButtonType": "off",
+        "useButtonType": "warn",
         "noStaticElementInteractions": "off",
-        "useKeyWithClickEvents": "off",
-        "useValidAnchor": "off",
-        "noRedundantAlt": "off"
+        "useKeyWithClickEvents": "warn",
+        "useValidAnchor": "warn",
+        "noRedundantAlt": "warn",
+        "noSvgWithoutTitle": "off",
+        "noLabelWithoutControl": "off"
       }
     }
   },
