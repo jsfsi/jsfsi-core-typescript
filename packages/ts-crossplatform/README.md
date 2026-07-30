@@ -473,7 +473,10 @@ class MyApiClient extends HttpSafeClient {
     tenantId: string,
     shiftId: string,
   ): Promise<
-    Result<void, NetworkFailure | NetworkConflictFailure | NotFoundFailure | DeleteShiftFailure>
+    Result<
+      void,
+      NetworkFailure | NetworkConflictFailure | ValidationFailure | NotFoundFailure | DeleteShiftFailure
+    >
   > {
     const [_, failure] = await this.fetch(
       `/tenants/${tenantId}/shifts/${shiftId}`,
@@ -490,10 +493,10 @@ class MyApiClient extends HttpSafeClient {
 
 - **path**: URL path (appended to `baseUrl`).
 - **responseSchema**: Zod schema to parse and validate the response body.
-- **failure**: Constructor for a custom `Failure` used when the server returns a non-2xx (other than 404/409) or when the body fails the schema.
+- **failure**: Constructor for a custom `Failure` used when the server returns a non-2xx (other than 400/404/409) or when the body fails the schema.
 - **options**: Standard `RequestInit` (method, body, headers, etc.).
 
-Returns `Promise<Result<T, NetworkFailure | NetworkConflictFailure | NotFoundFailure | F>>`.
+Returns `Promise<Result<T, NetworkFailure | NetworkConflictFailure | ValidationFailure | NotFoundFailure | F>>`.
 
 #### Empty responses (204 No Content)
 
@@ -520,11 +523,14 @@ The client never throws; it returns a `Result` with one of these failure types:
 
 | HTTP / situation | Failure type |
 |------------------|--------------|
-| 404 Not Found | `NotFoundFailure` |
-| 409 Conflict | `NetworkConflictFailure` (includes status, statusText, body) |
+| 400 Bad Request | `ValidationFailure` (`error` = response body, `metadata` = `{ status, statusText }`) |
+| 404 Not Found | `NotFoundFailure` (`error` = response body, `metadata` = `{ status, statusText }`) |
+| 409 Conflict | `NetworkConflictFailure` (`error` = response body, `metadata` = `{ status, statusText }`) |
 | Other non-2xx | Your custom failure `F` (error payload + metadata with status, statusText) |
 | Response body fails Zod schema | Your custom failure `F` |
 | Network error (e.g. no connection, redirect) | `NetworkFailure` |
+
+All built-in failures share the `(error, metadata?)` shape, where `error` holds the response body (or underlying error) and `metadata` holds `{ status, statusText }`.
 
 **Handling in callers:** use `isFailure` to narrow and handle each case:
 
@@ -534,6 +540,7 @@ import {
   NetworkConflictFailure,
   NetworkFailure,
   NotFoundFailure,
+  ValidationFailure,
 } from '@jsfsi-core/ts-crossplatform';
 
 const [data, failure] = await apiClient.fetch(
@@ -543,12 +550,16 @@ const [data, failure] = await apiClient.fetch(
   { method: 'GET' },
 );
 
+if (isFailure(ValidationFailure)(failure)) {
+  // 400 – invalid input; use failure.error (body) and failure.metadata (status, statusText)
+  return;
+}
 if (isFailure(NotFoundFailure)(failure)) {
   // 404 – show "not found" in UI or return
   return;
 }
 if (isFailure(NetworkConflictFailure)(failure)) {
-  // 409 – e.g. show conflict message, use failure.error (status, statusText, body)
+  // 409 – e.g. show conflict message; use failure.error (body) and failure.metadata (status, statusText)
   return;
 }
 if (isFailure(NetworkFailure)(failure)) {
@@ -564,7 +575,7 @@ if (isFailure(GetShiftsFailure)(failure)) {
 
 #### fetchBlob
 
-For binary responses (e.g. PDFs, files), use `fetchBlob`. It returns `Result<Blob, NetworkFailure | NotFoundFailure | F>` and does not use a response schema.
+For binary responses (e.g. PDFs, files), use `fetchBlob`. It returns `Result<Blob, NetworkFailure | ValidationFailure | NotFoundFailure | F>` and does not use a response schema.
 
 ```typescript
 const [blob, failure] = await this.apiClient.fetchBlob(
