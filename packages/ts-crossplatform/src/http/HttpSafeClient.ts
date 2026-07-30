@@ -6,6 +6,7 @@ import { Fail, Ok, type Result } from '../result/result';
 import { NetworkConflictFailure } from './failures/NetworkConflictFailure';
 import { NetworkFailure } from './failures/NetworkFailure';
 import { NotFoundFailure } from './failures/NotFoundFailure';
+import { ValidationFailure } from './failures/ValidationFailure';
 
 export abstract class HttpSafeClient {
   constructor(private readonly baseUrl: string) {}
@@ -17,7 +18,7 @@ export abstract class HttpSafeClient {
     responseSchema: z.ZodType<T>,
     failure: new (error: unknown, metadata?: unknown) => F,
     options: RequestInit = {},
-  ): Promise<Result<T, NetworkFailure | NetworkConflictFailure | NotFoundFailure | F>> {
+  ): Promise<Result<T, NetworkFailure | NetworkConflictFailure | ValidationFailure | NotFoundFailure | F>> {
     try {
       const headers = await this.mergeHeaders(options.headers);
 
@@ -28,20 +29,50 @@ export abstract class HttpSafeClient {
 
       if (response.status === 409) {
         return Fail(
-          new NetworkConflictFailure({
-            status: response.status,
-            statusText: response.statusText,
+          new NetworkConflictFailure(
             /* v8 ignore start -- @preserve */
-            body: await response.json().catch(() => {
+            await response.json().catch(() => {
               return response.text();
             }),
             /* v8 ignore end -- @preserve */
-          }),
+            {
+              status: response.status,
+              statusText: response.statusText,
+            },
+          ),
         );
       }
 
       if (response.status === 404) {
-        return Fail(new NotFoundFailure());
+        return Fail(
+          new NotFoundFailure(
+            /* v8 ignore start -- @preserve */
+            await response.json().catch(() => {
+              return response.text();
+            }),
+            /* v8 ignore end -- @preserve */
+            {
+              status: response.status,
+              statusText: response.statusText,
+            },
+          ),
+        );
+      }
+
+      if (response.status === 400) {
+        return Fail(
+          new ValidationFailure(
+            /* v8 ignore start -- @preserve */
+            await response.json().catch(() => {
+              return response.text();
+            }),
+            /* v8 ignore end -- @preserve */
+            {
+              status: response.status,
+              statusText: response.statusText,
+            },
+          ),
+        );
       }
 
       if (!response.ok) {
@@ -77,7 +108,7 @@ export abstract class HttpSafeClient {
     path: string,
     failure: new (error: unknown, metadata?: unknown) => F,
     options: RequestInit = {},
-  ): Promise<Result<Blob, NetworkFailure | NotFoundFailure | F>> {
+  ): Promise<Result<Blob, NetworkFailure | ValidationFailure | NotFoundFailure | F>> {
     try {
       const headers = await this.mergeHeaders(options.headers);
 
@@ -87,7 +118,35 @@ export abstract class HttpSafeClient {
       });
 
       if (response.status === 404) {
-        return Fail(new NotFoundFailure());
+        return Fail(
+          new NotFoundFailure(
+            /* v8 ignore start -- @preserve */
+            await response.json().catch(() => {
+              return response.text();
+            }),
+            /* v8 ignore end -- @preserve */
+            {
+              status: response.status,
+              statusText: response.statusText,
+            },
+          ),
+        );
+      }
+
+      if (response.status === 400) {
+        return Fail(
+          new ValidationFailure(
+            /* v8 ignore start -- @preserve */
+            await response.json().catch(() => {
+              return response.text();
+            }),
+            /* v8 ignore end -- @preserve */
+            {
+              status: response.status,
+              statusText: response.statusText,
+            },
+          ),
+        );
       }
 
       if (!response.ok) {

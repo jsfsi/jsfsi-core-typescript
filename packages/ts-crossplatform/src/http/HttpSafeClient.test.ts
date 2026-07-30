@@ -8,6 +8,7 @@ import { Fail, Ok } from '../result/result';
 import { NetworkConflictFailure } from './failures/NetworkConflictFailure';
 import { NetworkFailure } from './failures/NetworkFailure';
 import { NotFoundFailure } from './failures/NotFoundFailure';
+import { ValidationFailure } from './failures/ValidationFailure';
 import { HttpSafeClient } from './HttpSafeClient';
 import { EmptyResponse } from './models/EmptyResponse';
 
@@ -229,7 +230,7 @@ describe('HttpSafeClient', () => {
     });
 
     describe('error handling', () => {
-      it('returns a failure when response is not ok (status: 400)', async () => {
+      it('returns a validation failure when response is 400', async () => {
         const baseUrl = 'https://example.test';
         const errorResponse = { error: 'Bad Request', message: 'Invalid input' };
 
@@ -248,12 +249,9 @@ describe('HttpSafeClient', () => {
 
         expect(result).toEqual(
           Fail(
-            new TestFailure({
-              error: errorResponse,
-              metadata: {
-                status: 400,
-                statusText: 'Bad Request',
-              },
+            new ValidationFailure(errorResponse, {
+              status: 400,
+              statusText: 'Bad Request',
             }),
           ),
         );
@@ -367,11 +365,13 @@ describe('HttpSafeClient', () => {
 
         expect(result).toEqual(
           Fail(
-            new NetworkConflictFailure({
-              status: 409,
-              statusText: 'Conflict',
-              body: { error: 'Conflict' },
-            }),
+            new NetworkConflictFailure(
+              { error: 'Conflict' },
+              {
+                status: 409,
+                statusText: 'Conflict',
+              },
+            ),
           ),
         );
       });
@@ -392,7 +392,17 @@ describe('HttpSafeClient', () => {
           method: 'GET',
         });
 
-        expect(result).toEqual(Fail(new NotFoundFailure()));
+        expect(result).toEqual(
+          Fail(
+            new NotFoundFailure(
+              { error: 'Not Found' },
+              {
+                status: 404,
+                statusText: 'Not Found',
+              },
+            ),
+          ),
+        );
       });
     });
   });
@@ -456,7 +466,7 @@ describe('HttpSafeClient', () => {
     });
 
     describe('error handling', () => {
-      it('returns a failure when response is not ok (status: 400)', async () => {
+      it('returns a validation failure when response is 400', async () => {
         const baseUrl = 'https://example.test';
         const errorResponse = { error: 'Bad Request', message: 'Invalid input' };
 
@@ -474,7 +484,7 @@ describe('HttpSafeClient', () => {
 
         expect(result).toEqual(
           Fail(
-            new TestFailure(errorResponse, {
+            new ValidationFailure(errorResponse, {
               status: 400,
               statusText: 'Bad Request',
             }),
@@ -525,7 +535,17 @@ describe('HttpSafeClient', () => {
           method: 'GET',
         });
 
-        expect(result).toEqual(Fail(new NotFoundFailure()));
+        expect(result).toEqual(
+          Fail(
+            new NotFoundFailure(
+              { error: 'Not Found' },
+              {
+                status: 404,
+                statusText: 'Not Found',
+              },
+            ),
+          ),
+        );
       });
 
       it('returns a network failure when it is unable to connect', async () => {

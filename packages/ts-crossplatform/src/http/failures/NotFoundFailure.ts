@@ -1,7 +1,10 @@
 import { Failure } from '../../failures/failure';
 
 export class NotFoundFailure extends Failure {
-  constructor() {
+  constructor(
+    public readonly error?: unknown,
+    public readonly metadata?: unknown,
+  ) {
     super();
   }
 }

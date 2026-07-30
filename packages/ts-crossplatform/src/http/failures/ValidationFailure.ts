@@ -1,6 +1,6 @@
 import { Failure } from '../../failures/failure';
 
-export class NetworkFailure extends Failure {
+export class ValidationFailure extends Failure {
   constructor(
     public readonly error: unknown,
     public readonly metadata?: unknown,
