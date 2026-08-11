@@ -32,26 +32,26 @@ describe('UserService', () => {
   });
 
   describe('#decodeUser', () => {
-    it.each([
-      undefined,
-      mock<User>({ id: 'some-user-id', email: 'some-user-email' }),
-    ])('returns user %s from the request', async (user?: User) => {
-      const authorizationAdapter = app.get(AuthorizationAdapter);
+    it.each([undefined, mock<User>({ id: 'some-user-id', email: 'some-user-email' })])(
+      'returns user %s from the request',
+      async (user?: User) => {
+        const authorizationAdapter = app.get(AuthorizationAdapter);
 
-      const decodeUserSpy = vi.spyOn(authorizationAdapter, 'decodeUser').mockResolvedValue(Ok(user));
+        const decodeUserSpy = vi.spyOn(authorizationAdapter, 'decodeUser').mockResolvedValue(Ok(user));
 
-      const userService = app.get(UserService);
+        const userService = app.get(UserService);
 
-      const decodedUser = await userService.decodeUser({
-        rawAuthorization: 'some-raw-authorization',
-      });
+        const decodedUser = await userService.decodeUser({
+          rawAuthorization: 'some-raw-authorization',
+        });
 
-      expect(decodedUser).toEqual(Ok(user));
-      expect(decodeUserSpy).toHaveBeenCalledTimes(1);
-      expect(decodeUserSpy).toHaveBeenCalledWith({
-        rawAuthorization: 'some-raw-authorization',
-      });
-    });
+        expect(decodedUser).toEqual(Ok(user));
+        expect(decodeUserSpy).toHaveBeenCalledTimes(1);
+        expect(decodeUserSpy).toHaveBeenCalledWith({
+          rawAuthorization: 'some-raw-authorization',
+        });
+      },
+    );
   });
 
   describe('#getUserRoles', () => {
