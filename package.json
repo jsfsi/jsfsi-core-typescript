@@ -22,17 +22,17 @@
     "update:deps": "ncu -u --workspaces"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.8",
-    "@types/node": "26.2.0",
+    "@biomejs/biome": "2.5.10",
+    "@types/node": "26.4.0",
     "@typescript/typescript6": "6.0.2",
     "ajv": "8.20.0",
     "concurrently": "10.0.5",
-    "npm-check-updates": "23.0.2",
+    "npm-check-updates": "23.1.0",
     "tsx": "4.23.12",
     "typescript": "7.0.2"
   },
   "engines": {
-    "node": "26.7.0",
+    "node": "26.8.1",
     "npm": "11.19.0"
   }
 }

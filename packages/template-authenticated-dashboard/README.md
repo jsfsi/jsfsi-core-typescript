@@ -556,7 +556,7 @@ async function signIn(email, password) {
 
 ### Prerequisites
 
-- Node.js 26.7.0
+- Node.js 26.8.1
 - npm 11.19.0
 - Firebase project (for authentication)
 

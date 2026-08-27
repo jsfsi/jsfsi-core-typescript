@@ -7,7 +7,7 @@ v2 upgrades the toolchain and runtime across all packages:
 | Component | v1 | v2 |
 |-----------|----|----|
 | TypeScript | 6.0.3 | 7.0.2 |
-| Node.js | 22.x | 26.7.0 |
+| Node.js | 22.x | 26.8.1 |
 | Linting | ESLint 10.7 + Prettier 3.9 | Biome 2.5.3 |
 | Vite | 8.x | 8.x (rolldown) |
 | `firebase-admin` (template-rest-api) | 13.8.0 | 14.1.0 |
