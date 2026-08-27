@@ -1,6 +1,7 @@
 {
   "name": "@jsfsi-core/template-authenticated-dashboard",
   "version": "2.0.0",
+  "type": "module",
   "scripts": {
     "add:shadcn": "sh -c 'npx shadcn add \"$1\" --yes && if [ -d src/ui/components/ui ]; then mv src/ui/components/ui/* src/ui/components/ 2>/dev/null; rmdir src/ui/components/ui 2>/dev/null; fi' --",
     "build": "npm run lint && tsc && vite build",

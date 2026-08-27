@@ -41,6 +41,6 @@ npm run test:integration # Integration tests only
 ## Testing
 
 - Vitest with v8 provider, 100% coverage enforced
-- Unit and integration configs: `vitest.unit.config.ts`, `vitest.integration.config.ts`
+- Unit and integration configs: `vitest.unit.config.mts`, `vitest.integration.config.mts`
 - Use `createTestingApp(AppModule)` for integration tests
 - Config from `.env.test` — don't mock ConfigService

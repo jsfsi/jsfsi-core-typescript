@@ -20,10 +20,10 @@
     "start:dist": "node dist/src/main.js",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:integration": "vitest run --config ./vitest.integration.config.ts",
-    "test:integration:watch": "vitest --config ./vitest.integration.config.ts",
-    "test:unit": "vitest run --config ./vitest.unit.config.ts",
-    "test:unit:watch": "vitest --config ./vitest.unit.config.ts",
+    "test:integration": "vitest run --config ./vitest.integration.config.mts",
+    "test:integration:watch": "vitest --config ./vitest.integration.config.mts",
+    "test:unit": "vitest run --config ./vitest.unit.config.mts",
+    "test:unit:watch": "vitest --config ./vitest.unit.config.mts",
     "test:watch": "vitest"
   },
   "dependencies": {
