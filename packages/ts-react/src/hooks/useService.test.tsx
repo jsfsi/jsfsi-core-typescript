@@ -122,4 +122,115 @@ describe('useService', () => {
 
     consoleErrorSpy.mockRestore();
   });
+
+  describe('superseded requests', () => {
+    function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void; reject: (error: Error) => void } {
+      let resolve: (value: T) => void = () => undefined;
+      let reject: (error: Error) => void = () => undefined;
+      const promise = new Promise<T>((res, rej) => {
+        resolve = res;
+        reject = rej;
+      });
+      return { promise, resolve, reject };
+    }
+
+    it('keeps the newer data when an older request resolves after the newer one', async () => {
+      const requests: Record<string, ReturnType<typeof deferred<string>>> = {
+        first: deferred<string>(),
+        second: deferred<string>(),
+      };
+      const service = vi.fn((key: string) => requests[key]!.promise);
+
+      const { result, rerender } = renderHook(({ key }) => useService({ service: () => service(key) }, [key]), {
+        initialProps: { key: 'first' },
+      });
+
+      rerender({ key: 'second' });
+
+      await act(async () => {
+        requests.second!.resolve('second data');
+      });
+      await act(async () => {
+        requests.first!.resolve('first data');
+      });
+
+      expect(result.current.data).toBe('second data');
+      expect(result.current.fetching).toBe(false);
+      expect(service.mock.calls).toEqual([['first'], ['second']]);
+    });
+
+    it('keeps fetching true until the latest request resolves', async () => {
+      const requests: Record<string, ReturnType<typeof deferred<string>>> = {
+        first: deferred<string>(),
+        second: deferred<string>(),
+      };
+      const service = vi.fn((key: string) => requests[key]!.promise);
+
+      const { result, rerender } = renderHook(({ key }) => useService({ service: () => service(key) }, [key]), {
+        initialProps: { key: 'first' },
+      });
+
+      rerender({ key: 'second' });
+
+      await act(async () => {
+        requests.first!.resolve('first data');
+      });
+
+      expect(result.current.fetching).toBe(true);
+      expect(result.current.data).toBeUndefined();
+
+      await act(async () => {
+        requests.second!.resolve('second data');
+      });
+
+      expect(result.current.fetching).toBe(false);
+      expect(result.current.data).toBe('second data');
+    });
+
+    it('ignores an error from a superseded request', async () => {
+      const requests: Record<string, ReturnType<typeof deferred<string>>> = {
+        first: deferred<string>(),
+        second: deferred<string>(),
+      };
+      const service = vi.fn((key: string) => requests[key]!.promise);
+
+      const { result, rerender } = renderHook(({ key }) => useService({ service: () => service(key) }, [key]), {
+        initialProps: { key: 'first' },
+      });
+
+      rerender({ key: 'second' });
+
+      await act(async () => {
+        requests.first!.reject(new Error('stale failure'));
+      });
+      await act(async () => {
+        requests.second!.resolve('second data');
+      });
+
+      expect(result.current.data).toBe('second data');
+      expect(result.current.fetching).toBe(false);
+    });
+
+    it('does not update state after unmount', async () => {
+      const consoleErrorSpy = vi.spyOn(console, 'error');
+      const request = deferred<string>();
+      const service = vi.fn(() => request.promise);
+
+      const { result, unmount } = renderHook(() => useService({ service }, []));
+
+      expect(result.current.fetching).toBe(true);
+
+      unmount();
+
+      await act(async () => {
+        request.resolve('late data');
+      });
+
+      expect(result.current.data).toBeUndefined();
+      expect(result.current.fetching).toBe(true);
+      expect(consoleErrorSpy).not.toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
+    });
+  });
 });
