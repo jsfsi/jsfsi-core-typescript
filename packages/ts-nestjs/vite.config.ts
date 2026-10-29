@@ -18,6 +18,7 @@ export default defineConfig({
 
   build: {
     target: 'node24', // Node target (adjust to your runtime)
+    minify: false,
     emptyOutDir: true,
     lib: {
       entry: 'src/index.ts',

@@ -7,6 +7,7 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'tsconfig.json'
+      - 'scripts/check-dist-names.mjs'
       - 'packages/ts-crossplatform/**'
       - '.github/workflows/pr-packages-ts-crossplatform.yml'
 

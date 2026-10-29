@@ -23,7 +23,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "npm run lint && tsc --noEmit && vite build",
+    "build": "npm run lint && tsc --noEmit && vite build && node ../../scripts/check-dist-names.mjs",
     "build:watch": "tsc && (tsc --watch & vite build --watch)",
     "clean": "rm -rf dist && rm -rf node_modules && rm -rf coverage",
     "format": "biome format --write src",
