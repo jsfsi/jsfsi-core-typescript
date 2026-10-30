@@ -35,14 +35,14 @@
   },
   "dependencies": {
     "@jsfsi-core/ts-crossplatform": "file:../ts-crossplatform",
-    "dotenv": "17.4.2",
+    "dotenv": "18.0.9",
     "fast-safe-stringify": "2.1.1",
-    "typeorm": "1.1.0"
+    "typeorm": "1.1.2"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "4.1.11",
-    "vite": "8.2.2",
-    "vite-plugin-dts": "5.0.3",
-    "vitest": "4.1.11"
+    "@vitest/coverage-v8": "5.0.5",
+    "vite": "8.3.5",
+    "vite-plugin-dts": "5.1.2",
+    "vitest": "5.0.5"
   }
 }

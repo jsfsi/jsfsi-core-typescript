@@ -34,14 +34,14 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "uuid": "14.0.2",
-    "zod": "4.4.3"
+    "uuid": "14.0.3",
+    "zod": "4.6.7"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "4.1.11",
-    "nock": "14.0.17",
-    "vite": "8.2.2",
-    "vite-plugin-dts": "5.0.3",
-    "vitest": "4.1.11"
+    "@vitest/coverage-v8": "5.0.5",
+    "nock": "15.0.5",
+    "vite": "8.3.5",
+    "vite-plugin-dts": "5.1.2",
+    "vitest": "5.0.5"
   }
 }

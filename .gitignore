@@ -39,3 +39,5 @@ yarn-error.log*
 Thumbs.db 
 
 coverage/
+
+.claude/worktrees/*

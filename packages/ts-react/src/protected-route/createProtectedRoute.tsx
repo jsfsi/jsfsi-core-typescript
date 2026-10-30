@@ -7,6 +7,7 @@ type ProtectedRouteProps = {
 };
 
 export function createProtectedRoute<TUser>(useAuth: () => { currentUser: TUser | null; loading: boolean }) {
+  // biome-ignore lint/correctness/noComponentHookFactories: factory is called once at module level by consumers
   return function ProtectedRoute({ children, redirectTo = '/login', loader: Loader }: ProtectedRouteProps) {
     const { currentUser, loading } = useAuth();
 

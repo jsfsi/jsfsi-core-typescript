@@ -325,10 +325,12 @@ describe('HttpSafeClient', () => {
           method: 'GET',
         });
 
-        expect(result).toEqual(Fail(new NetworkFailure(new Error('Network error'))));
+        expect(result).toEqual(
+          Fail(new NetworkFailure(new TypeError('fetch failed', { cause: new Error('Network error') }))),
+        );
       });
 
-      it('handles redirect responses (301, 302) as network failures', async () => {
+      it('returns the custom failure for a redirect response without a location', async () => {
         const baseUrl = 'https://example.test';
 
         nock(baseUrl)
@@ -344,7 +346,17 @@ describe('HttpSafeClient', () => {
           method: 'GET',
         });
 
-        expect(result).toEqual(Fail(new NetworkFailure(expect.any(Error))));
+        expect(result).toEqual(
+          Fail(
+            new TestFailure({
+              error: { error: 'Moved Permanently' },
+              metadata: {
+                status: 301,
+                statusText: 'Moved Permanently',
+              },
+            }),
+          ),
+        );
       });
 
       it('returns a network conflict failure when response is 409', async () => {
@@ -563,7 +575,9 @@ describe('HttpSafeClient', () => {
           method: 'GET',
         });
 
-        expect(result).toEqual(Fail(new NetworkFailure(new Error('Network error'))));
+        expect(result).toEqual(
+          Fail(new NetworkFailure(new TypeError('fetch failed', { cause: new Error('Network error') }))),
+        );
       });
     });
   });
