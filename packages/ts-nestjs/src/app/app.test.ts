@@ -6,6 +6,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { appConfigModuleSetup } from '../configuration/AppConfigurationService';
 import { createTestingApp } from '../test/testing-app';
 
+import { JsonBodyLimit } from './JsonBodyLimit';
+
 @Controller('test')
 class TestController {
   private logger = new Logger(TestController.name);
@@ -27,9 +29,18 @@ class TestController {
   }
 }
 
+@JsonBodyLimit('1mb')
+@Controller(['large', '/larger'])
+class LargeBodyController {
+  @Post('echo-length')
+  echoLength(@Body() body: { text: string }): { length: number } {
+    return { length: body.text.length };
+  }
+}
+
 @Module({
   imports: [appConfigModuleSetup()],
-  controllers: [TestController],
+  controllers: [TestController, LargeBodyController],
 })
 class TestModule {}
 
@@ -90,6 +101,32 @@ describe('app', () => {
 
       expect(response.status).toBe(201);
       expect(response.body).toEqual({ length: 200_000 });
+    });
+
+    it.each(['/large', '/larger'])('accepts a JSON body up to its controller JSON body limit on %s', async (path) => {
+      const app = await createTestingApp(TestModule, {
+        logger: new MockLogger(),
+      });
+
+      const response = await request(app.getHttpServer())
+        .post(`${path}/echo-length`)
+        .send({ text: 'a'.repeat(200_000) });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual({ length: 200_000 });
+    });
+
+    it('refuses a JSON body over its controller JSON body limit', async () => {
+      process.env.JSON_BODY_LIMIT = '32mb';
+      const app = await createTestingApp(TestModule, {
+        logger: new MockLogger(),
+      });
+
+      const response = await request(app.getHttpServer())
+        .post('/large/echo-length')
+        .send({ text: 'a'.repeat(2_000_000) });
+
+      expect(response.status).toBe(413);
     });
 
     it('logs using the provided logger', async () => {

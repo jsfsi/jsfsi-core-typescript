@@ -1,5 +1,6 @@
 export * from './app/app';
 export * from './app/bootstrap';
+export * from './app/JsonBodyLimit';
 export * from './configuration/AppConfigurationService';
 export * from './guards/InMemoryRateLimitGuard';
 export * from './logger/CustomLogger';

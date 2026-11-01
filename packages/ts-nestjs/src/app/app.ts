@@ -1,15 +1,38 @@
 import { type INestApplication, Logger, type LoggerService, type Type } from '@nestjs/common';
+import { PATH_METADATA } from '@nestjs/common/constants';
 import { ConfigService } from '@nestjs/config';
-import { HttpAdapterHost, NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, ModulesContainer, NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
+import { json } from 'express';
 
 import { APP_CONFIG_TOKEN, type AppConfig } from '../configuration/AppConfigurationService';
 import { AllExceptionsFilter } from '../filters/AllExceptionsFilter';
+
+import { JSON_BODY_LIMIT_METADATA } from './JsonBodyLimit';
 
 export type AppOptions = {
   existentApp?: INestApplication;
   existentLogger?: LoggerService;
   appModule?: Type;
+};
+
+const useControllerJsonBodyLimits = (app: INestApplication) => {
+  for (const module of app.get(ModulesContainer).values()) {
+    // A controller is registered under its own class.
+    for (const controller of module.controllers.keys()) {
+      const limit: string | number | undefined = Reflect.getMetadata(JSON_BODY_LIMIT_METADATA, controller);
+
+      if (limit === undefined) {
+        continue;
+      }
+
+      const paths: string[] = [Reflect.getMetadata(PATH_METADATA, controller)].flat();
+
+      for (const path of paths) {
+        app.use(`/${path.replace(/^\/+/, '')}`, json({ limit }));
+      }
+    }
+  }
 };
 
 export const createApp = async ({
@@ -46,7 +69,10 @@ export const createApp = async ({
 
   logger.setLogLevels?.(config.LOG_LEVELS);
 
-  // Registered before init, so Nest skips its default 100kb JSON parser.
+  // Registered before init, so Nest skips its default 100kb JSON parser. A
+  // controller's own limit is mounted first: the app-wide parser then finds the
+  // body already read and leaves it.
+  useControllerJsonBodyLimits(app);
   (app as NestExpressApplication).useBodyParser('json', { limit: config.JSON_BODY_LIMIT });
 
   const httpAdapterHost = app.get(HttpAdapterHost);
