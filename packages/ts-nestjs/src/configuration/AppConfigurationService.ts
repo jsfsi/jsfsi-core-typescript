@@ -36,6 +36,7 @@ export const AppConfigSchema = z.object({
     .default('3600')
     .transform((val) => parseInt(val, 10))
     .refine((val) => !isNaN(val), { message: 'CORS_MAX_AGE must be a valid number' }),
+  JSON_BODY_LIMIT: z.string().default('100kb'),
   CORE_API_VERSION: z.string().default('latest'),
   LOG_LEVELS: z
     .string()

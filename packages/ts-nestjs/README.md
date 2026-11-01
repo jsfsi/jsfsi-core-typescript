@@ -76,6 +76,7 @@ The `bootstrap` function:
 - Retrieves configuration using `ConfigService` with `APP_CONFIG_TOKEN`
 - Automatically starts the application on the port specified in your configuration
 - Handles CORS, exception filters, and logging setup
+- Parses JSON request bodies up to `JSON_BODY_LIMIT` (a [`bytes`](https://www.npmjs.com/package/bytes) size such as `32mb`; default `100kb`) — `createTestingApp` applies the same limit
 
 **Important**: Your `AppModule` must import `appConfigModuleSetup()` to register the configuration with the `APP_CONFIG_TOKEN`. The bootstrap function will throw an error if the configuration is not found.
 

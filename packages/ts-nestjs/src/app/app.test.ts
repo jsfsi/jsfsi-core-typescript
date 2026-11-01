@@ -1,5 +1,5 @@
 import { MockLogger } from '@jsfsi-core/ts-nodejs';
-import { BadRequestException, Controller, Get, Logger, Module } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Logger, Module, Post } from '@nestjs/common';
 import request from 'supertest';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
@@ -20,6 +20,11 @@ class TestController {
   httpError() {
     throw new BadRequestException('test');
   }
+
+  @Post('echo-length')
+  echoLength(@Body() body: { text: string }): { length: number } {
+    return { length: body.text.length };
+  }
 }
 
 @Module({
@@ -31,6 +36,7 @@ class TestModule {}
 describe('app', () => {
   afterEach(() => {
     vi.clearAllMocks();
+    delete process.env.JSON_BODY_LIMIT;
   });
 
   describe('createApp', () => {
@@ -58,6 +64,32 @@ describe('app', () => {
         message: 'test',
         statusCode: 400,
       });
+    });
+
+    it('refuses a JSON body over the default 100kb limit', async () => {
+      const app = await createTestingApp(TestModule, {
+        logger: new MockLogger(),
+      });
+
+      const response = await request(app.getHttpServer())
+        .post('/test/echo-length')
+        .send({ text: 'a'.repeat(200_000) });
+
+      expect(response.status).toBe(413);
+    });
+
+    it('accepts a JSON body up to the configured JSON_BODY_LIMIT', async () => {
+      process.env.JSON_BODY_LIMIT = '1mb';
+      const app = await createTestingApp(TestModule, {
+        logger: new MockLogger(),
+      });
+
+      const response = await request(app.getHttpServer())
+        .post('/test/echo-length')
+        .send({ text: 'a'.repeat(200_000) });
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual({ length: 200_000 });
     });
 
     it('logs using the provided logger', async () => {

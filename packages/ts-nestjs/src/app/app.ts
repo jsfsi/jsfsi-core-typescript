@@ -46,6 +46,9 @@ export const createApp = async ({
 
   logger.setLogLevels?.(config.LOG_LEVELS);
 
+  // Registered before init, so Nest skips its default 100kb JSON parser.
+  (app as NestExpressApplication).useBodyParser('json', { limit: config.JSON_BODY_LIMIT });
+
   const httpAdapterHost = app.get(HttpAdapterHost);
   app.useGlobalFilters(new AllExceptionsFilter(httpAdapterHost));
 
