@@ -19,6 +19,11 @@ export type { User } from './auth/User';
 export type { CrashlyticsContextType } from './error-boundary/CrashlyticsContext';
 export { CrashlyticsContext, useCrashlytics } from './error-boundary/CrashlyticsContext';
 export { CrashlyticsProvider } from './error-boundary/CrashlyticsProvider';
+export type {
+  CrashlyticsReport,
+  CrashlyticsReporter,
+  CrashlyticsReportSource,
+} from './error-boundary/CrashlyticsReport';
 export type { ErrorBoundaryProps } from './error-boundary/ErrorBoundary';
 export { ErrorBoundary } from './error-boundary/ErrorBoundary';
 export { Form } from './form/Form';

@@ -1,5 +1,7 @@
 import React, { Component, type ReactNode } from 'react';
 
+import { type CrashlyticsReporter, notifyReporter } from './CrashlyticsReport';
+
 interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
@@ -8,14 +10,13 @@ interface ErrorBoundaryState {
 export interface ErrorBoundaryProps {
   children?: ReactNode;
   fallback?: React.ComponentType<{ error: Error | null }>;
+  onReport?: CrashlyticsReporter;
 }
 
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
-
-    window.addEventListener('unhandledrejection', this.unhandledRejectionHandler);
   }
 
   public static getDerivedStateFromError(error: Error) {
@@ -25,19 +26,28 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   public componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // biome-ignore lint/suspicious/noConsole: error boundary needs console.error
     console.error(error, errorInfo);
+    notifyReporter(this.props.onReport, {
+      source: 'boundary',
+      args: [error],
+      componentStack: errorInfo.componentStack ?? undefined,
+    });
+  }
+
+  public componentDidMount(): void {
+    window.addEventListener('unhandledrejection', this.unhandledRejectionHandler);
   }
 
   public componentWillUnmount(): void {
-    window.removeEventListener('unhandledrejection', this.unhandledRejectionHandler.bind(this));
+    window.removeEventListener('unhandledrejection', this.unhandledRejectionHandler);
   }
 
-  /* v8 ignore next -- @preserve */
-  private unhandledRejectionHandler(event: PromiseRejectionEvent): void {
+  private readonly unhandledRejectionHandler = (event: PromiseRejectionEvent): void => {
     // biome-ignore lint/suspicious/noConsole: error boundary needs console.error
     console.error(event.reason);
+    notifyReporter(this.props.onReport, { source: 'unhandled-rejection', args: [event.reason] });
 
     this.setState({ hasError: true, error: event.reason });
-  }
+  };
 
   public render() {
     if (this.state.hasError) {
